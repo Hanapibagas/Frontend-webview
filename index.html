@@ -356,7 +356,7 @@
 
                     <!-- Floating Play Button -->
                     <button id="playAllBtn"
-                        class="fixed bottom-24 right-4 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition z-20">
+                        class="fixed bottom-32 right-4 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition z-20">
                         <i class="fas fa-play text-xl"></i>
                     </button>
                 </div>
@@ -1005,7 +1005,7 @@
 
                     // Fetch audio data from API first
                     UI.toast('Memuat audio...');
-                    const response = await fetch(`${QuranAPI.BASE_URL}/surah/${this.currentSurah.number}/${ayahNumber}/editions/ar.alafasy`);
+                    const response = await fetch(`${QuranAPI.BASE_URL}/surah/${this.currentSurah.number}/editions/ar.alafasy`);
                     const data = await response.json();
 
                     if (data.code !== 200) {
@@ -1013,7 +1013,8 @@
                     }
 
                     // Get actual audio URL from API response
-                    const audioUrl = data.data.audio;
+                    // Response structure: data.data[0].ayahs[ayahNumber - 1].audio
+                    const audioUrl = data.data[0].ayahs[ayahNumber - 1].audio;
                     this.audio = new Audio(audioUrl);
 
                     // Setup audio events
