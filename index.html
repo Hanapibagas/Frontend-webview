@@ -375,6 +375,76 @@
                     </div>
                 </div>
 
+                <!-- Prayer Times Page -->
+                <div id="prayerTimesPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Location Info Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-map-marker-alt text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">Lokasi Anda</p>
+                                    <p id="locationName" class="font-semibold">Mendeteksi lokasi...</p>
+                                </div>
+                            </div>
+                            <p id="coordinates" class="text-xs text-primary-200 hidden">Lat: -, Long: -</p>
+                            <button id="refreshLocation" class="mt-2 text-xs text-primary-100 hover:text-white transition">
+                                <i class="fas fa-sync-alt mr-1"></i> Perbarui lokasi
+                            </button>
+                        </div>
+
+                        <!-- Date Info -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p id="currentDate" class="font-semibold text-gray-800">-</p>
+                                <p id="hijriDate" class="text-sm text-gray-500">-</p>
+                            </div>
+                            <button id="settingsBtn" class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 hover:bg-primary-200 transition">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+
+                        <!-- Prayer Times List -->
+                        <div id="prayerTimesList" class="space-y-3">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-gray-500 text-sm">Memuat jadwal sholat...</p>
+                            </div>
+                        </div>
+
+                        <!-- Next Prayer Countdown -->
+                        <div id="nextPrayerBanner" class="fixed bottom-24 left-4 right-4 bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-4 text-white shadow-lg hidden">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-bell animate-pulse-slow"></i>
+                                    <div>
+                                        <p class="text-xs text-primary-100">Menuju waktu</p>
+                                        <p id="nextPrayerName" class="font-semibold">-</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p id="nextPrayerCountdown" class="text-xl font-bold">- : - : -</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Permission Banner -->
+                        <div id="notificationBanner" class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 hidden">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-bell text-amber-600 mt-1"></i>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-amber-800 text-sm">Aktifkan Notifikasi</p>
+                                    <p class="text-xs text-amber-700 mt-1">Dapatkan notifikasi saat waktu sholat tiba</p>
+                                    <button id="enableNotifications" class="mt-2 px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition">
+                                        Aktifkan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -474,7 +544,10 @@
                 LAST_READ: 'alquran_last_read',
                 SETTINGS: 'alquran_settings',
                 CACHE_SURAH_LIST: 'alquran_cache_surah_list',
-                CACHE_SURAH_DETAIL: 'alquran_cache_surah_detail_'
+                CACHE_SURAH_DETAIL: 'alquran_cache_surah_detail_',
+                LOCATION: 'alquran_location',
+                PRAYER_SETTINGS: 'alquran_prayer_settings',
+                PRAYER_TIMES: 'alquran_prayer_times_'
             },
 
             // Bookmark specific functions
@@ -670,111 +743,584 @@
         };
 
         /**
-         * Quran API Handler
-         * Mengambil data dari AlQuran Cloud API
-         * API Documentation: https://alquran.cloud/api
+         * Prayer Times API Handler
+         * Mengambil data jadwal sholat dari Aladhan API
+         * API Documentation: https://aladhan.com/prayer-times-api
          */
-        const QuranAPI = {
-            BASE_URL: 'https://api.alquran.cloud/v1',
+        const PrayerTimesAPI = {
+            BASE_URL: 'https://api.aladhan.com/v1',
 
             /**
-             * Get list of all surahs
-             * @returns {Promise<Array>} Array of surah objects
+             * Get prayer times by coordinates
+             * @param {number} latitude - Latitude coordinate
+             * @param {number} longitude - Longitude coordinate
+             * @param {number} timestamp - Optional timestamp for specific date
+             * @returns {Promise<Object>} Prayer times data
              */
-            async getSurahList() {
+            async getPrayerTimes(latitude, longitude, timestamp = null) {
                 try {
-                    // Check cache first
-                    const cached = Storage.getCachedSurahList();
-                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+                    const date = timestamp ? new Date(timestamp) : new Date();
+                    const params = new URLSearchParams({
+                        latitude: latitude.toString(),
+                        longitude: longitude.toString(),
+                        method: '20', // Kemenag RI (Indonesia)
+                        school: '1'  // Shafi
+                    });
 
-                    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-                        console.log('Using cached surah list');
-                        return cached.data;
+                    // Add date parameters if not today
+                    if (timestamp) {
+                        params.append('timestamp', timestamp.toString());
                     }
 
-                    const response = await fetch(`${this.BASE_URL}/surah`);
+                    const response = await fetch(`${this.BASE_URL}/timings?${params}`);
                     const data = await response.json();
 
                     if (data.code === 200) {
-                        const surahs = data.data;
-                        Storage.setCachedSurahList(surahs);
-                        return surahs;
+                        return data.data;
                     }
 
-                    throw new Error('Failed to fetch surah list');
+                    throw new Error('Failed to fetch prayer times');
                 } catch (error) {
-                    console.error('Error fetching surah list:', error);
+                    console.error('Error fetching prayer times:', error);
                     throw error;
                 }
             },
 
             /**
-             * Get surah with Indonesian translation
-             * @param {number} surahNumber - Surah number (1-114)
-             * @returns {Promise<Object>} Surah object with translated verses
+             * Get location info from coordinates (reverse geocoding)
+             * @param {number} latitude - Latitude coordinate
+             * @param {number} longitude - Longitude coordinate
+             * @returns {Promise<Object>} Location information
              */
-            async getSurahWithTranslation(surahNumber) {
+            async getLocationInfo(latitude, longitude) {
                 try {
-                    // Check cache first
-                    const cached = Storage.getCachedSurahDetail(surahNumber);
-                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=id`
+                    );
+                    const data = await response.json();
 
-                    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-                        console.log('Using cached surah detail');
-                        return cached.data;
+                    if (data.address) {
+                        return {
+                            city: data.address.city || data.address.town || data.address.village || 'Lokasi Tidak Dikenal',
+                            country: data.address.country || '',
+                            displayName: data.display_name || ''
+                        };
                     }
 
-                    // Fetch both Arabic and Indonesian translation
-                    const [arabicResponse, translationResponse] = await Promise.all([
-                        fetch(`${this.BASE_URL}/surah/${surahNumber}`),
-                        fetch(`${this.BASE_URL}/surah/${surahNumber}/id.indonesian`)
-                    ]);
-
-                    const arabicData = await arabicResponse.json();
-                    const translationData = await translationResponse.json();
-
-                    if (arabicData.code === 200 && translationData.code === 200) {
-                        // Merge Arabic text with translation
-                        const surah = arabicData.data;
-                        const translations = translationData.data.ayahs;
-
-                        surah.ayahs = surah.ayahs.map((ayah, index) => ({
-                            ...ayah,
-                            translation: translations[index]?.text || ''
-                        }));
-
-                        Storage.setCachedSurahDetail(surahNumber, surah);
-                        return surah;
-                    }
-
-                    throw new Error('Failed to fetch surah with translation');
+                    return {
+                        city: 'Lokasi Tidak Dikenal',
+                        country: '',
+                        displayName: ''
+                    };
                 } catch (error) {
-                    console.error('Error fetching surah with translation:', error);
-                    throw error;
+                    console.error('Error fetching location info:', error);
+                    return {
+                        city: 'Lokasi Tidak Dikenal',
+                        country: '',
+                        displayName: ''
+                    };
+                }
+            }
+        };
+
+        /**
+         * Prayer Times Component
+         * Menangani tampilan dan fitur jadwal sholat
+         */
+        const PrayerTimesComponent = {
+            currentLocation: null,
+            prayerTimes: null,
+            countdownInterval: null,
+            nextPrayer: null,
+            notificationEnabled: false,
+
+            /**
+             * Initialize the Prayer Times component
+             */
+            async init() {
+                console.log('Initializing Prayer Times component');
+                this.setupEventListeners();
+                this.loadPrayerSettings();
+                await this.detectLocation();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Refresh location button
+                const refreshBtn = document.getElementById('refreshLocation');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.detectLocation();
+                    });
+                }
+
+                // Enable notifications button
+                const notifBtn = document.getElementById('enableNotifications');
+                if (notifBtn) {
+                    notifBtn.addEventListener('click', () => {
+                        this.enableNotifications();
+                    });
+                }
+
+                // Settings button
+                const settingsBtn = document.querySelector('#prayerTimesPage #settingsBtn');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => {
+                        this.showSettings();
+                    });
                 }
             },
 
             /**
-             * Search surah by name
-             * @param {string} query - Search query
-             * @param {Array} surahs - List of surahs to search from
-             * @returns {Array} Filtered surah list
+             * Load prayer settings from storage
              */
-            searchSurah(query, surahs) {
-                if (!query || query.trim() === '') {
-                    return surahs;
+            loadPrayerSettings() {
+                const settings = Storage.get(Storage.KEYS.PRAYER_SETTINGS, {
+                    notificationsEnabled: false,
+                    calculationMethod: '20', // Kemenag RI
+                    soundEnabled: true
+                });
+                this.notificationEnabled = settings.notificationsEnabled;
+            },
+
+            /**
+             * Detect user location using Geolocation API
+             */
+            async detectLocation() {
+                const locationNameEl = document.getElementById('locationName');
+                const coordinatesEl = document.getElementById('coordinates');
+
+                locationNameEl.textContent = 'Mendeteksi lokasi...';
+                coordinatesEl.classList.add('hidden');
+
+                // Check if location is cached
+                const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
+                const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+                if (cachedLocation && (Date.now() - cachedLocation.timestamp) < CACHE_DURATION) {
+                    console.log('Using cached location');
+                    this.currentLocation = cachedLocation;
+                    this.updateLocationDisplay(cachedLocation);
+                    await this.loadPrayerTimes();
+                    return;
                 }
 
-                const lowerQuery = query.toLowerCase();
+                if (!navigator.geolocation) {
+                    locationNameEl.textContent = 'Geolocation tidak didukung';
+                    UI.toast('Browser tidak mendukung geolocation');
+                    return;
+                }
 
-                return surahs.filter(surah => {
-                    return (
-                        surah.englishName.toLowerCase().includes(lowerQuery) ||
-                        surah.englishNameTranslation.toLowerCase().includes(lowerQuery) ||
-                        surah.name.includes(query) ||
-                        surah.number.toString().includes(lowerQuery)
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const location = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            timestamp: Date.now()
+                        };
+
+                        // Get location name
+                        const locationInfo = await PrayerTimesAPI.getLocationInfo(
+                            location.latitude,
+                            location.longitude
+                        );
+
+                        location.city = locationInfo.city;
+                        location.country = locationInfo.country;
+
+                        this.currentLocation = location;
+                        Storage.set(Storage.KEYS.LOCATION, location);
+
+                        this.updateLocationDisplay(location);
+                        await this.loadPrayerTimes();
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        let message = 'Gagal mendeteksi lokasi';
+
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'Izin lokasi ditolak';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'Lokasi tidak tersedia';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'Timeout mendeteksi lokasi';
+                                break;
+                        }
+
+                        locationNameEl.textContent = message;
+                        UI.toast(message);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000 // 5 minutes
+                    }
+                );
+            },
+
+            /**
+             * Update location display
+             */
+            updateLocationDisplay(location) {
+                const locationNameEl = document.getElementById('locationName');
+                const coordinatesEl = document.getElementById('coordinates');
+
+                locationNameEl.textContent = location.city || 'Lokasi Tidak Dikenal';
+                coordinatesEl.textContent = `Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`;
+                coordinatesEl.classList.remove('hidden');
+            },
+
+            /**
+             * Load prayer times for current location
+             */
+            async loadPrayerTimes() {
+                if (!this.currentLocation) {
+                    UI.toast('Lokasi belum terdeteksi');
+                    return;
+                }
+
+                const container = document.getElementById('prayerTimesList');
+                UI.showLoading(container, 'Memuat jadwal sholat...');
+
+                try {
+                    const prayerData = await PrayerTimesAPI.getPrayerTimes(
+                        this.currentLocation.latitude,
+                        this.currentLocation.longitude
                     );
-                });
+
+                    this.prayerTimes = prayerData.timings;
+                    this.hijriDate = prayerData.date.hijri;
+                    this.gregorianDate = prayerData.date.readable;
+
+                    this.renderPrayerTimes();
+                    this.updateDateDisplay();
+                    this.startCountdown();
+                    this.checkNotificationPermission();
+
+                } catch (error) {
+                    console.error('Error loading prayer times:', error);
+                    UI.showError(container, 'Gagal memuat jadwal sholat', 'PrayerTimesComponent.loadPrayerTimes()');
+                }
+            },
+
+            /**
+             * Render prayer times to DOM
+             */
+            renderPrayerTimes() {
+                const container = document.getElementById('prayerTimesList');
+
+                if (!this.prayerTimes) {
+                    return;
+                }
+
+                // Prayer times to display (in order)
+                const prayers = [
+                    { key: 'Fajr', name: 'Subuh', icon: 'fa-cloud-sun' },
+                    { key: 'Dhuhr', name: 'Dzuhur', icon: 'fa-sun' },
+                    { key: 'Asr', name: 'Ashar', icon: 'fa-cloud-sun-rain' },
+                    { key: 'Maghrib', name: 'Maghrib', icon: 'fa-moon' },
+                    { key: 'Isha', name: 'Isya', icon: 'fa-cloud-moon' }
+                ];
+
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+
+                const html = prayers.map(prayer => {
+                    const time = this.prayerTimes[prayer.key];
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const prayerTime = hours * 60 + minutes;
+                    const isNext = prayerTime > currentTime;
+                    const isPassed = prayerTime <= currentTime;
+
+                    return `
+                        <div class="prayer-time-card bg-white border-2 ${isNext ? 'border-primary-500 bg-primary-50' : 'border-gray-100'} rounded-xl p-4 transition"
+                             data-prayer="${prayer.key}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 ${isNext ? 'bg-primary-500' : 'bg-gray-100'} rounded-full flex items-center justify-center">
+                                        <i class="fas ${prayer.icon} ${isNext ? 'text-white' : 'text-gray-600'} text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold ${isNext ? 'text-primary-700' : 'text-gray-800'}">${prayer.name}</p>
+                                        <p class="text-xs ${isPassed ? 'text-gray-400' : 'text-gray-500'}">
+                                            ${isPassed ? 'Sudah berlalu' : 'Belum tiba'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold ${isNext ? 'text-primary-700' : 'text-gray-800'}">${this.formatTime(time)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Format time from 24h to readable format
+             */
+            formatTime(time24) {
+                const [hours, minutes] = time24.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minutes} ${ampm}`;
+            },
+
+            /**
+             * Update date display
+             */
+            updateDateDisplay() {
+                const currentDateEl = document.getElementById('currentDate');
+                const hijriDateEl = document.getElementById('hijriDate');
+
+                if (this.gregorianDate) {
+                    currentDateEl.textContent = this.gregorianDate;
+                }
+
+                if (this.hijriDate) {
+                    hijriDateEl.textContent = `${this.hijriDate.day} ${this.hijriDate.month.en} ${this.hijriDate.year} H`;
+                }
+            },
+
+            /**
+             * Start countdown to next prayer
+             */
+            startCountdown() {
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+
+                this.updateNextPrayer();
+
+                this.countdownInterval = setInterval(() => {
+                    this.updateNextPrayer();
+                }, 1000); // Update every second
+            },
+
+            /**
+             * Update next prayer info and countdown
+             */
+            updateNextPrayer() {
+                if (!this.prayerTimes) {
+                    return;
+                }
+
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const currentSeconds = now.getSeconds();
+
+                // Prayer times in order
+                const prayers = [
+                    { key: 'Fajr', name: 'Subuh' },
+                    { key: 'Dhuhr', name: 'Dzuhur' },
+                    { key: 'Asr', name: 'Ashar' },
+                    { key: 'Maghrib', name: 'Maghrib' },
+                    { key: 'Isha', name: 'Isya' }
+                ];
+
+                // Find next prayer
+                let nextPrayer = null;
+                let nextPrayerTime = null;
+
+                for (const prayer of prayers) {
+                    const time = this.prayerTimes[prayer.key];
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const prayerTime = hours * 60 + minutes;
+
+                    if (prayerTime > currentTime || (prayerTime === currentTime && currentSeconds === 0)) {
+                        nextPrayer = prayer;
+                        nextPrayerTime = { hours, minutes };
+                        break;
+                    }
+                }
+
+                // If no prayer found today, next prayer is Fajr tomorrow
+                if (!nextPrayer) {
+                    nextPrayer = prayers[0]; // Fajr
+                    const fajrTime = this.prayerTimes['Fajr'].split(':').map(Number);
+                    nextPrayerTime = { hours: fajrTime[0], minutes: fajrTime[1] };
+                }
+
+                this.nextPrayer = nextPrayer;
+
+                // Calculate countdown
+                let countdownSeconds;
+                if (nextPrayer.name === 'Subuh' && (currentTime > 19 * 60)) {
+                    // Fajr tomorrow
+                    const tomorrow = new Date(now);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    tomorrow.setHours(nextPrayerTime.hours, nextPrayerTime.minutes, 0);
+                    countdownSeconds = Math.floor((tomorrow - now) / 1000);
+                } else {
+                    // Today's prayer
+                    const prayerDate = new Date(now);
+                    prayerDate.setHours(nextPrayerTime.hours, nextPrayerTime.minutes, 0);
+                    countdownSeconds = Math.floor((prayerDate - now) / 1000);
+                }
+
+                // Update countdown display
+                const banner = document.getElementById('nextPrayerBanner');
+                const nextPrayerNameEl = document.getElementById('nextPrayerName');
+                const nextPrayerCountdownEl = document.getElementById('nextPrayerCountdown');
+
+                if (countdownSeconds > 0) {
+                    const hours = Math.floor(countdownSeconds / 3600);
+                    const minutes = Math.floor((countdownSeconds % 3600) / 60);
+                    const seconds = countdownSeconds % 60;
+
+                    nextPrayerNameEl.textContent = nextPrayer.name;
+                    nextPrayerCountdownEl.textContent =
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    banner.classList.remove('hidden');
+
+                    // Check if it's time for prayer (within 1 minute)
+                    if (countdownSeconds <= 60 && countdownSeconds > 0) {
+                        this.checkAndNotifyPrayer(nextPrayer);
+                    }
+                }
+            },
+
+            /**
+             * Check and notify for prayer time
+             */
+            checkAndNotifyPrayer(prayer) {
+                const lastNotified = Storage.get(`last_notified_${prayer.key}`, 0);
+                const now = Date.now();
+                const ONE_HOUR = 60 * 60 * 1000;
+
+                // Only notify if not notified in the last hour
+                if (now - lastNotified < ONE_HOUR) {
+                    return;
+                }
+
+                if (this.notificationEnabled) {
+                    this.sendNotification(prayer);
+                    Storage.set(`last_notified_${prayer.key}`, now);
+                }
+            },
+
+            /**
+             * Send notification for prayer time
+             */
+            async sendNotification(prayer) {
+                if (!('Notification' in window)) {
+                    return;
+                }
+
+                if (Notification.permission === 'granted') {
+                    const title = `Waktu ${prayer.name} Telah Tiba`;
+                    const body = `Segera lakukan sholat ${prayer.name}. Semangat ibadah! 🕌`;
+                    const icon = '/icon-play.png'; // You can replace with actual icon
+
+                    try {
+                        const notification = new Notification(title, {
+                            body,
+                            icon,
+                            badge: icon,
+                            tag: `prayer-${prayer.key}`,
+                            requireInteraction: true
+                        });
+
+                        notification.onclick = () => {
+                            window.focus();
+                            notification.close();
+                        };
+
+                        UI.toast(`Waktu ${prayer.name} telah tiba!`);
+                    } catch (error) {
+                        console.error('Error sending notification:', error);
+                    }
+                }
+            },
+
+            /**
+             * Check notification permission
+             */
+            checkNotificationPermission() {
+                const banner = document.getElementById('notificationBanner');
+
+                if (!('Notification' in window)) {
+                    banner.classList.add('hidden');
+                    return;
+                }
+
+                if (Notification.permission === 'granted') {
+                    banner.classList.add('hidden');
+                    this.notificationEnabled = true;
+                    this.savePrayerSettings();
+                } else if (Notification.permission === 'denied') {
+                    banner.classList.add('hidden');
+                } else {
+                    banner.classList.remove('hidden');
+                }
+            },
+
+            /**
+             * Enable notifications
+             */
+            async enableNotifications() {
+                if (!('Notification' in window)) {
+                    UI.toast('Browser tidak mendukung notifikasi');
+                    return;
+                }
+
+                try {
+                    const permission = await Notification.requestPermission();
+
+                    if (permission === 'granted') {
+                        this.notificationEnabled = true;
+                        this.savePrayerSettings();
+                        document.getElementById('notificationBanner').classList.add('hidden');
+                        UI.toast('Notifikasi diaktifkan');
+                    } else {
+                        UI.toast('Izin notifikasi ditolak');
+                    }
+                } catch (error) {
+                    console.error('Error requesting notification permission:', error);
+                    UI.toast('Gagal mengaktifkan notifikasi');
+                }
+            },
+
+            /**
+             * Save prayer settings
+             */
+            savePrayerSettings() {
+                const settings = {
+                    notificationsEnabled: this.notificationEnabled,
+                    calculationMethod: '20',
+                    soundEnabled: true
+                };
+                Storage.set(Storage.KEYS.PRAYER_SETTINGS, settings);
+            },
+
+            /**
+             * Show settings modal
+             */
+            showSettings() {
+                UI.toast('Pengaturan jadwal sholat akan segera hadir!');
+            },
+
+            /**
+             * Stop countdown when leaving page
+             */
+            stop() {
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
+
+                const banner = document.getElementById('nextPrayerBanner');
+                if (banner) {
+                    banner.classList.add('hidden');
+                }
             }
         };
 
@@ -1230,6 +1776,7 @@
                 this.loadLastRead();
                 this.setupQuickActions();
                 QuranComponent.init();
+                PrayerTimesComponent.init();
             },
 
             /**
@@ -1298,9 +1845,13 @@
                     this.navigateTo('quran');
                 });
 
+                // Prayer times button
+                document.getElementById('btnPrayerTime').addEventListener('click', () => {
+                    this.navigateTo('prayerTimes');
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
-                    'btnPrayerTime',
                     'btnNearbyMosque',
                     'btnHadith',
                     'btnDailyPrayer',
@@ -1363,6 +1914,11 @@
                 // Stop audio if leaving surah detail
                 if (this.currentPage === 'surahDetail') {
                     QuranComponent.stopAudio();
+                }
+
+                // Stop countdown if leaving prayer times
+                if (this.currentPage === 'prayerTimes') {
+                    PrayerTimesComponent.stop();
                 }
 
                 if (this.pageHistory.length > 0) {
@@ -1460,6 +2016,14 @@
                         this.renderBookmarks();
                         break;
 
+                    case 'prayerTimes':
+                        headerTitle.textContent = 'Jadwal Sholat';
+                        headerSubtitle.textContent = 'Waktu sholat hari ini';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
+                        break;
+
                     default:
                         headerTitle.textContent = 'Al-Quran Digital';
                         backBtn.classList.add('hidden');
@@ -1481,6 +2045,10 @@
 
                     case 'bookmarks':
                         this.renderBookmarks();
+                        break;
+
+                    case 'prayerTimes':
+                        // Prayer times already loaded on init
                         break;
 
                     case 'surahDetail':
@@ -1572,6 +2140,11 @@
                     // App is hidden, pause audio if playing
                     if (QuranComponent.isPlaying) {
                         QuranComponent.stopAudio();
+                    }
+
+                    // Stop countdown if on prayer times page
+                    if (this.currentPage === 'prayerTimes') {
+                        PrayerTimesComponent.stop();
                     }
                 }
             },
