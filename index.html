@@ -2422,8 +2422,8 @@
              * Fetch and display mosques
              */
             async fetchAndDisplayMosques() {
-                const container = document.getElementById('nearbyMosquesList');
-                UI.showLoading(container, 'Mencari masjid terdekat...');
+                // UI.showLoading expects a string ID, not an element
+                UI.showLoading('nearbyMosquesList', 'Mencari masjid terdekat...');
 
                 try {
                     this.updateLocationDisplay();
@@ -2469,7 +2469,7 @@
              */
             updateLocationDisplay() {
                 const locationNameEl = document.getElementById('nearbyMosqueLocation');
-                if (locationNameEl && this.currentLocation) {
+                if (locationNameEl && this.currentLocation && this.currentLocation.city) {
                     locationNameEl.textContent = `${this.currentLocation.city}, ${this.currentLocation.country}`;
                 }
             },
@@ -2479,6 +2479,10 @@
              */
             renderMosques(mosques) {
                 const container = document.getElementById('nearbyMosquesList');
+                if (!container) {
+                    console.error('Container nearbyMosquesList not found');
+                    return;
+                }
 
                 const mosquesHTML = mosques.map(mosque => `
                     <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
@@ -2532,6 +2536,10 @@
              */
             showEmptyState() {
                 const container = document.getElementById('nearbyMosquesList');
+                if (!container) {
+                    console.error('Container nearbyMosquesList not found');
+                    return;
+                }
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-20">
                         <i class="fas fa-mosque text-4xl text-gray-300 mb-3"></i>
@@ -2546,6 +2554,10 @@
              */
             showError(message) {
                 const container = document.getElementById('nearbyMosquesList');
+                if (!container) {
+                    console.error('Container nearbyMosquesList not found');
+                    return;
+                }
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-20">
                         <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
