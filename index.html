@@ -1079,6 +1079,10 @@
              * @returns {Promise<Array>} Array of nearby mosques
              */
             async getNearbyMosques(latitude, longitude, radius = 5000) {
+                // AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
                 try {
                     // Overpass QL query to find mosques
                     const query = `
@@ -1096,10 +1100,28 @@
                         body: 'data=' + encodeURIComponent(query.trim()),
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
-                        }
+                        },
+                        signal: controller.signal
                     });
 
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                            throw new Error('Terlalu banyak permintaan. Silakan coba lagi dalam beberapa saat.');
+                        } else if (response.status >= 500) {
+                            throw new Error('Server sedang sibuk. Silakan coba lagi.');
+                        } else {
+                            throw new Error(`Gagal mengambil data: HTTP ${response.status}`);
+                        }
+                    }
+
                     const data = await response.json();
+
+                    // Check for Overpass API errors
+                    if (data.remark && data.remark.includes('runtime error')) {
+                        throw new Error('Query terlalu kompleks. Coba radius yang lebih kecil.');
+                    }
 
                     if (data.elements && data.elements.length > 0) {
                         return data.elements.map(element => {
@@ -1129,6 +1151,12 @@
 
                     return [];
                 } catch (error) {
+                    clearTimeout(timeoutId);
+
+                    if (error.name === 'AbortError') {
+                        throw new Error('Waktu habis. Server terlalu lama merespons.');
+                    }
+
                     console.error('Error fetching nearby mosques:', error);
                     throw error;
                 }
@@ -2292,6 +2320,7 @@
         const NearbyMosqueComponent = {
             nearbyMosques: [],
             currentLocation: null,
+            isLoading: false,
 
             /**
              * Initialize component
@@ -2310,6 +2339,14 @@
              * Load nearby mosques
              */
             async loadNearbyMosques() {
+                // Prevent multiple simultaneous requests
+                if (this.isLoading) {
+                    console.log('Already loading mosques, ignoring duplicate request');
+                    return;
+                }
+
+                this.isLoading = true;
+
                 // Check if location is available from prayer times
                 const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
                 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
@@ -2317,6 +2354,7 @@
                 if (cachedLocation && (Date.now() - cachedLocation.timestamp) < CACHE_DURATION) {
                     this.currentLocation = cachedLocation;
                     await this.fetchAndDisplayMosques();
+                    this.isLoading = false;
                     return;
                 }
 
@@ -2324,6 +2362,7 @@
                 if (!navigator.geolocation) {
                     UI.toast('Browser tidak mendukung geolocation');
                     this.showError('Layanan lokasi tidak tersedia');
+                    this.isLoading = false;
                     return;
                 }
 
@@ -2349,6 +2388,7 @@
                         Storage.set(Storage.KEYS.LOCATION, this.currentLocation);
 
                         await this.fetchAndDisplayMosques();
+                        this.isLoading = false;
                     },
                     (error) => {
                         console.error('Geolocation error:', error);
@@ -2362,16 +2402,17 @@
                                 message = 'Lokasi tidak tersedia';
                                 break;
                             case error.TIMEOUT:
-                                message = 'Waktu habis';
+                                message = 'Waktu habis mendeteksi lokasi';
                                 break;
                         }
 
                         UI.toast(message);
                         this.showError(message);
+                        this.isLoading = false;
                     },
                     {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
+                        enableHighAccuracy: false, // Changed to false for faster response
+                        timeout: 15000, // Increased to 15 seconds
                         maximumAge: 300000 // 5 minutes
                     }
                 );
@@ -2400,18 +2441,26 @@
                     } else {
                         this.renderMosques(mosques);
                     }
+
+                    this.isLoading = false;
                 } catch (error) {
                     console.error('Failed to load nearby mosques:', error);
-                    let errorMsg = 'Gagal memuat masjid terdekat';
 
-                    if (error.name === 'AbortError') {
-                        errorMsg = 'Waktu habis. Periksa koneksi internet Anda.';
-                    } else if (error.message.includes('Failed to fetch')) {
-                        errorMsg = 'Tidak terhubung ke internet. Periksa koneksi Anda.';
+                    // Use the error message from the API if available
+                    let errorMsg = error.message || 'Gagal memuat masjid terdekat';
+
+                    // Fallback error handling
+                    if (errorMsg === 'Gagal memuat masjid terdekat') {
+                        if (error.name === 'AbortError') {
+                            errorMsg = 'Waktu habis. Server terlalu lama merespons.';
+                        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                            errorMsg = 'Tidak terhubung ke internet. Periksa koneksi Anda.';
+                        }
                     }
 
                     UI.toast(errorMsg);
                     this.showError(errorMsg);
+                    this.isLoading = false;
                 }
             },
 
