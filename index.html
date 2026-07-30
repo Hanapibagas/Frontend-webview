@@ -469,6 +469,38 @@
                     </div>
                 </div>
 
+                <!-- Nearby Mosque Page -->
+                <div id="nearbyMosquePage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Location Info Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-mosque text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-primary-100">Masjid Terdekat</p>
+                                        <p id="nearbyMosqueLocation" class="font-semibold">Mendeteksi lokasi...</p>
+                                    </div>
+                                </div>
+                                <button id="refreshBtn" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Nearby Mosques List -->
+                        <div id="nearbyMosquesList" class="space-y-3">
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <i class="fas fa-mosque text-4xl text-gray-300 mb-3"></i>
+                                <p class="text-gray-500">Tekan tombol refresh</p>
+                                <p class="text-gray-400 text-sm mt-1">untuk menemukan masjid terdekat</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -1031,6 +1063,113 @@
                         displayName: ''
                     };
                 }
+            }
+        };
+
+        /**
+         * Nearby Mosque API Handler
+         * Mengambil data masjid terdekat menggunakan OpenStreetMap Overpass API
+         */
+        const NearbyMosqueAPI = {
+            /**
+             * Get nearby mosques using OpenStreetMap Overpass API
+             * @param {number} latitude - Latitude coordinate
+             * @param {number} longitude - Longitude coordinate
+             * @param {number} radius - Search radius in meters (default: 5000)
+             * @returns {Promise<Array>} Array of nearby mosques
+             */
+            async getNearbyMosques(latitude, longitude, radius = 5000) {
+                try {
+                    // Overpass QL query to find mosques
+                    const query = `
+                        [out:json][timeout:25];
+                        (
+                            node["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${latitude},${longitude});
+                            way["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${latitude},${longitude});
+                            relation["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${latitude},${longitude});
+                        );
+                        out body center;
+                    `;
+
+                    const response = await fetch('https://overpass-api.de/api/interpreter', {
+                        method: 'POST',
+                        body: 'data=' + encodeURIComponent(query.trim()),
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.elements && data.elements.length > 0) {
+                        return data.elements.map(element => {
+                            const tags = element.tags || {};
+                            const lat = element.lat || element.center?.lat || 0;
+                            const lon = element.lon || element.center?.lon || 0;
+
+                            // Calculate distance
+                            const distance = this.calculateDistance(
+                                latitude,
+                                longitude,
+                                lat,
+                                lon
+                            );
+
+                            return {
+                                id: element.id,
+                                name: tags.name || tags['name:id'] || 'Masjid Tanpa Nama',
+                                address: this.formatAddress(tags),
+                                latitude: lat,
+                                longitude: lon,
+                                distance: distance,
+                                type: tags.building || 'mosque'
+                            };
+                        }).sort((a, b) => a.distance - b.distance); // Sort by distance
+                    }
+
+                    return [];
+                } catch (error) {
+                    console.error('Error fetching nearby mosques:', error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Calculate distance between two coordinates using Haversine formula
+             * @param {number} lat1 - First latitude
+             * @param {number} lon1 - First longitude
+             * @param {number} lat2 - Second latitude
+             * @param {number} lon2 - Second longitude
+             * @returns {number} Distance in meters
+             */
+            calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; // Earth's radius in meters
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                          Math.cos(φ1) * Math.cos(φ2) *
+                          Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                return R * c;
+            },
+
+            /**
+             * Format address from OSM tags
+             * @param {Object} tags - OpenStreetMap tags
+             * @returns {string} Formatted address
+             */
+            formatAddress(tags) {
+                const parts = [];
+
+                if (tags['addr:street']) parts.push(tags['addr:street']);
+                if (tags['addr:city']) parts.push(tags['addr:city']);
+                if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
+
+                return parts.length > 0 ? parts.join(', ') : 'Alamat tidak tersedia';
             }
         };
 
@@ -2147,6 +2286,291 @@
         };
 
         /**
+         * Nearby Mosque Component
+         * Menangani tampilan dan fitur Masjid Terdekat
+         */
+        const NearbyMosqueComponent = {
+            nearbyMosques: [],
+            currentLocation: null,
+
+            /**
+             * Initialize component
+             */
+            init() {
+                // Refresh button
+                const refreshBtn = document.querySelector('#nearbyMosquePage #refreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.loadNearbyMosques();
+                    });
+                }
+            },
+
+            /**
+             * Load nearby mosques
+             */
+            async loadNearbyMosques() {
+                // Check if location is available from prayer times
+                const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
+                const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+                if (cachedLocation && (Date.now() - cachedLocation.timestamp) < CACHE_DURATION) {
+                    this.currentLocation = cachedLocation;
+                    await this.fetchAndDisplayMosques();
+                    return;
+                }
+
+                // Get current location
+                if (!navigator.geolocation) {
+                    UI.toast('Browser tidak mendukung geolocation');
+                    this.showError('Layanan lokasi tidak tersedia');
+                    return;
+                }
+
+                UI.toast('Mendeteksi lokasi...');
+
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        this.currentLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            timestamp: Date.now()
+                        };
+
+                        // Get location name
+                        const locationInfo = await PrayerTimesAPI.getLocationInfo(
+                            this.currentLocation.latitude,
+                            this.currentLocation.longitude
+                        );
+
+                        this.currentLocation.city = locationInfo.city;
+                        this.currentLocation.country = locationInfo.country;
+
+                        Storage.set(Storage.KEYS.LOCATION, this.currentLocation);
+
+                        await this.fetchAndDisplayMosques();
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        let message = 'Gagal mendeteksi lokasi';
+
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'Izin lokasi ditolak';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'Lokasi tidak tersedia';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'Waktu habis';
+                                break;
+                        }
+
+                        UI.toast(message);
+                        this.showError(message);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000 // 5 minutes
+                    }
+                );
+            },
+
+            /**
+             * Fetch and display mosques
+             */
+            async fetchAndDisplayMosques() {
+                const container = document.getElementById('nearbyMosquesList');
+                UI.showLoading(container, 'Mencari masjid terdekat...');
+
+                try {
+                    this.updateLocationDisplay();
+
+                    const mosques = await NearbyMosqueAPI.getNearbyMosques(
+                        this.currentLocation.latitude,
+                        this.currentLocation.longitude,
+                        5000 // 5km radius
+                    );
+
+                    this.nearbyMosques = mosques;
+
+                    if (mosques.length === 0) {
+                        this.showEmptyState();
+                    } else {
+                        this.renderMosques(mosques);
+                    }
+                } catch (error) {
+                    console.error('Failed to load nearby mosques:', error);
+                    let errorMsg = 'Gagal memuat masjid terdekat';
+
+                    if (error.name === 'AbortError') {
+                        errorMsg = 'Waktu habis. Periksa koneksi internet Anda.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMsg = 'Tidak terhubung ke internet. Periksa koneksi Anda.';
+                    }
+
+                    UI.toast(errorMsg);
+                    this.showError(errorMsg);
+                }
+            },
+
+            /**
+             * Update location display
+             */
+            updateLocationDisplay() {
+                const locationNameEl = document.getElementById('nearbyMosqueLocation');
+                if (locationNameEl && this.currentLocation) {
+                    locationNameEl.textContent = `${this.currentLocation.city}, ${this.currentLocation.country}`;
+                }
+            },
+
+            /**
+             * Render mosques list
+             */
+            renderMosques(mosques) {
+                const container = document.getElementById('nearbyMosquesList');
+
+                const mosquesHTML = mosques.map(mosque => `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
+                        <div class="flex items-start gap-3">
+                            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-mosque text-primary-600 text-xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-800 truncate">${mosque.name}</h3>
+                                <p class="text-sm text-gray-500 truncate mt-1">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    ${mosque.address}
+                                </p>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
+                                        <i class="fas fa-route mr-1"></i>
+                                        ${this.formatDistance(mosque.distance)}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="NearbyMosqueComponent.openInMaps(${mosque.latitude}, ${mosque.longitude}, '${mosque.name.replace(/'/g, "\\'")}')"
+                                        class="flex-1 bg-primary-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                                        <i class="fas fa-directions"></i>
+                                        Petunjuk Arah
+                                    </button>
+                                    <button onclick="NearbyMosqueComponent.shareLocation(${mosque.latitude}, ${mosque.longitude}, '${mosque.name.replace(/'/g, "\\'")}')"
+                                        class="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = mosquesHTML;
+            },
+
+            /**
+             * Format distance for display
+             */
+            formatDistance(meters) {
+                if (meters < 1000) {
+                    return `${Math.round(meters)} m`;
+                }
+                return `${(meters / 1000).toFixed(1)} km`;
+            },
+
+            /**
+             * Show empty state
+             */
+            showEmptyState() {
+                const container = document.getElementById('nearbyMosquesList');
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-mosque text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Tidak ada masjid ditemukan</p>
+                        <p class="text-gray-400 text-sm mt-1">Coba perbesar radius atau periksa lokasi Anda</p>
+                    </div>
+                `;
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('nearbyMosquesList');
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-500">${message}</p>
+                        <button onclick="NearbyMosqueComponent.loadNearbyMosques()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            },
+
+            /**
+             * Open mosque location in maps
+             */
+            openInMaps(latitude, longitude, name) {
+                // Universal maps URL that works on both iOS and Android
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
+                if (this.isFlutterWebView()) {
+                    // Try to open in Flutter
+                    try {
+                        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                            window.flutter_inappwebview.callHandler('openMap', {
+                                latitude: latitude,
+                                longitude: longitude,
+                                name: name
+                            });
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Flutter map open failed:', error);
+                    }
+                }
+
+                // Fallback: open in new tab
+                window.open(mapsUrl, '_blank');
+                UI.toast('Membuka peta...');
+            },
+
+            /**
+             * Share mosque location
+             */
+            shareLocation(latitude, longitude, name) {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+                const shareText = `Lokasi Masjid: ${name}\n${mapsUrl}`;
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Lokasi Masjid: ${name}`,
+                        text: shareText
+                    }).catch(error => {
+                        console.log('Share failed:', error);
+                    });
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(mapsUrl).then(() => {
+                        UI.toast('Link lokasi disalin ke clipboard');
+                    }).catch(() => {
+                        UI.toast('Gagal menyalin link lokasi');
+                    });
+                }
+            },
+
+            /**
+             * Detect if running in Flutter WebView
+             */
+            isFlutterWebView() {
+                return window.flutter_inappwebview !== undefined;
+            }
+        };
+
+        /**
          * Quran Component
          * Menangani tampilan dan interaksi fitur Al-Quran
          */
@@ -2616,6 +3040,7 @@
                 this.setupQuickActions();
                 QuranComponent.init();
                 PrayerTimesComponent.init();
+                NearbyMosqueComponent.init();
             },
 
             /**
@@ -2689,9 +3114,14 @@
                     this.navigateTo('prayerTimes');
                 });
 
+                // Nearby mosque button
+                document.getElementById('btnNearbyMosque').addEventListener('click', () => {
+                    this.navigateTo('nearbyMosque');
+                    NearbyMosqueComponent.loadNearbyMosques();
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
-                    'btnNearbyMosque',
                     'btnHadith',
                     'btnDailyPrayer',
                     'btnArticles',
@@ -2858,6 +3288,14 @@
                     case 'prayerTimes':
                         headerTitle.textContent = 'Jadwal Sholat';
                         headerSubtitle.textContent = 'Waktu sholat hari ini';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
+                        break;
+
+                    case 'nearbyMosque':
+                        headerTitle.textContent = 'Masjid Terdekat';
+                        headerSubtitle.textContent = 'Temukan masjid di sekitar Anda';
                         headerSubtitle.classList.remove('hidden');
                         backBtn.classList.remove('hidden');
                         settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
