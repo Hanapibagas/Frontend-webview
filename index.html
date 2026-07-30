@@ -435,13 +435,37 @@
                                 <i class="fas fa-bell text-amber-600 mt-1"></i>
                                 <div class="flex-1">
                                     <p class="font-semibold text-amber-800 text-sm">Aktifkan Notifikasi</p>
-                                    <p class="text-xs text-amber-700 mt-1">Dapatkan notifikasi saat waktu sholat tiba</p>
+                                    <p class="text-xs text-amber-700 mt-1" id="notificationBannerText">Dapatkan notifikasi saat waktu sholat tiba</p>
                                     <button id="enableNotifications" class="mt-2 px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition">
                                         Aktifkan
                                     </button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Audio Settings Banner -->
+                        <div id="audioBanner" class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 hidden">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-volume-up text-blue-600 mt-1"></i>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-blue-800 text-sm">Aktifkan Suara Adzan?</p>
+                                    <p class="text-xs text-blue-700 mt-1">Dapatkan suara adzan saat waktu sholat tiba</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <button id="enableAudioBtn" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
+                                            Ya, Aktifkan
+                                        </button>
+                                        <button id="disableAudioBtn" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition">
+                                            Tidak
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audio Control (Visible when playing) -->
+                        <button id="audioControl" class="hidden fixed bottom-40 right-4 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition z-30">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -647,6 +671,24 @@
                     <div class="flex flex-col items-center justify-center py-20">
                         <div class="spinner text-primary-600 mb-4"></div>
                         <p class="text-gray-500 text-sm">${message}</p>
+                        <p class="text-gray-400 text-xs mt-2">Mohon tunggu sebentar...</p>
+                    </div>
+                `;
+            },
+
+            // Show loading with retry info
+            showLoadingWithRetry(containerId, message = 'Memuat...', retryCount = 0) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const retryText = retryCount > 0 ? `<p class="text-amber-600 text-xs mt-2">Mencoba ulang (${retryCount}/3)...</p>` : '';
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="spinner text-primary-600 mb-4"></div>
+                        <p class="text-gray-500 text-sm">${message}</p>
+                        <p class="text-gray-400 text-xs mt-1">Mohon tunggu sebentar...</p>
+                        ${retryText}
                     </div>
                 `;
             },
@@ -743,6 +785,175 @@
         };
 
         /**
+         * Quran API Handler
+         * Mengambil data dari AlQuran Cloud API
+         * API Documentation: https://alquran.cloud/api
+         */
+        const QuranAPI = {
+            BASE_URL: 'https://api.alquran.cloud/v1',
+            TIMEOUT: 30000, // 30 seconds
+            MAX_RETRIES: 3,
+
+            /**
+             * Fetch with timeout and retry
+             */
+            async fetchWithRetry(url, retries = 0) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+
+                    const response = await fetch(url, {
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Fetch attempt ${retries + 1} failed:`, error);
+
+                    // Retry on timeout or network error
+                    if (retries < this.MAX_RETRIES && (error.name === 'AbortError' || error.message.includes('Failed to fetch'))) {
+                        console.log(`Retrying... (${retries + 1}/${this.MAX_RETRIES})`);
+                        await this.delay(1000 * (retries + 1)); // Exponential backoff
+                        return this.fetchWithRetry(url, retries + 1);
+                    }
+
+                    throw error;
+                }
+            },
+
+            /**
+             * Delay helper
+             */
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            /**
+             * Get list of all surahs
+             * @returns {Promise<Array>} Array of surah objects
+             */
+            async getSurahList() {
+                try {
+                    // Check cache first
+                    const cached = Storage.getCachedSurahList();
+                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+                    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+                        console.log('✅ Using cached surah list');
+                        return cached.data;
+                    }
+
+                    console.log('📡 Fetching surah list from API...');
+
+                    const data = await this.fetchWithRetry(`${this.BASE_URL}/surah`);
+
+                    if (data.code === 200) {
+                        const surahs = data.data;
+                        Storage.setCachedSurahList(surahs);
+                        console.log('✅ Surah list loaded successfully');
+                        return surahs;
+                    }
+
+                    throw new Error('Failed to fetch surah list');
+                } catch (error) {
+                    console.error('❌ Error fetching surah list:', error);
+
+                    // Try to use expired cache as fallback
+                    const cached = Storage.getCachedSurahList();
+                    if (cached) {
+                        console.warn('⚠️ Using expired cache as fallback');
+                        return cached.data;
+                    }
+
+                    throw error;
+                }
+            },
+
+            /**
+             * Get surah with Indonesian translation
+             * @param {number} surahNumber - Surah number (1-114)
+             * @returns {Promise<Object>} Surah object with translated verses
+             */
+            async getSurahWithTranslation(surahNumber) {
+                try {
+                    // Check cache first
+                    const cached = Storage.getCachedSurahDetail(surahNumber);
+                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+                    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+                        console.log(`✅ Using cached surah ${surahNumber} detail`);
+                        return cached.data;
+                    }
+
+                    console.log(`📡 Fetching surah ${surahNumber} detail from API...`);
+
+                    // Fetch both Arabic and Indonesian translation in parallel
+                    const [arabicData, translationData] = await Promise.all([
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}`),
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/id.indonesian`)
+                    ]);
+
+                    if (arabicData.code === 200 && translationData.code === 200) {
+                        // Merge Arabic text with translation
+                        const surah = arabicData.data;
+                        const translations = translationData.data.ayahs;
+
+                        surah.ayahs = surah.ayahs.map((ayah, index) => ({
+                            ...ayah,
+                            translation: translations[index]?.text || ''
+                        }));
+
+                        Storage.setCachedSurahDetail(surahNumber, surah);
+                        console.log(`✅ Surah ${surahNumber} detail loaded successfully`);
+                        return surah;
+                    }
+
+                    throw new Error('Failed to fetch surah with translation');
+                } catch (error) {
+                    console.error(`❌ Error fetching surah ${surahNumber}:`, error);
+
+                    // Try to use expired cache as fallback
+                    const cached = Storage.getCachedSurahDetail(surahNumber);
+                    if (cached) {
+                        console.warn(`⚠️ Using expired cache for surah ${surahNumber}`);
+                        return cached.data;
+                    }
+
+                    throw error;
+                }
+            },
+
+            /**
+             * Search surah by name
+             * @param {string} query - Search query
+             * @param {Array} surahs - List of surahs to search from
+             * @returns {Array} Filtered surah list
+             */
+            searchSurah(query, surahs) {
+                if (!query || query.trim() === '') {
+                    return surahs;
+                }
+
+                const lowerQuery = query.toLowerCase();
+
+                return surahs.filter(surah => {
+                    return (
+                        surah.englishName.toLowerCase().includes(lowerQuery) ||
+                        surah.englishNameTranslation.toLowerCase().includes(lowerQuery) ||
+                        surah.name.includes(query) ||
+                        surah.number.toString().includes(lowerQuery)
+                    );
+                });
+            }
+        };
+
+        /**
          * Prayer Times API Handler
          * Mengambil data jadwal sholat dari Aladhan API
          * API Documentation: https://aladhan.com/prayer-times-api
@@ -833,15 +1044,161 @@
             countdownInterval: null,
             nextPrayer: null,
             notificationEnabled: false,
+            audioEnabled: false,
+            audio: null,
+            isPlayingAdzan: false,
+            isFlutterWebView: false, // Detect if running in Flutter WebView
+
+            // Adzan audio URLs
+            ADZAN_AUDIO: {
+                'Mishary Rashid': 'https://server8.mp3quran.net/adan/Mishary_Rashid_Alafasy.mp3',
+                'Abdul Basit': 'https://server8.mp3quran.net/adan/Abdul_Basit_Abdusamad.mp3',
+                'Maher Al Mueaqly': 'https://server8.mp3quran.net/adan/Maher_Al_Mueaqly.mp3',
+                'Simple Beep': 'https://assets.mixkit.co/sfx/preview/mixkit-mosquito-alert-voice-355.mp3'
+            },
+
+            // Prayer names mapping
+            PRAYER_NAMES: {
+                'Fajr': { name: 'Subuh', arabicName: 'الفجر' },
+                'Dhuhr': { name: 'Dzuhur', arabicName: 'الظهر' },
+                'Asr': { name: 'Ashar', arabicName: 'العصر' },
+                'Maghrib': { name: 'Maghrib', arabicName: 'المغرب' },
+                'Isha': { name: 'Isya', arabicName: 'العشاء' }
+            },
 
             /**
              * Initialize the Prayer Times component
              */
             async init() {
                 console.log('Initializing Prayer Times component');
+
+                // Detect if running in Flutter WebView
+                this.detectFlutterWebView();
+
                 this.setupEventListeners();
                 this.loadPrayerSettings();
                 await this.detectLocation();
+            },
+
+            /**
+             * Detect if running in Flutter WebView
+             */
+            detectFlutterWebView() {
+                // Check if flutter_inappwebview is available
+                if (window.flutter_inappwebview) {
+                    this.isFlutterWebView = true;
+                    console.log('Running in Flutter WebView - notifications will be handled by Flutter');
+
+                    // Register JavaScript handlers for Flutter
+                    this.registerFlutterHandlers();
+                } else {
+                    this.isFlutterWebView = false;
+                    console.log('Running in browser - using Web Notifications API');
+                }
+            },
+
+            /**
+             * Register JavaScript handlers for Flutter
+             */
+            registerFlutterHandlers() {
+                // This allows Flutter to call JavaScript functions
+                console.log('Flutter handlers registered');
+            },
+
+            /**
+             * Get prayer date time object
+             */
+            getPrayerDateTime(prayerKey) {
+                if (!this.prayerTimes) {
+                    return null;
+                }
+
+                const time = this.prayerTimes[prayerKey];
+                const [hours, minutes] = time.split(':').map(Number);
+                const now = new Date();
+
+                let prayerDate = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    now.getDate(),
+                    hours,
+                    minutes,
+                    0
+                );
+
+                // If prayer time has passed today, schedule for tomorrow
+                if (prayerDate <= now) {
+                    prayerDate = new Date(prayerDate);
+                    prayerDate.setDate(prayerDate.getDate() + 1);
+                }
+
+                return prayerDate;
+            },
+
+            /**
+             * Schedule prayer notification in Flutter
+             */
+            async schedulePrayerNotificationFlutter(prayerKey) {
+                if (!this.isFlutterWebView) {
+                    console.log('Not in Flutter WebView, skipping native notification');
+                    return;
+                }
+
+                try {
+                    const prayerInfo = this.PRAYER_NAMES[prayerKey];
+                    const prayerDateTime = this.getPrayerDateTime(prayerKey);
+
+                    if (!prayerInfo || !prayerDateTime) {
+                        console.error('Invalid prayer data');
+                        return;
+                    }
+
+                    // Prepare data for Flutter
+                    const prayerData = {
+                        name: prayerInfo.name,
+                        arabicName: prayerInfo.arabicName,
+                        key: prayerKey,
+                        time: this.prayerTimes[prayerKey],
+                        dateTime: prayerDateTime.toISOString(),
+                        location: this.currentLocation?.city || 'Unknown'
+                    };
+
+                    console.log('Scheduling notification in Flutter:', prayerData);
+
+                    // Call Flutter handler
+                    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                        await window.flutter_inappwebview.callHandler('schedulePrayer', prayerData);
+
+                        // Store that this prayer has been scheduled
+                        Storage.set(`scheduled_${prayerKey}_${this.getDateKey()}`, {
+                            scheduled: true,
+                            timestamp: Date.now()
+                        });
+
+                        UI.toast(`Notifikasi ${prayerInfo.name} dijadwalkan`);
+                    } else {
+                        console.error('Flutter WebView handler not available');
+                    }
+                } catch (error) {
+                    console.error('Error scheduling Flutter notification:', error);
+                    UI.toast('Gagal menjadwalkan notifikasi');
+                }
+            },
+
+            /**
+             * Get date key for storage (YYYY-MM-DD format)
+             */
+            getDateKey(date = new Date()) {
+                return date.toISOString().split('T')[0];
+            },
+
+            /**
+             * Check if prayer notification already scheduled for today
+             */
+            isPrayerAlreadyScheduled(prayerKey) {
+                const dateKey = this.getDateKey();
+                const scheduled = Storage.get(`scheduled_${prayerKey}_${dateKey}`, null);
+                return scheduled && scheduled.scheduled;
             },
 
             /**
@@ -864,6 +1221,30 @@
                     });
                 }
 
+                // Enable audio button
+                const enableAudioBtn = document.getElementById('enableAudioBtn');
+                if (enableAudioBtn) {
+                    enableAudioBtn.addEventListener('click', () => {
+                        this.enableAudio();
+                    });
+                }
+
+                // Disable audio button
+                const disableAudioBtn = document.getElementById('disableAudioBtn');
+                if (disableAudioBtn) {
+                    disableAudioBtn.addEventListener('click', () => {
+                        this.disableAudio();
+                    });
+                }
+
+                // Audio control button
+                const audioControl = document.getElementById('audioControl');
+                if (audioControl) {
+                    audioControl.addEventListener('click', () => {
+                        this.toggleAdzan();
+                    });
+                }
+
                 // Settings button
                 const settingsBtn = document.querySelector('#prayerTimesPage #settingsBtn');
                 if (settingsBtn) {
@@ -879,10 +1260,13 @@
             loadPrayerSettings() {
                 const settings = Storage.get(Storage.KEYS.PRAYER_SETTINGS, {
                     notificationsEnabled: false,
-                    calculationMethod: '20', // Kemenag RI
-                    soundEnabled: true
+                    audioEnabled: false,
+                    selectedAdzan: 'Mishary Rashid',
+                    calculationMethod: '20' // Kemenag RI
                 });
                 this.notificationEnabled = settings.notificationsEnabled;
+                this.audioEnabled = settings.audioEnabled;
+                this.selectedAdzan = settings.selectedAdzan || 'Mishary Rashid';
             },
 
             /**
@@ -1002,9 +1386,47 @@
                     this.startCountdown();
                     this.checkNotificationPermission();
 
+                    // Schedule all prayer notifications for today
+                    if (this.notificationEnabled) {
+                        await this.scheduleAllPrayerNotifications();
+                    }
+
                 } catch (error) {
                     console.error('Error loading prayer times:', error);
                     UI.showError(container, 'Gagal memuat jadwal sholat', 'PrayerTimesComponent.loadPrayerTimes()');
+                }
+            },
+
+            /**
+             * Schedule all prayer notifications for today
+             */
+            async scheduleAllPrayerNotifications() {
+                const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+                let scheduledCount = 0;
+
+                for (const prayerKey of prayers) {
+                    // Skip if already scheduled
+                    if (this.isPrayerAlreadyScheduled(prayerKey)) {
+                        console.log(`Prayer ${prayerKey} already scheduled`);
+                        continue;
+                    }
+
+                    // Get prayer time
+                    const prayerDateTime = this.getPrayerDateTime(prayerKey);
+                    if (!prayerDateTime) {
+                        continue;
+                    }
+
+                    // Only schedule if prayer time is in the future
+                    const now = new Date();
+                    if (prayerDateTime > now) {
+                        await this.schedulePrayerNotificationFlutter(prayerKey);
+                        scheduledCount++;
+                    }
+                }
+
+                if (scheduledCount > 0) {
+                    UI.toast(`${scheduledCount} notifikasi jadwal sholat diatur`);
                 }
             },
 
@@ -1209,9 +1631,36 @@
 
             /**
              * Send notification for prayer time
+             * This will use Flutter WebView notification if available, otherwise Web Notifications API
              */
             async sendNotification(prayer) {
+                // Check if already scheduled for today
+                if (this.isPrayerAlreadyScheduled(prayer.key)) {
+                    console.log(`Prayer ${prayer.name} already scheduled for today`);
+                    return;
+                }
+
+                // Use Flutter WebView notification if available
+                if (this.isFlutterWebView) {
+                    await this.schedulePrayerNotificationFlutter(prayer.key);
+                    UI.toast(`Waktu ${prayer.name} telah tiba! Notifikasi dikirim ke Flutter`);
+                } else {
+                    // Fallback to Web Notifications API
+                    await this.sendWebNotification(prayer);
+                }
+
+                // Play adzan audio if enabled (in WebView)
+                if (this.audioEnabled) {
+                    this.playAdzan(prayer);
+                }
+            },
+
+            /**
+             * Send notification using Web Notifications API (fallback for browser)
+             */
+            async sendWebNotification(prayer) {
                 if (!('Notification' in window)) {
+                    console.log('Browser does not support notifications');
                     return;
                 }
 
@@ -1236,8 +1685,121 @@
 
                         UI.toast(`Waktu ${prayer.name} telah tiba!`);
                     } catch (error) {
-                        console.error('Error sending notification:', error);
+                        console.error('Error sending web notification:', error);
                     }
+                } else {
+                    console.log('Notification permission not granted');
+                }
+            },
+
+            /**
+             * Play adzan audio
+             */
+            playAdzan(prayer) {
+                if (this.isPlayingAdzan) {
+                    console.log('Adzan already playing');
+                    return;
+                }
+
+                const audioUrl = this.ADZAN_AUDIO[this.selectedAdzan] || this.ADZAN_AUDIO['Mishary Rashid'];
+
+                try {
+                    // Stop any existing audio
+                    this.stopAdzan();
+
+                    // Create new audio
+                    this.audio = new Audio(audioUrl);
+                    this.isPlayingAdzan = true;
+
+                    // Setup audio events
+                    this.audio.onplay = () => {
+                        console.log('Playing adzan for', prayer.name);
+                        UI.toast(`🔊 Memutar adzan ${prayer.name}`);
+                        this.updateAudioControlUI();
+                    };
+
+                    this.audio.onended = () => {
+                        this.isPlayingAdzan = false;
+                        console.log('Adzan finished');
+                        this.updateAudioControlUI();
+                    };
+
+                    this.audio.onerror = (error) => {
+                        console.error('Error playing adzan:', error);
+                        this.isPlayingAdzan = false;
+                        UI.toast('Gagal memutar adzan');
+                        this.updateAudioControlUI();
+                    };
+
+                    // Play audio
+                    this.audio.play().catch(error => {
+                        console.error('Error playing audio:', error);
+                        this.isPlayingAdzan = false;
+                        UI.toast('Gagal memutar audio. Periksa koneksi internet.');
+                    });
+                } catch (error) {
+                    console.error('Error creating audio:', error);
+                    UI.toast('Gagal membuat audio player');
+                }
+            },
+
+            /**
+             * Stop adzan audio
+             */
+            stopAdzan() {
+                if (this.audio) {
+                    try {
+                        this.audio.pause();
+                        this.audio.currentTime = 0;
+                    } catch (error) {
+                        console.error('Error stopping audio:', error);
+                    }
+                    this.audio = null;
+                }
+                this.isPlayingAdzan = false;
+                this.updateAudioControlUI();
+            },
+
+            /**
+             * Toggle adzan play/pause
+             */
+            toggleAdzan() {
+                if (this.isPlayingAdzan && this.audio) {
+                    if (this.audio.paused) {
+                        this.audio.play();
+                        this.isPlayingAdzan = true;
+                    } else {
+                        this.audio.pause();
+                        this.isPlayingAdzan = false;
+                    }
+                }
+                this.updateAudioControlUI();
+            },
+
+            /**
+             * Update audio control UI
+             */
+            updateAudioControlUI() {
+                const audioControl = document.getElementById('audioControl');
+                if (!audioControl) return;
+
+                // Show/hide button based on audio state
+                if (this.isPlayingAdzan || this.audio) {
+                    audioControl.classList.remove('hidden');
+                } else {
+                    audioControl.classList.add('hidden');
+                }
+
+                if (this.isPlayingAdzan) {
+                    audioControl.innerHTML = '<i class="fas fa-pause"></i>';
+                    audioControl.classList.add('bg-red-500', 'hover:bg-red-600');
+                    audioControl.classList.remove('bg-primary-600', 'hover:bg-primary-700');
+                    audioControl.title = 'Jeda Adzan';
+                } else {
+                    audioControl.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    audioControl.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    audioControl.classList.add('bg-primary-600', 'hover:bg-primary-700');
+                    audioControl.title = 'Putar Adzan';
                 }
             },
 
@@ -1246,7 +1808,26 @@
              */
             checkNotificationPermission() {
                 const banner = document.getElementById('notificationBanner');
+                const audioBanner = document.getElementById('audioBanner');
+                const bannerText = document.getElementById('notificationBannerText');
 
+                // If in Flutter WebView, notifications are handled by Flutter
+                if (this.isFlutterWebView) {
+                    if (bannerText) {
+                        bannerText.textContent = 'Dapatkan notifikasi saat waktu sholat tiba (notifikasi akan muncul meski app ditutup)';
+                    }
+                    banner.classList.add('hidden');
+                    this.notificationEnabled = true;
+                    this.savePrayerSettings();
+
+                    // Show audio banner if not yet enabled
+                    if (!this.audioEnabled) {
+                        audioBanner.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                // For browser, check Web Notifications API
                 if (!('Notification' in window)) {
                     banner.classList.add('hidden');
                     return;
@@ -1256,10 +1837,17 @@
                     banner.classList.add('hidden');
                     this.notificationEnabled = true;
                     this.savePrayerSettings();
+
+                    // Show audio banner if not yet enabled
+                    if (!this.audioEnabled) {
+                        audioBanner.classList.remove('hidden');
+                    }
                 } else if (Notification.permission === 'denied') {
                     banner.classList.add('hidden');
+                    audioBanner.classList.add('hidden');
                 } else {
                     banner.classList.remove('hidden');
+                    audioBanner.classList.add('hidden');
                 }
             },
 
@@ -1267,6 +1855,19 @@
              * Enable notifications
              */
             async enableNotifications() {
+                // If in Flutter WebView, just enable and save settings
+                if (this.isFlutterWebView) {
+                    this.notificationEnabled = true;
+                    this.savePrayerSettings();
+                    document.getElementById('notificationBanner').classList.add('hidden');
+                    UI.toast('Notifikasi diaktifkan (Flutter akan menghandle notifikasi)');
+
+                    // Show audio settings banner
+                    this.showAudioSettingsBanner();
+                    return;
+                }
+
+                // For browser, request Web Notifications permission
                 if (!('Notification' in window)) {
                     UI.toast('Browser tidak mendukung notifikasi');
                     return;
@@ -1280,6 +1881,9 @@
                         this.savePrayerSettings();
                         document.getElementById('notificationBanner').classList.add('hidden');
                         UI.toast('Notifikasi diaktifkan');
+
+                        // Show audio settings banner
+                        this.showAudioSettingsBanner();
                     } else {
                         UI.toast('Izin notifikasi ditolak');
                     }
@@ -1290,13 +1894,121 @@
             },
 
             /**
+             * Show audio settings banner
+             */
+            showAudioSettingsBanner() {
+                const banner = document.getElementById('audioBanner');
+                if (banner) {
+                    banner.classList.remove('hidden');
+                }
+            },
+
+            /**
+             * Enable adzan audio
+             */
+            enableAudio() {
+                this.audioEnabled = true;
+                this.savePrayerSettings();
+                document.getElementById('audioBanner').classList.add('hidden');
+                UI.toast('Suara adzan diaktifkan');
+
+                // Show adzan selector
+                this.showAdzanSelector();
+            },
+
+            /**
+             * Disable adzan audio
+             */
+            disableAudio() {
+                this.audioEnabled = false;
+                this.savePrayerSettings();
+                document.getElementById('audioBanner').classList.add('hidden');
+                UI.toast('Suara adzan dimatikan');
+            },
+
+            /**
+             * Show adzan selector modal
+             */
+            showAdzanSelector() {
+                const options = Object.keys(this.ADZAN_AUDIO).map((name, index) => {
+                    const isSelected = name === this.selectedAdzan;
+                    return `
+                        <label class="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 ${isSelected ? 'bg-primary-50 border-2 border-primary-500' : 'border border-gray-200'}">
+                            <input type="radio" name="adzanSelect" value="${name}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-primary-600">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">${name}</p>
+                            </div>
+                            ${isSelected ? '<i class="fas fa-check text-primary-600"></i>' : ''}
+                        </label>
+                    `;
+                }).join('');
+
+                const html = `
+                    <div id="adzanModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Pilih Suara Adzan</h3>
+                            <div class="space-y-2 mb-4">
+                                ${options}
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="PrayerTimesComponent.selectAdzan()" class="flex-1 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition font-semibold">
+                                    Pilih
+                                </button>
+                                <button onclick="PrayerTimesComponent.closeAdzanSelector()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition font-semibold">
+                                    Batal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Remove existing modal
+                const existingModal = document.getElementById('adzanModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+
+                // Add modal to body
+                document.body.insertAdjacentHTML('beforeend', html);
+            },
+
+            /**
+             * Select adzan from modal
+             */
+            selectAdzan() {
+                const selected = document.querySelector('input[name="adzanSelect"]:checked');
+                if (selected) {
+                    this.selectedAdzan = selected.value;
+                    this.savePrayerSettings();
+                    UI.toast(`Adzan ${selected.value} dipilih`);
+                    this.closeAdzanSelector();
+
+                    // Test play adzan
+                    this.playAdzan({ name: 'Test' });
+                } else {
+                    UI.toast('Pilih salah satu adzan');
+                }
+            },
+
+            /**
+             * Close adzan selector modal
+             */
+            closeAdzanSelector() {
+                const modal = document.getElementById('adzanModal');
+                if (modal) {
+                    modal.remove();
+                }
+            },
+
+            /**
              * Save prayer settings
              */
             savePrayerSettings() {
                 const settings = {
                     notificationsEnabled: this.notificationEnabled,
-                    calculationMethod: '20',
-                    soundEnabled: true
+                    audioEnabled: this.audioEnabled,
+                    selectedAdzan: this.selectedAdzan || 'Mishary Rashid',
+                    calculationMethod: '20'
                 };
                 Storage.set(Storage.KEYS.PRAYER_SETTINGS, settings);
             },
@@ -1305,7 +2017,114 @@
              * Show settings modal
              */
             showSettings() {
-                UI.toast('Pengaturan jadwal sholat akan segera hadir!');
+                const settings = Storage.get(Storage.KEYS.PRAYER_SETTINGS, {
+                    notificationsEnabled: false,
+                    audioEnabled: false,
+                    selectedAdzan: 'Mishary Rashid'
+                });
+
+                const platformInfo = this.isFlutterWebView
+                    ? '<div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700"><i class="fas fa-info-circle mr-1"></i> Berjalan di Flutter WebView - notifikasi akan muncul meski app ditutup</div>'
+                    : '<div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700"><i class="fas fa-exclamation-triangle mr-1"></i> Berjalan di browser - notifikasi hanya muncul saat app dibuka</div>';
+
+                const html = `
+                    <div id="settingsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Pengaturan Jadwal Sholat</h3>
+
+                            ${platformInfo}
+
+                            <div class="space-y-4">
+                                <!-- Notifications -->
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div>
+                                        <p class="font-medium text-gray-800">Notifikasi</p>
+                                        <p class="text-sm text-gray-500">Notifikasi saat waktu sholat</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" ${settings.notificationsEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('notificationsEnabled')">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                    </label>
+                                </div>
+
+                                <!-- Audio -->
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div>
+                                        <p class="font-medium text-gray-800">Suara Adzan</p>
+                                        <p class="text-sm text-gray-500">Mainkan adzan saat waktu sholat</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" ${settings.audioEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('audioEnabled')">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                    </label>
+                                </div>
+
+                                <!-- Adzan Selection -->
+                                <div class="p-4 bg-gray-50 rounded-xl">
+                                    <p class="font-medium text-gray-800 mb-2">Muadzin Pilihan</p>
+                                    <select onchange="PrayerTimesComponent.changeAdzan(this.value)" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        ${Object.keys(this.ADZAN_AUDIO).map(name => `
+                                            <option value="${name}" ${name === settings.selectedAdzan ? 'selected' : ''}>${name}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+
+                                <!-- Test Audio -->
+                                <button onclick="PrayerTimesComponent.testAdzan()" class="w-full p-4 bg-primary-100 text-primary-700 rounded-xl hover:bg-primary-200 transition font-semibold">
+                                    <i class="fas fa-play mr-2"></i> Test Suara Adzan
+                                </button>
+                            </div>
+
+                            <button onclick="PrayerTimesComponent.closeSettings()" class="w-full mt-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition font-semibold">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Remove existing modal
+                const existingModal = document.getElementById('settingsModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+
+                // Add modal to body
+                document.body.insertAdjacentHTML('beforeend', html);
+            },
+
+            /**
+             * Toggle setting
+             */
+            toggleSetting(setting) {
+                this[setting] = !this[setting];
+                this.savePrayerSettings();
+                UI.toast(`${setting} ${this[setting] ? 'diaktifkan' : 'dimatikan'}`);
+            },
+
+            /**
+             * Change adzan selection
+             */
+            changeAdzan(value) {
+                this.selectedAdzan = value;
+                this.savePrayerSettings();
+                UI.toast(`Adzan ${value} dipilih`);
+            },
+
+            /**
+             * Test adzan
+             */
+            testAdzan() {
+                this.playAdzan({ name: 'Test' });
+            },
+
+            /**
+             * Close settings modal
+             */
+            closeSettings() {
+                const modal = document.getElementById('settingsModal');
+                if (modal) {
+                    modal.remove();
+                }
             },
 
             /**
@@ -1321,6 +2140,9 @@
                 if (banner) {
                     banner.classList.add('hidden');
                 }
+
+                // Stop adzan if playing
+                this.stopAdzan();
             }
         };
 
@@ -1354,7 +2176,16 @@
                     const surahs = await QuranAPI.getSurahList();
                     this.renderSurahList(surahs);
                 } catch (error) {
-                    UI.showError(container, 'Gagal memuat daftar surah. Periksa koneksi internet Anda.', 'QuranComponent.loadSurahList()');
+                    console.error('Failed to load surah list:', error);
+                    let errorMsg = 'Gagal memuat daftar surah';
+
+                    if (error.name === 'AbortError') {
+                        errorMsg = 'Waktu habis. Periksa koneksi internet Anda.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMsg = 'Tidak terhubung ke internet. Periksa koneksi Anda.';
+                    }
+
+                    UI.showError(container, errorMsg, 'QuranComponent.loadSurahList()');
                 }
             },
 
@@ -1433,7 +2264,15 @@
                     app.navigateTo('surahDetail');
                 } catch (error) {
                     console.error('Error loading surah:', error);
-                    UI.showError(container, 'Gagal memuat surah. Periksa koneksi internet Anda.', `QuranComponent.openSurah(${surahNumber})`);
+                    let errorMsg = 'Gagal memuat surah';
+
+                    if (error.name === 'AbortError') {
+                        errorMsg = 'Waktu habis. Periksa koneksi internet Anda.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMsg = 'Tidak terhubung ke internet. Periksa koneksi Anda.';
+                    }
+
+                    UI.showError(container, errorMsg, `QuranComponent.openSurah(${surahNumber})`);
                 }
             },
 
