@@ -269,32 +269,6 @@
                             </button>
                         </div>
 
-                        <!-- Last Read -->
-                        <div class="mb-6">
-                            <h3 class="font-semibold text-gray-800 mb-3">Terakhir Dibaca</h3>
-                            <div class="bg-gray-50 rounded-xl p-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                                        <span class="font-arabic text-primary-700 text-lg font-bold">١</span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="font-semibold text-gray-800">Al-Fatihah</p>
-                                        <p class="text-sm text-gray-500">Pembukaan • 7 Ayat</p>
-                                    </div>
-                                    <button id="btnContinueReading" class="text-primary-600">
-                                        <i class="fas fa-play-circle text-2xl"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Continue Reading -->
-                        <div class="text-center py-4">
-                            <button id="btnViewAllSurah"
-                                class="text-primary-600 font-semibold text-sm hover:text-primary-700">
-                                Lihat Semua Surah <i class="fas fa-arrow-right ml-1"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -502,6 +476,48 @@
                     </div>
                 </div>
 
+                <!-- Donation/Info Sedekah Page -->
+                <div id="donationPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-hand-holding-heart text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-primary-100">Info Sedekah</p>
+                                        <p class="font-semibold">Salurkan Infaq Terbaik</p>
+                                    </div>
+                                </div>
+                                <button id="refreshDonationBtn" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Info Banner -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                            <div class="flex gap-3">
+                                <i class="fas fa-lightbulb text-amber-500 mt-1"></i>
+                                <div>
+                                    <p class="text-sm text-amber-800 font-medium">Salurkan sedekah Anda melalui QRIS masjid</p>
+                                    <p class="text-xs text-amber-700 mt-1">Scan QR code atau copy nomor untuk berdonasi</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Donation List -->
+                        <div id="donationList" class="space-y-3">
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <i class="fas fa-hand-holding-heart text-4xl text-gray-300 mb-3"></i>
+                                <p class="text-gray-500">Memuat info sedekah...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hadith Page -->
                 <div id="hadithPage" class="page hidden">
                     <div class="p-4">
@@ -641,6 +657,51 @@
                     </div>
                 </div>
 
+                <!-- Asmaul Husna Page -->
+                <div id="asmaulHusnaPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-star text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">99 Nama</p>
+                                    <p class="font-semibold text-lg">Asmaul Husna</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-primary-100">Nama-nama indah Allah SWT</p>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="asmaulHusnaSearch"
+                                    placeholder="Cari Asmaul Husna..."
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                >
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <button
+                                    id="clearAsmaulHusnaSearch"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Asmaul Husna List -->
+                        <div id="asmaulHusnaList" class="grid grid-cols-1 gap-3">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-gray-500 text-sm">Memuat Asmaul Husna...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Dua Page -->
                 <div id="duaPage" class="page hidden">
                     <div class="p-4">
@@ -697,6 +758,51 @@
 
                             <div id="duaList" class="space-y-3">
                                 <!-- Dua items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Articles Page -->
+                <div id="articlesPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-newspaper text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">Informasi</p>
+                                    <p class="font-semibold text-lg">Artikel & Majelis Taklim</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-primary-100">Info kegiatan dan majelis taklim di sekitar Anda</p>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="articleSearchInput"
+                                    placeholder="Cari artikel atau majelis taklim..."
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                >
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <button
+                                    id="clearArticleSearchBtn"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Articles List -->
+                        <div id="articlesList" class="space-y-3">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-gray-500 text-sm">Memuat artikel...</p>
                             </div>
                         </div>
                     </div>
@@ -1526,6 +1632,142 @@
                 if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
 
                 return parts.length > 0 ? parts.join(', ') : 'Alamat tidak tersedia';
+            }
+        };
+
+        /**
+         * Donation API Handler
+         * Mengambil data info sedekah dan QRIS masjid
+         * Untuk saat ini menggunakan dummy data untuk testing
+         */
+        const DonationAPI = {
+            /**
+             * Get donation/QRIS info for mosques
+             * Untuk saat ini menggunakan dummy data
+             * @returns {Promise<Array>} Array of donation info
+             */
+            async getDonationInfo() {
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Dummy data untuk testing
+                return [
+                    {
+                        id: 1,
+                        mosqueName: 'Masjid Agung Al-Azhar',
+                        mosqueAddress: 'Jl. Sisingamangaraja, Kebayoran Baru, Jakarta Selatan',
+                        latitude: -6.2254,
+                        longitude: 106.8000,
+                        distance: 1.2,
+                        donationTypes: ['Infaq', 'Wakaf', 'Zakat Maal'],
+                        bankAccount: {
+                            bankName: 'BSI (Bank Syariah Indonesia)',
+                            accountNumber: '1234567890',
+                            accountName: 'Masjid Agung Al-Azhar'
+                        },
+                        qris: {
+                            nmId: 'ID102003045678',
+                            merchantName: 'Masjid Agung Al-Azhar',
+                            qrisString: '00020101021226580016ID.CO.QRIS.WWW01189360052002010000000000000303UMI51440014ID.CO.QRIS.WWW0215ID1020030456780319Masjid Agung Al-Azhar5204581253033605802ID5910Jakarta6007Jakarta6105101106304A1B2',
+                            qrImageUrl: 'https://placehold.co/300x300/primary-600/white?text=QRIS+Al-Azhar',
+                            expiryDate: '2025-12-31'
+                        }
+                    },
+                    {
+                        id: 2,
+                        mosqueName: 'Masjid Istiqlal',
+                        mosqueAddress: 'Jl. Lapangan Rochoeng, Pasar Baru, Jakarta Pusat',
+                        latitude: -6.1754,
+                        longitude: 106.8700,
+                        distance: 2.5,
+                        donationTypes: ['Infaq', 'Pembangunan', 'Operasional'],
+                        bankAccount: {
+                            bankName: 'BMI (Bank Muamalat Indonesia)',
+                            accountNumber: '9876543210',
+                            accountName: 'DKM Masjid Istiqlal'
+                        },
+                        qris: {
+                            nmId: 'ID102003012345',
+                            merchantName: 'DKM Masjid Istiqlal',
+                            qrisString: '00020101021226580016ID.CO.QRIS.WWW01189360052002010000000000000303UMI51440014ID.CO.QRIS.WWW0215ID1020030123450319DKM Masjid Istiqlal5204581253033605802ID5910Jakarta6007Jakarta6105101106304C3D4',
+                            qrImageUrl: 'https://placehold.co/300x300/primary-600/white?text=QRIS+Istiqlal',
+                            expiryDate: '2025-12-31'
+                        }
+                    },
+                    {
+                        id: 3,
+                        mosqueName: 'Masjid Raya Pondok Indah',
+                        mosqueAddress: 'Jl. Metro Pondok Indah, Kebayoran Lama, Jakarta Selatan',
+                        latitude: -6.2654,
+                        longitude: 106.7800,
+                        distance: 3.8,
+                        donationTypes: ['Infaq', 'Sedekah Jumat', 'Anak Yatim'],
+                        bankAccount: {
+                            bankName: 'BSI (Bank Syariah Indonesia)',
+                            accountNumber: '5555666677',
+                            accountName: 'DKM Masjid Raya Pondok Indah'
+                        },
+                        qris: {
+                            nmId: 'ID102003078901',
+                            merchantName: 'DKM Masjid Raya Pondok Indah',
+                            qrisString: '00020101021226580016ID.CO.QRIS.WWW01189360052002010000000000000303UMI51440014ID.CO.QRIS.WWW0215ID1020030789010326DKM Masjid Raya Pondok Indah5204581253033605802ID5910Jakarta6007Jakarta6105101106304E5F6',
+                            qrImageUrl: 'https://placehold.co/300x300/primary-600/white?text=QRIS+Pondok+Indah',
+                            expiryDate: '2025-12-31'
+                        }
+                    },
+                    {
+                        id: 4,
+                        mosqueName: 'Masjid Al-Falah',
+                        mosqueAddress: 'Jl. Biak No.8, Gambir, Jakarta Pusat',
+                        latitude: -6.1854,
+                        longitude: 106.8500,
+                        distance: 4.2,
+                        donationTypes: ['Zakat', 'Infaq', 'Wakaf'],
+                        bankAccount: {
+                            bankName: 'BCA Syariah',
+                            accountNumber: '888899990000',
+                            accountName: 'Yayasan Al-Falah'
+                        },
+                        qris: {
+                            nmId: 'ID102003045677',
+                            merchantName: 'Yayasan Al-Falah',
+                            qrisString: '00020101021226580016ID.CO.QRIS.WWW01189360052002010000000000000303UMI51440014ID.CO.QRIS.WWW0215ID1020030456770316Yayasan Al-Falah5204581253033605802ID5910Jakarta6007Jakarta6105101106304G7H8',
+                            qrImageUrl: 'https://placehold.co/300x300/primary-600/white?text=QRIS+Al-Falah',
+                            expiryDate: '2025-12-31'
+                        }
+                    },
+                    {
+                        id: 5,
+                        mosqueName: 'Masjid At-Tin',
+                        mosqueAddress: 'Jl. TMP Taruna, Karet Tengsin, Tanah Abang, Jakarta Pusat',
+                        latitude: -6.1954,
+                        longitude: 106.8200,
+                        distance: 5.1,
+                        donationTypes: ['Infaq', 'Kajian', 'Pembangunan'],
+                        bankAccount: {
+                            bankName: 'BSI (Bank Syariah Indonesia)',
+                            accountNumber: '1111222233',
+                            accountName: 'DKM Masjid At-Tin'
+                        },
+                        qris: {
+                            nmId: 'ID102003056789',
+                            merchantName: 'DKM Masjid At-Tin',
+                            qrisString: '00020101021226580016ID.CO.QRIS.WWW01189360052002010000000000000303UMI51440014ID.CO.QRIS.WWW0215ID1020030567890317DKM Masjid At-Tin5204581253033605802ID5910Jakarta6007Jakarta6105101106304I9J0',
+                            qrImageUrl: 'https://placehold.co/300x300/primary-600/white?text=QRIS+At-Tin',
+                            expiryDate: '2025-12-31'
+                        }
+                    }
+                ];
+            },
+
+            /**
+             * Get donation info by mosque ID
+             * @param {number} mosqueId - Mosque ID
+             * @returns {Promise<Object>} Donation info for specific mosque
+             */
+            async getDonationById(mosqueId) {
+                const donations = await this.getDonationInfo();
+                return donations.find(d => d.id === mosqueId) || null;
             }
         };
 
@@ -3507,6 +3749,350 @@
         };
 
         /**
+         * Donation Component
+         * Menangani tampilan dan fitur Info Sedekah
+         */
+        const DonationComponent = {
+            donationData: [],
+            isLoading: false,
+
+            /**
+             * Initialize component
+             */
+            init() {
+                // Refresh button
+                const refreshBtn = document.querySelector('#donationPage #refreshDonationBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.loadDonationInfo();
+                    });
+                }
+            },
+
+            /**
+             * Load donation information
+             */
+            async loadDonationInfo() {
+                // Prevent multiple simultaneous requests
+                if (this.isLoading) {
+                    console.log('Already loading donations, ignoring duplicate request');
+                    return;
+                }
+
+                this.isLoading = true;
+
+                await this.fetchAndDisplayDonations();
+
+                this.isLoading = false;
+            },
+
+            /**
+             * Fetch and display donations
+             */
+            async fetchAndDisplayDonations() {
+                UI.showLoading('donationList', 'Memuat info sedekah...');
+
+                try {
+                    const donations = await DonationAPI.getDonationInfo();
+
+                    this.donationData = donations;
+
+                    if (donations.length === 0) {
+                        this.showEmptyState();
+                    } else {
+                        this.renderDonations(donations);
+                    }
+
+                    this.isLoading = false;
+                } catch (error) {
+                    console.error('Failed to load donation info:', error);
+
+                    const errorMsg = error.message || 'Gagal memuat info sedekah';
+
+                    UI.toast(errorMsg);
+                    this.showError(errorMsg);
+                    this.isLoading = false;
+                }
+            },
+
+            /**
+             * Render donations list
+             */
+            renderDonations(donations) {
+                const container = document.getElementById('donationList');
+                if (!container) {
+                    console.error('Container donationList not found');
+                    return;
+                }
+
+                const donationsHTML = donations.map(donation => `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
+                        <div class="flex items-start gap-3">
+                            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-hand-holding-heart text-primary-600 text-xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-800 truncate">${donation.mosqueName}</h3>
+                                <p class="text-sm text-gray-500 truncate mt-1">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    ${donation.mosqueAddress}
+                                </p>
+
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    ${donation.donationTypes.map(type => `
+                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                            ${type}
+                                        </span>
+                                    `).join('')}
+                                </div>
+
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="DonationComponent.showQRISModal(${donation.id})"
+                                        class="flex-1 bg-primary-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                                        <i class="fas fa-qrcode"></i>
+                                        Lihat QRIS
+                                    </button>
+                                    <button onclick="DonationComponent.shareDonationInfo(${donation.id})"
+                                        class="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = donationsHTML;
+            },
+
+            /**
+             * Show QRIS Modal
+             */
+            async showQRISModal(donationId) {
+                const donation = await DonationAPI.getDonationById(donationId);
+                if (!donation) {
+                    UI.toast('Data tidak ditemukan');
+                    return;
+                }
+
+                // Create modal HTML
+                const modalHTML = `
+                    <div id="qrisModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                            <!-- Modal Header -->
+                            <div class="bg-gradient-to-br from-primary-500 to-primary-700 text-white p-5 rounded-t-2xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-hand-holding-heart text-2xl"></i>
+                                        <div>
+                                            <p class="text-xs text-primary-100">Info Sedekah</p>
+                                            <p class="font-semibold text-lg">QRIS</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="DonationComponent.closeQRISModal()" class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="p-5">
+                                <!-- Mosque Info -->
+                                <div class="mb-4">
+                                    <h4 class="font-semibold text-gray-800 mb-1">${donation.mosqueName}</h4>
+                                    <p class="text-sm text-gray-500">${donation.mosqueAddress}</p>
+                                </div>
+
+                                <!-- QRIS Image -->
+                                <div class="bg-gray-50 rounded-xl p-6 mb-4">
+                                    <div class="flex justify-center mb-4">
+                                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                                            <img id="qrisImage" src="${donation.qris.qrImageUrl}" alt="QRIS Code" class="w-48 h-48 object-contain">
+                                        </div>
+                                    </div>
+                                    <p class="text-center text-sm text-gray-600 mb-2">Scan QR code untuk berdonasi</p>
+                                    <p class="text-center text-xs text-gray-500">NMID: ${donation.qris.nmId}</p>
+                                </div>
+
+                                <!-- QRIS String -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">String QRIS</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="qrisString" readonly
+                                            value="${donation.qris.qrisString}"
+                                            class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 font-mono truncate">
+                                        <button onclick="DonationComponent.copyQRISString()"
+                                            class="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Bank Account Info -->
+                                <div class="bg-blue-50 rounded-xl p-4 mb-4">
+                                    <h5 class="font-medium text-gray-800 mb-2">
+                                        <i class="fas fa-university mr-2 text-blue-600"></i>
+                                        Rekening Bank
+                                    </h5>
+                                    <div class="bg-white rounded-lg p-3">
+                                        <p class="text-sm font-semibold text-gray-800">${donation.bankAccount.bankName}</p>
+                                        <p class="text-lg font-bold text-gray-900 my-1">${donation.bankAccount.accountNumber}</p>
+                                        <p class="text-sm text-gray-600">a.n ${donation.bankAccount.accountName}</p>
+                                        <button onclick="DonationComponent.copyBankAccount('${donation.bankAccount.bankName}', '${donation.bankAccount.accountNumber}', '${donation.bankAccount.accountName}')"
+                                            class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition w-full">
+                                            <i class="fas fa-copy mr-2"></i>
+                                            Salin Nomor Rekening
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Donation Types -->
+                                <div class="bg-green-50 rounded-xl p-4">
+                                    <h5 class="font-medium text-gray-800 mb-2">
+                                        <i class="fas fa-hand-holding-heart mr-2 text-green-600"></i>
+                                        Jenis Sedekah
+                                    </h5>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${donation.donationTypes.map(type => `
+                                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                                ${type}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Share Button -->
+                                <button onclick="DonationComponent.shareDonationInfo(${donation.id})"
+                                    class="w-full mt-4 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-share-alt"></i>
+                                    Bagikan Info Sedekah
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add modal to body
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalHTML;
+                document.body.appendChild(modalContainer.firstElementChild);
+
+                // Store current donation data for copy functions
+                this.currentDonation = donation;
+            },
+
+            /**
+             * Close QRIS Modal
+             */
+            closeQRISModal() {
+                const modal = document.getElementById('qrisModal');
+                if (modal) {
+                    modal.remove();
+                }
+                this.currentDonation = null;
+            },
+
+            /**
+             * Copy QRIS String
+             */
+            copyQRISString() {
+                if (!this.currentDonation) return;
+
+                navigator.clipboard.writeText(this.currentDonation.qris.qrisString).then(() => {
+                    UI.toast('String QRIS disalin ke clipboard');
+                }).catch(() => {
+                    UI.toast('Gagal menyalin string QRIS');
+                });
+            },
+
+            /**
+             * Copy Bank Account
+             */
+            copyBankAccount(bankName, accountNumber, accountName) {
+                const text = `${bankName}\n${accountNumber}\na.n ${accountName}`;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    UI.toast('Nomor rekening disalin ke clipboard');
+                }).catch(() => {
+                    UI.toast('Gagal menyalin nomor rekening');
+                });
+            },
+
+            /**
+             * Share donation info
+             */
+            async shareDonationInfo(donationId) {
+                const donation = await DonationAPI.getDonationById(donationId);
+                if (!donation) return;
+
+                const shareText = `Info Sedekah - ${donation.mosqueName}\n\n` +
+                    `Alamat: ${donation.mosqueAddress}\n\n` +
+                    `QRIS NMID: ${donation.qris.nmId}\n` +
+                    `String QRIS: ${donation.qris.qrisString}\n\n` +
+                    `Rekening Bank:\n` +
+                    `${donation.bankAccount.bankName}\n` +
+                    `${donation.bankAccount.accountNumber}\n` +
+                    `a.n ${donation.bankAccount.accountName}\n\n` +
+                    `Jenis Sedekah: ${donation.donationTypes.join(', ')}`;
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Info Sedekah - ${donation.mosqueName}`,
+                        text: shareText
+                    }).catch(error => {
+                        console.log('Share failed:', error);
+                    });
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        UI.toast('Info sedekah disalin ke clipboard');
+                    }).catch(() => {
+                        UI.toast('Gagal menyalin info sedekah');
+                    });
+                }
+            },
+
+            /**
+             * Show empty state
+             */
+            showEmptyState() {
+                const container = document.getElementById('donationList');
+                if (!container) {
+                    console.error('Container donationList not found');
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-hand-holding-heart text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Tidak ada info sedekah tersedia</p>
+                    </div>
+                `;
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('donationList');
+                if (!container) {
+                    console.error('Container donationList not found');
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-500">${message}</p>
+                        <button onclick="DonationComponent.loadDonationInfo()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            }
+        };
+
+        /**
          * Hadith Component
          * Menangani tampilan dan fitur Hadist
          */
@@ -4777,6 +5363,331 @@
         };
 
         /**
+         * Asmaul Husna Component
+         * Menangani tampilan dan interaksi fitur Asmaul Husna
+         */
+        const AsmaulHusnaComponent = {
+            asmaulHusna: [],
+            isLoading: false,
+            searchQuery: '',
+
+            // Static data embedded directly to avoid CORS issues
+            ASMAUL_HUSNA_DATA: [
+                { "id": 1, "arabic": "الرَّحْمَنُ", "latin": "Ar-Rahman", "meaning": "Yang Maha Pengasih" },
+                { "id": 2, "arabic": "الرَّحِيمُ", "latin": "Ar-Rahim", "meaning": "Yang Maha Penyayang" },
+                { "id": 3, "arabic": "الْمَلِكُ", "latin": "Al-Malik", "meaning": "Yang Maha Merajai" },
+                { "id": 4, "arabic": "الْقُدُّوسُ", "latin": "Al-Quddus", "meaning": "Yang Maha Suci" },
+                { "id": 5, "arabic": "السَّلاَمُ", "latin": "As-Salam", "meaning": "Yang Maha Memberi Kesejahteraan" },
+                { "id": 6, "arabic": "الْمُؤْمِنُ", "latin": "Al-Mu'min", "meaning": "Yang Maha Memberi Keamanan" },
+                { "id": 7, "arabic": "الْمُهَيْمِنُ", "latin": "Al-Muhaimin", "meaning": "Yang Maha Mengawal" },
+                { "id": 8, "arabic": "الْعَزِيزُ", "latin": "Al-Aziz", "meaning": "Yang Maha Perkasa" },
+                { "id": 9, "arabic": "الْجَبَّارُ", "latin": "Al-Jabbar", "meaning": "Yang Maha Kuasa" },
+                { "id": 10, "arabic": "الْمُتَكَبِّرُ", "latin": "Al-Mutakabbir", "meaning": "Yang Maha Megah" },
+                { "id": 11, "arabic": "الْخَالِقُ", "latin": "Al-Khaliq", "meaning": "Yang Maha Pencipta" },
+                { "id": 12, "arabic": "الْبَارِئُ", "latin": "Al-Bari'", "meaning": "Yang Maha Membebaskan" },
+                { "id": 13, "arabic": "الْمُصَوِّرُ", "latin": "Al-Musawwir", "meaning": "Yang Maha Membentuk" },
+                { "id": 14, "arabic": "الْغَفَّارُ", "latin": "Al-Ghaffar", "meaning": "Yang Maha Pengampun" },
+                { "id": 15, "arabic": "الْقَهَّارُ", "latin": "Al-Qahhar", "meaning": "Yang Maha Memaksa" },
+                { "id": 16, "arabic": "الْوَهَّابُ", "latin": "Al-Wahhab", "meaning": "Yang Maha Pemberi" },
+                { "id": 17, "arabic": "الرَّزَّاقُ", "latin": "Ar-Razzaq", "meaning": "Yang Maha Memberi Rezeki" },
+                { "id": 18, "arabic": "الْفَتَّاحُ", "latin": "Al-Fattah", "meaning": "Yang Maha Membukakan" },
+                { "id": 19, "arabic": "اَلْعَلِيْمُ", "latin": "Al-Alim", "meaning": "Yang Maha Mengetahui" },
+                { "id": 20, "arabic": "الْقَابِضُ", "latin": "Al-Qabid", "meaning": "Yang Maha Menyempitkan" },
+                { "id": 21, "arabic": "الْبَاسِطُ", "latin": "Al-Basit", "meaning": "Yang Maha Melapangkan" },
+                { "id": 22, "arabic": "الْخَافِضُ", "latin": "Al-Khafid", "meaning": "Yang Maha Merendahkan" },
+                { "id": 23, "arabic": "الرَّافِعُ", "latin": "Ar-Rafi'", "meaning": "Yang Maha Meninggikan" },
+                { "id": 24, "arabic": "الْمُعِزُّ", "latin": "Al-Mu'izz", "meaning": "Yang Maha Memuliakan" },
+                { "id": 25, "arabic": "المُذِلُّ", "latin": "Al-Mudzil", "meaning": "Yang Maha Menghinakan" },
+                { "id": 26, "arabic": "السَّمِيْعُ", "latin": "As-Sami'", "meaning": "Yang Maha Mendengar" },
+                { "id": 27, "arabic": "الْبَصِيْرُ", "latin": "Al-Basir", "meaning": "Yang Maha Melihat" },
+                { "id": 28, "arabic": "الْحَكَمُ", "latin": "Al-Hakam", "meaning": "Yang Maha Membuat Hukum" },
+                { "id": 29, "arabic": "الْعَدْلُ", "latin": "Al-'Adl", "meaning": "Yang Maha Adil" },
+                { "id": 30, "arabic": "اللَّطِيْفُ", "latin": "Al-Latif", "meaning": "Yang Maha Lembut" },
+                { "id": 31, "arabic": "الْخَبِيْرُ", "latin": "Al-Khabir", "meaning": "Yang Maha Mengenal" },
+                { "id": 32, "arabic": "الْحَلِيْمُ", "latin": "Al-Halim", "meaning": "Yang Maha Penyantun" },
+                { "id": 33, "arabic": "الْعَظِيْمُ", "latin": "Al-Azim", "meaning": "Yang Maha Agung" },
+                { "id": 34, "arabic": "الْغَفُوْرُ", "latin": "Al-Ghafur", "meaning": "Yang Maha Memaafkan" },
+                { "id": 35, "arabic": "الشَّكُوْرُ", "latin": "Asy-Syakur", "meaning": "Yang Maha Bersyukur" },
+                { "id": 36, "arabic": "الْعَلِيُّ", "latin": "Al-Ali", "meaning": "Yang Maha Tinggi" },
+                { "id": 37, "arabic": "الْكَبِيْرُ", "latin": "Al-Kabir", "meaning": "Yang Maha Besar" },
+                { "id": 38, "arabic": "الْحَفِيْظُ", "latin": "Al-Hafiz", "meaning": "Yang Maha Menjaga" },
+                { "id": 39, "arabic": "المُقيِتُ", "latin": "Al-Muqit", "meaning": "Yang Maha Memberi Kekuatan" },
+                { "id": 40, "arabic": "الْحَسِيبُ", "latin": "Al-Hasib", "meaning": "Yang Maha Mencukupkan" },
+                { "id": 41, "arabic": "الْجَلِيلُ", "latin": "Al-Jalil", "meaning": "Yang Maha Mulia" },
+                { "id": 42, "arabic": "الْكَرِيمُ", "latin": "Al-Karim", "meaning": "Yang Maha Pemurah" },
+                { "id": 43, "arabic": "الرَّقِيبُ", "latin": "Ar-Raqib", "meaning": "Yang Maha Mengawasi" },
+                { "id": 44, "arabic": "الْمُجِيبُ", "latin": "Al-Mujib", "meaning": "Yang Maha Mengabulkan" },
+                { "id": 45, "arabic": "الْوَاسِعُ", "latin": "Al-Wasi'", "meaning": "Yang Maha Luas" },
+                { "id": 46, "arabic": "الْحَكِيمُ", "latin": "Al-Hakim", "meaning": "Yang Maha Maha Bijaksana" },
+                { "id": 47, "arabic": "الْوَدُوْدُ", "latin": "Al-Wadud", "meaning": "Yang Maha Mengasihi" },
+                { "id": 48, "arabic": "الْمَجِيدُ", "latin": "Al-Majid", "meaning": "Yang Maha Mulia" },
+                { "id": 49, "arabic": "الْبَاعِثُ", "latin": "Al-Ba'its", "meaning": "Yang Maha Membangkitkan" },
+                { "id": 50, "arabic": "الشَّهِيدُ", "latin": "Asy-Syahid", "meaning": "Yang Maha Menjadi Saksi" },
+                { "id": 51, "arabic": "الْحَقُّ", "latin": "Al-Haqq", "meaning": "Yang Maha Benar" },
+                { "id": 52, "arabic": "الْوَكِيلُ", "latin": "Al-Wakil", "meaning": "Yang Maha Memelihara" },
+                { "id": 53, "arabic": "الْقَوِيُّ", "latin": "Al-Qawi", "meaning": "Yang Maha Kuat" },
+                { "id": 54, "arabic": "الْمَتِينُ", "latin": "Al-Matin", "meaning": "Yang Maha Kokoh" },
+                { "id": 55, "arabic": "الْوَلِيُّ", "latin": "Al-Wali", "meaning": "Yang Maha Melindungi" },
+                { "id": 56, "arabic": "الْحَمِيدُ", "latin": "Al-Hamid", "meaning": "Yang Maha Terpuji" },
+                { "id": 57, "arabic": "المُحْصِي", "latin": "Al-Muhsi", "meaning": "Yang Maha Mengalkulasi" },
+                { "id": 58, "arabic": "الْمُبْدِئُ", "latin": "Al-Mubdi", "meaning": "Yang Maha Memulai" },
+                { "id": 59, "arabic": "الْمُعِيدُ", "latin": "Al-Mu'id", "meaning": "Yang Maha Mengembalikan" },
+                { "id": 60, "arabic": "الْمُحْيِي", "latin": "Al-Muhyi", "meaning": "Yang Maha Menghidupkan" },
+                { "id": 61, "arabic": "اَلْمُمِيتُ", "latin": "Al-Mumit", "meaning": "Yang Maha Mematikan" },
+                { "id": 62, "arabic": "الْحَيُّ", "latin": "Al-Hayy", "meaning": "Yang Maha Hidup" },
+                { "id": 63, "arabic": "الْقَيُّومُ", "latin": "Al-Qayyum", "meaning": "Yang Maha Mandiri" },
+                { "id": 64, "arabic": "الْوَاجِدُ", "latin": "Al-Wajid", "meaning": "Yang Maha Penemu" },
+                { "id": 65, "arabic": "الْمَاجِدُ", "latin": "Al-Majid", "meaning": "Yang Maha Luhur" },
+                { "id": 66, "arabic": "الْواحِدُ", "latin": "Al-Wahid", "meaning": "Yang Maha Tunggal" },
+                { "id": 67, "arabic": "اَلاَحَدُ", "latin": "Al-Ahad", "meaning": "Yang Maha Esa" },
+                { "id": 68, "arabic": "الصَّمَدُ", "latin": "As-Samad", "meaning": "Yang Maha Dibutuhkan" },
+                { "id": 69, "arabic": "الْقَادِرُ", "latin": "Al-Qadir", "meaning": "Yang Maha Mampu" },
+                { "id": 70, "arabic": "الْمُقْتَدِرُ", "latin": "Al-Muqtadir", "meaning": "Yang Maha Menentukan" },
+                { "id": 71, "arabic": "الْمُقَدِّمُ", "latin": "Al-Muqaddim", "meaning": "Yang Maha Mendahulukan" },
+                { "id": 72, "arabic": "الْمُؤَخِّرُ", "latin": "Al-Mu'akhkhir", "meaning": "Yang Maha Mengakhirkan" },
+                { "id": 73, "arabic": "الأوَّلُ", "latin": "Al-Awwal", "meaning": "Yang Maha Awal" },
+                { "id": 74, "arabic": "الآخِرُ", "latin": "Al-Akhir", "meaning": "Yang Maha Akhir" },
+                { "id": 75, "arabic": "الظَّاهِرُ", "latin": "Az-Zahir", "meaning": "Yang Maha Nyata" },
+                { "id": 76, "arabic": "الْبَاطِنُ", "latin": "Al-Batin", "meaning": "Yang Maha Gaib" },
+                { "id": 77, "arabic": "الْوَالِي", "latin": "Al-Wali", "meaning": "Yang Maha Mengatur" },
+                { "id": 78, "arabic": "الْمُتَعَالِي", "latin": "Al-Muta'ali", "meaning": "Yang Maha Tinggi" },
+                { "id": 79, "arabic": "الْبَرُّ", "latin": "Al-Barr", "meaning": "Yang Maha Baik" },
+                { "id": 80, "arabic": "التَّوَّابُ", "latin": "At-Tawwab", "meaning": "Yang Maha Menerima Taubat" },
+                { "id": 81, "arabic": "الْمُنْتَقِمُ", "latin": "Al-Muntaqim", "meaning": "Yang Maha Menghukum" },
+                { "id": 82, "arabic": "العَفُوُّ", "latin": "Al-Afuw", "meaning": "Yang Maha Memmaafkan" },
+                { "id": 83, "arabic": "الرَّؤُوفُ", "latin": "Ar-Ra'uf", "meaning": "Yang Maha Pengasih" },
+                { "id": 84, "arabic": "مَالِكُ الْمُلْكُ", "latin": "Malikul-Mulk", "meaning": "Yang Maha Pemilik Kerajaan" },
+                { "id": 85, "arabic": "ذُوالْجَلاَلِ وَالإكْرَامُ", "latin": "Zuljalal wal-Ikram", "meaning": "Yang Maha Pemilik Kemuliaan" },
+                { "id": 86, "arabic": "الْمُقْسِطُ", "latin": "Al-Muqsit", "meaning": "Yang Maha Adil" },
+                { "id": 87, "arabic": "الْجَامِعُ", "latin": "Al-Jami'", "meaning": "Yang Maha Mengumpulkan" },
+                { "id": 88, "arabic": "الْغَنِيُّ", "latin": "Al-Ghani", "meaning": "Yang Maha Kaya" },
+                { "id": 89, "arabic": "الْمُغْنِي", "latin": "Al-Mughni", "meaning": "Yang Maha Memberi Kekayaan" },
+                { "id": 90, "arabic": "اَلْمَانِعُ", "latin": "Al-Mani'", "meaning": "Yang Maha Mencegah" },
+                { "id": 91, "arabic": "الضَّارَّ", "latin": "Ad-Dar", "meaning": "Yang Maha Memberi Mudharat" },
+                { "id": 92, "arabic": "النَّافِعُ", "latin": "An-Nafi'", "meaning": "Yang Maha Memberi Manfaat" },
+                { "id": 93, "arabic": "النُّورُ", "latin": "An-Nur", "meaning": "Yang Maha Bercahaya" },
+                { "id": 94, "arabic": "الْهَادِي", "latin": "Al-Hadi", "meaning": "Yang Maha Menunjuki" },
+                { "id": 95, "arabic": "الْبَدِيعُ", "latin": "Al-Badi'", "meaning": "Yang Maha Pencipta" },
+                { "id": 96, "arabic": "اَلْبَاقِي", "latin": "Al-Baqi", "meaning": "Yang Maha Kekal" },
+                { "id": 97, "arabic": "الْوَارِثُ", "latin": "Al-Warith", "meaning": "Yang Maha Mewarisi" },
+                { "id": 98, "arabic": "الرَّشِيدُ", "latin": "Ar-Rasyid", "meaning": "Yang Maha Bijaksana" },
+                { "id": 99, "arabic": "الصَّبُورُ", "latin": "As-Sabur", "meaning": "Yang Maha Sabar" }
+            ],
+
+            /**
+             * Initialize the Asmaul Husna component
+             */
+            init() {
+                console.log('🚀 Initializing Asmaul Husna component');
+                this.setupEventListeners();
+                this.loadAsmaulHusna();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Search input
+                const searchInput = document.getElementById('asmaulHusnaSearch');
+                const clearSearchBtn = document.getElementById('clearAsmaulHusnaSearch');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchAsmaulHusna(query);
+                        }, 300);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchAsmaulHusna(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchAsmaulHusna('');
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Load Asmaul Husna from embedded data
+             */
+            loadAsmaulHusna() {
+                if (this.isLoading) return;
+
+                this.isLoading = true;
+                const container = document.getElementById('asmaulHusnaList');
+                if (!container) return;
+
+                try {
+                    console.log('📚 Loading Asmaul Husna from embedded data');
+
+                    // Load from embedded data
+                    this.asmaulHusna = this.ASMAUL_HUSNA_DATA;
+
+                    console.log('✅ Found', this.asmaulHusna.length, 'Asmaul Husna');
+
+                    if (this.asmaulHusna.length === 0) {
+                        this.showError('Tidak ada Asmaul Husna ditemukan');
+                        return;
+                    }
+
+                    // Render Asmaul Husna
+                    const html = this.asmaulHusna.map(item => this.createCard(item)).join('');
+                    container.innerHTML = html;
+
+                    console.log('✅ Asmaul Husna rendered successfully!');
+                } catch (error) {
+                    console.error('❌ Failed to load Asmaul Husna:', error);
+                    this.showError('Gagal memuat Asmaul Husna.');
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            /**
+             * Search Asmaul Husna
+             */
+            searchAsmaulHusna(query) {
+                const container = document.getElementById('asmaulHusnaList');
+                if (!container) return;
+
+                this.searchQuery = query.toLowerCase().trim();
+
+                if (!this.searchQuery) {
+                    // Show all
+                    const html = this.asmaulHusna.map(item => this.createCard(item)).join('');
+                    container.innerHTML = html;
+                    return;
+                }
+
+                // Filter by latin name or meaning
+                const filtered = this.asmaulHusna.filter(item => {
+                    return item.latin.toLowerCase().includes(this.searchQuery) ||
+                           item.meaning.toLowerCase().includes(this.searchQuery);
+                });
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-20">
+                            <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500">Tidak ada Asmaul Husna ditemukan</p>
+                            <p class="text-sm text-gray-400 mt-1">Coba kata kunci lain</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = filtered.map(item => this.createCard(item)).join('');
+                container.innerHTML = html;
+            },
+
+            /**
+             * Create an Asmaul Husna card HTML
+             */
+            createCard(item) {
+                // Convert ID to Arabic numeral
+                const arabicNumeral = this.toArabicNumeral(item.id);
+
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-10 h-10 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-bold text-sm">
+                                    ${item.id}
+                                </span>
+                                <span class="text-sm font-semibold text-gray-700">
+                                    ${item.latin}
+                                </span>
+                            </div>
+                            <button onclick="AsmaulHusnaComponent.copyAsmaulHusna(${item.id})"
+                                class="text-gray-400 hover:text-primary-600 transition">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <!-- Arabic Text -->
+                        <div class="mb-3">
+                            <p class="font-arabic text-2xl leading-relaxed text-right text-gray-800">
+                                ${item.arabic}
+                            </p>
+                        </div>
+
+                        <!-- Meaning -->
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-gray-600">
+                                <span class="font-medium text-gray-700">Arti:</span> ${item.meaning}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Convert number to Arabic numeral
+             */
+            toArabicNumeral(num) {
+                const arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return num.toString().split('').map(d => arabicNums[parseInt(d)]).join('');
+            },
+
+            /**
+             * Copy Asmaul Husna to clipboard
+             */
+            copyAsmaulHusna(id) {
+                const item = this.asmaulHusna.find(h => h.id === id);
+                if (!item) return;
+
+                const text = `${item.arabic} - ${item.latin}\n\nArti: ${item.meaning}`;
+
+                UI.copyToClipboard(text, 'Asmaul Husna disalin ke clipboard');
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('asmaulHusnaList');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-600 text-center px-4">${message}</p>
+                        <button onclick="AsmaulHusnaComponent.loadAsmaulHusna()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            }
+        };
+
+        /**
          * Dua Component
          * Menangani tampilan dan interaksi fitur Doa
          */
@@ -5587,6 +6498,449 @@
         };
 
         /**
+         * Articles Component
+         * Menangani tampilan dan fitur Artikel & Majelis Taklim
+         */
+        const ArticlesComponent = {
+            articles: [],
+            filteredArticles: [],
+            isLoading: false,
+            searchQuery: '',
+
+            // Sample data untuk majelis taklim dan artikel
+            sampleArticles: [
+                {
+                    id: 1,
+                    title: 'Majelis Taklim Al-Hikmah',
+                    category: 'majelis',
+                    description: 'Kajian rutin setiap malam Jumat membahas Fiqih Ibadah bersama Ustadz Abdullah',
+                    location: 'Masjid Al-Ikhlas, Jakarta Selatan',
+                    date: 'Setiap Malam Jumat',
+                    time: '19:30 - 21:00 WIB',
+                    speaker: 'Ustadz Abdullah',
+                    contact: '0812-3456-7890',
+                    image: 'mosque'
+                },
+                {
+                    id: 2,
+                    title: 'Kajian Tafsir Al-Quran',
+                    category: 'majelis',
+                    description: 'Tafsir Al-Quran surah pilihan, membahas makna dan hukum yang terkandung di dalamnya',
+                    location: 'Masjid Agung Al-Azhar, Jakarta Selatan',
+                    date: 'Setiap Sabtu',
+                    time: '09:00 - 11:00 WIB',
+                    speaker: 'Ustadz Ahmad Zuhdi',
+                    contact: '0813-4567-8901',
+                    image: 'quran'
+                },
+                {
+                    id: 3,
+                    title: 'Tabligh Akbar: Keutamaan Sabar',
+                    category: 'majelis',
+                    description: 'Tabligh akbar membahas keutamaan kesabaran dalam menghadapi ujian hidup',
+                    location: 'Masjid Raya Jakarta Pusat',
+                    date: 'Minggu, 15 Desember 2024',
+                    time: '16:00 - Selesai',
+                    speaker: 'Ustadz Adi Hidayat',
+                    contact: '0811-2345-6789',
+                    image: 'microphone'
+                },
+                {
+                    id: 4,
+                    title: 'Pentingnya Mencari Ilmu Agama',
+                    category: 'artikel',
+                    description: 'Mencari ilmu agama adalah kewajiban bagi setiap muslim. Mari kita tingkatkan ilmu kita dengan belajar secara rutin.',
+                    content: 'Ilmu agama adalah kunci pemahaman yang benar tentang Islam. Rasulullah SAW bersabda: "Mencari ilmu itu wajib bagi setiap muslim."',
+                    date: '10 Desember 2024',
+                    image: 'book'
+                },
+                {
+                    id: 5,
+                    title: 'Majelis Taklim Muslimah',
+                    category: 'majelis',
+                    description: 'Kajian khusus muslimah membahas Fiqih Wanita dan Adab Rumah Tangga',
+                    location: 'Masjid Nurul Iman, Jakarta Barat',
+                    date: 'Setiap Rabu',
+                    time: '10:00 - 12:00 WIB',
+                    speaker: 'Ustadzah Aisyah',
+                    contact: '0814-5678-9012',
+                    image: 'users'
+                },
+                {
+                    id: 6,
+                    title: 'Adab-Adab Mencari Ilmu',
+                    category: 'artikel',
+                    description: 'Berikut adalah adab-adab yang penting diperhatikan dalam mencari ilmu agama sesuai tuntunan Al-Quran dan Sunnah.',
+                    content: 'Di antara adab mencari ilmu adalah: ikhlas karena Allah, tawadhu, bersabar, dan mengamalkan ilmu yang dipelajari.',
+                    date: '8 Desember 2024',
+                    image: 'graduation-cap'
+                },
+                {
+                    id: 7,
+                    title: 'Kajian Hadits Arba\'in Nawawi',
+                    category: 'majelis',
+                    description: 'Membahas 40 hadits pilihan yang mencakup pokok-pokok agama Islam',
+                    location: 'Masjid Darussalam, Bekasi',
+                    date: 'Setiap Ahad',
+                    time: '18:30 - 20:30 WIB',
+                    speaker: 'Ustadz Rahman',
+                    contact: '0815-6789-0123',
+                    image: 'book-open'
+                },
+                {
+                    id: 8,
+                    title: 'Keutamaan Membaca Al-Quran',
+                    category: 'artikel',
+                    description: 'Membaca Al-Quran memiliki banyak keutamaan dan pahala yang besar. Mari jadikan Al-Quran sebagai teman sehari-hari.',
+                    content: 'Rasulullah SAW bersabda: "Bacalah Al-Quran, karena ia akan datang di hari kiamat memberikan syafaat kepada pembacanya."',
+                    date: '5 Desember 2024',
+                    image: 'book-quran'
+                }
+            ],
+
+            /**
+             * Initialize the Articles component
+             */
+            async init() {
+                console.log('🚀 Initializing Articles component');
+                this.isLoading = true;
+
+                // Load sample data
+                this.articles = this.sampleArticles;
+                this.filteredArticles = this.articles;
+                this.isLoading = false;
+
+                this.renderArticles();
+                this.setupEventListeners();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Search input
+                const searchInput = document.getElementById('articleSearchInput');
+                const clearSearchBtn = document.getElementById('clearArticleSearchBtn');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchArticles(query);
+                        }, 500);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchArticles(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchArticles('');
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Search articles
+             */
+            searchArticles(query) {
+                this.searchQuery = query.toLowerCase();
+
+                if (!this.searchQuery) {
+                    this.filteredArticles = this.articles;
+                } else {
+                    this.filteredArticles = this.articles.filter(article =>
+                        article.title.toLowerCase().includes(this.searchQuery) ||
+                        article.description.toLowerCase().includes(this.searchQuery) ||
+                        (article.location && article.location.toLowerCase().includes(this.searchQuery)) ||
+                        (article.speaker && article.speaker.toLowerCase().includes(this.searchQuery))
+                    );
+                }
+
+                this.renderArticles();
+            },
+
+            /**
+             * Render articles list
+             */
+            renderArticles() {
+                const container = document.getElementById('articlesList');
+
+                if (!container) return;
+
+                if (this.isLoading) {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-20">
+                            <div class="spinner text-primary-600 mb-4"></div>
+                            <p class="text-gray-500 text-sm">Memuat artikel...</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (this.filteredArticles.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-20">
+                            <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500">Tidak ada artikel ditemukan</p>
+                            <p class="text-gray-400 text-sm mt-1">Coba kata kunci lain</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.filteredArticles.map(article => this.renderArticleCard(article)).join('');
+            },
+
+            /**
+             * Render single article card
+             */
+            renderArticleCard(article) {
+                const isMajelis = article.category === 'majelis';
+                const iconClass = this.getIconClass(article.image);
+
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer"
+                         onclick="ArticlesComponent.showArticleDetail(${article.id})">
+                        <div class="flex items-start gap-3">
+                            <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-${iconClass} text-primary-600 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                                        isMajelis ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                    }">
+                                        ${isMajelis ? 'Majelis Taklim' : 'Artikel'}
+                                    </span>
+                                </div>
+                                <h3 class="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">${this.escapeHtml(article.title)}</h3>
+                                <p class="text-gray-600 text-xs line-clamp-2 mb-2">${this.escapeHtml(article.description)}</p>
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    ${isMajelis ? `
+                                        <i class="fas fa-calendar"></i>
+                                        <span>${article.date}</span>
+                                        <span class="mx-1">•</span>
+                                        <i class="fas fa-clock"></i>
+                                        <span>${article.time}</span>
+                                    ` : `
+                                        <i class="fas fa-calendar"></i>
+                                        <span>${article.date}</span>
+                                    `}
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400 flex-shrink-0"></i>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Show article detail
+             */
+            showArticleDetail(articleId) {
+                const article = this.articles.find(a => a.id === articleId);
+
+                if (!article) return;
+
+                const isMajelis = article.category === 'majelis';
+                const iconClass = this.getIconClass(article.image);
+
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center';
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                };
+
+                modal.innerHTML = `
+                    <div class="bg-white rounded-t-3xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Detail</h2>
+                            <button onclick="document.body.removeChild(this.closest('.fixed'))"
+                                    class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                <i class="fas fa-times text-gray-600"></i>
+                            </button>
+                        </div>
+
+                        <div class="mb-4">
+                            <span class="inline-block px-3 py-1 text-sm font-medium rounded-full ${
+                                isMajelis ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                            }">
+                                ${isMajelis ? 'Majelis Taklim' : 'Artikel'}
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center">
+                                <i class="fas fa-${iconClass} text-primary-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg">${this.escapeHtml(article.title)}</h3>
+                            </div>
+                        </div>
+
+                        <div class="prose prose-sm mb-4">
+                            <p class="text-gray-600">${this.escapeHtml(article.description)}</p>
+                            ${article.content ? `<p class="text-gray-600 mt-3">${this.escapeHtml(article.content)}</p>` : ''}
+                        </div>
+
+                        ${isMajelis ? `
+                            <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-map-marker-alt text-primary-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Lokasi</p>
+                                        <p class="text-sm font-medium text-gray-800">${this.escapeHtml(article.location)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-calendar text-primary-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Jadwal</p>
+                                        <p class="text-sm font-medium text-gray-800">${this.escapeHtml(article.date)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-clock text-primary-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Waktu</p>
+                                        <p class="text-sm font-medium text-gray-800">${this.escapeHtml(article.time)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-user text-primary-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Pemateri</p>
+                                        <p class="text-sm font-medium text-gray-800">${this.escapeHtml(article.speaker)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-phone text-primary-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Kontak</p>
+                                        <p class="text-sm font-medium text-gray-800">${this.escapeHtml(article.contact)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${isMajelis ? `
+                            <div class="flex gap-3 mt-6">
+                                <button onclick="ArticlesComponent.shareArticle(${article.id})"
+                                        class="flex-1 bg-primary-600 text-white py-3 rounded-xl font-medium hover:bg-primary-700 transition">
+                                    <i class="fas fa-share-alt mr-2"></i>
+                                    Bagikan
+                                </button>
+                                <button onclick="ArticlesComponent.addToCalendar(${article.id})"
+                                        class="flex-1 bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition">
+                                    <i class="fas fa-calendar-plus mr-2"></i>
+                                    Tambah ke Kalender
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="flex gap-3 mt-6">
+                                <button onclick="ArticlesComponent.shareArticle(${article.id})"
+                                        class="flex-1 bg-primary-600 text-white py-3 rounded-xl font-medium hover:bg-primary-700 transition">
+                                    <i class="fas fa-share-alt mr-2"></i>
+                                    Bagikan
+                                </button>
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            },
+
+            /**
+             * Share article
+             */
+            shareArticle(articleId) {
+                const article = this.articles.find(a => a.id === articleId);
+
+                if (!article) return;
+
+                const text = `${article.title}\n\n${article.description}\n\n${article.location ? '📍 ' + article.location + '\n' : ''}${article.date ? '📅 ' + article.date + '\n' : ''}${article.time ? '⏰ ' + article.time : ''}`;
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: article.title,
+                        text: text,
+                    }).catch(console.error);
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(text).then(() => {
+                        UI.toast('Teks berhasil disalin!');
+                    }).catch(() => {
+                        UI.toast('Gagal menyalin teks');
+                    });
+                }
+            },
+
+            /**
+             * Add to calendar (placeholder)
+             */
+            addToCalendar(articleId) {
+                const article = this.articles.find(a => a.id === articleId);
+
+                if (!article) return;
+
+                UI.toast('Fitur kalender akan segera hadir!');
+            },
+
+            /**
+             * Get icon class based on type
+             */
+            getIconClass(type) {
+                const icons = {
+                    'mosque': 'mosque',
+                    'quran': 'quran',
+                    'microphone': 'microphone',
+                    'book': 'book',
+                    'users': 'users',
+                    'graduation-cap': 'graduation-cap',
+                    'book-open': 'book-open',
+                    'book-quran': 'quran'
+                };
+                return icons[type] || 'newspaper';
+            },
+
+            /**
+             * Escape HTML
+             */
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        /**
          * Quran Component
          * Menangani tampilan dan interaksi fitur Al-Quran
          */
@@ -6143,16 +7497,6 @@
                     this.navigateTo('quran');
                 });
 
-                // Continue reading button
-                document.getElementById('btnContinueReading').addEventListener('click', () => {
-                    this.navigateTo('quran');
-                });
-
-                // View all surah button
-                document.getElementById('btnViewAllSurah').addEventListener('click', () => {
-                    this.navigateTo('quran');
-                });
-
                 // Prayer times button
                 document.getElementById('btnPrayerTime').addEventListener('click', () => {
                     this.navigateTo('prayerTimes');
@@ -6181,11 +7525,27 @@
                     DuaComponent.init();
                 });
 
+                // Artikel button
+                document.getElementById('btnArticles').addEventListener('click', () => {
+                    this.navigateTo('articles');
+                    ArticlesComponent.init();
+                });
+
+                // Donation button
+                document.getElementById('btnDonation').addEventListener('click', () => {
+                    this.navigateTo('donation');
+                    DonationComponent.loadDonationInfo();
+                });
+
+                // Asmaul Husna button
+                document.getElementById('btnAsmaulHusna').addEventListener('click', () => {
+                    this.navigateTo('asmaulHusna');
+                    AsmaulHusnaComponent.init();
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
-                    'btnArticles',
-                    'btnDonation',
-                    'btnAsmaulHusna'
+                    // 'btnFutureFeature' // Add future placeholder buttons here
                 ];
 
                 placeholderButtons.forEach(btnId => {
@@ -6359,6 +7719,14 @@
                         settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
                         break;
 
+                    case 'donation':
+                        headerTitle.textContent = 'Info Sedekah';
+                        headerSubtitle.textContent = 'Salurkan infaq terbaik Anda';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
+                        break;
+
                     case 'hadith':
                         headerTitle.textContent = 'Hadist Nabi';
                         headerSubtitle.textContent = 'Kumpulan hadist-hadist sahih';
@@ -6375,12 +7743,28 @@
                         settingsBtn.innerHTML = '<i class="fas fa-circle-notch"></i>';
                         break;
 
+                    case 'asmaulHusna':
+                        headerTitle.textContent = 'Asmaul Husna';
+                        headerSubtitle.textContent = '99 Nama indah Allah SWT';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-star"></i>';
+                        break;
+
                     case 'dua':
                         headerTitle.textContent = 'Doa Harian';
                         headerSubtitle.textContent = 'Doa harian dari Al-Quran & As-Sunnah';
                         headerSubtitle.classList.remove('hidden');
                         backBtn.classList.remove('hidden');
                         settingsBtn.innerHTML = '<i class="fas fa-hands-praying"></i>';
+                        break;
+
+                    case 'articles':
+                        headerTitle.textContent = 'Artikel & Majelis';
+                        headerSubtitle.textContent = 'Info kegiatan islami';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-newspaper"></i>';
                         break;
 
                     default:
@@ -6417,6 +7801,11 @@
                     case 'dhikr':
                         // Initialize dhikr component
                         DhikrComponent.init();
+                        break;
+
+                    case 'asmaulHusna':
+                        // Initialize asmaul husna component
+                        AsmaulHusnaComponent.init();
                         break;
 
                     case 'dua':
