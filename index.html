@@ -502,6 +502,84 @@
                     </div>
                 </div>
 
+                <!-- Hadith Page -->
+                <div id="hadithPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-book-open text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">Kumpulan</p>
+                                    <p class="font-semibold text-lg">Hadist Nabi SAW</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-primary-100">Kumpulan hadist-hadist dari 9 kitab terkemuka</p>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="hadithSearchInput"
+                                    placeholder="Cari hadist..."
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                >
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <button
+                                    id="clearSearchBtn"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filter/Source Selection -->
+                        <div class="mb-4">
+                            <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                                <button class="hadith-source-btn px-4 py-2 bg-primary-600 text-white rounded-full text-sm whitespace-nowrap" data-source="bukhari">
+                                    Bukhari
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="muslim">
+                                    Muslim
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="tirmidzi">
+                                    Tirmidzi
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="abudaud">
+                                    Abu Daud
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="nasai">
+                                    Nasai
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="ibnu-majah">
+                                    Ibnu Majah
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="malik">
+                                    Malik
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="ahmad">
+                                    Ahmad
+                                </button>
+                                <button class="hadith-source-btn px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-full text-sm whitespace-nowrap hover:border-primary-400" data-source="darimi">
+                                    Darimi
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hadith List -->
+                        <div id="hadithList" class="space-y-3">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-gray-500 text-sm">Memuat hadist...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -1199,6 +1277,311 @@
                 if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
 
                 return parts.length > 0 ? parts.join(', ') : 'Alamat tidak tersedia';
+            }
+        };
+
+        /**
+         * Hadith Data Provider
+         * Menyediakan data hadist dari sumber lokal
+         * Data diambil dari hadits-hadits sahih yang terpercaya
+         */
+        const HadithData = {
+            // Database hadist lokal
+            hadithDatabase: {
+                'sahih-bukhari': [
+                    {
+                        id: 1,
+                        collection: 'sahih-bukhari',
+                        bookNumber: 1,
+                        hadithNumber: 1,
+                        arabic: 'عَنْ عَمْرِو بْنِ الْعَاصِ رَضِيَ اللهُ عَنْهُ عَنِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللهِ وَرَسُولِهِ، وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوْ امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ"',
+                        english: 'Actions are judged by intentions, and everyone will be rewarded according to what they intended.',
+                        englishNarrator: 'Narrated by Umar bin Al-Khattab',
+                        grading: 'Sahih',
+                        ref: 'Sahih Bukhari 1'
+                    },
+                    {
+                        id: 2,
+                        collection: 'sahih-bukhari',
+                        bookNumber: 2,
+                        hadithNumber: 43,
+                        arabic: 'عَنْ أَنَسِ بْنِ مَالِكٍ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ"',
+                        english: 'None of you truly believes until he loves for his brother what he loves for himself.',
+                        englishNarrator: 'Narrated by Anas bin Malik',
+                        grading: 'Sahih',
+                        ref: 'Sahih Bukhari 13'
+                    },
+                    {
+                        id: 3,
+                        collection: 'sahih-bukhari',
+                        bookNumber: 2,
+                        hadithNumber: 41,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ أَنَّ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "مَنْ كَانَ يُؤْمِنُ بِاللهِ وَالْيَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ"',
+                        english: 'Whoever believes in Allah and the Last Day should speak good or remain silent.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Sahih Bukhari 6018'
+                    },
+                    {
+                        id: 4,
+                        collection: 'sahih-bukhari',
+                        bookNumber: 4,
+                        hadithNumber: 52,
+                        arabic: 'عَنْ عَائِشَةَ رَضِيَ اللهُ عَنْهَا قَالَتْ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "مَنْ أَحْدَثَ فِي أَمْرِنَا هَذَا مَا لَيْسَ مِنْهُ فَهُوَ رَدٌّ"',
+                        english: 'Whoever innovates something in this matter of ours that is not part of it, will have it rejected.',
+                        englishNarrator: 'Narrated by Aisha',
+                        grading: 'Sahih',
+                        ref: 'Sahih Bukhari 2697'
+                    },
+                    {
+                        id: 5,
+                        collection: 'sahih-bukhari',
+                        bookNumber: 8,
+                        hadithNumber: 73,
+                        arabic: 'عَنْ ابْنِ عُمَرَ رَضِيَ اللهُ عَنْهُمَا عَنِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "الْمُسْلِمُ أَخُو الْمُسْلِمِ لاَ يَظْلِمُهُ وَلاَ يُسْلِمُهُ"',
+                        english: 'The Muslim is the brother of his fellow Muslim; he does not wrong him nor abandon him.',
+                        englishNarrator: 'Narrated by Abdullah bin Umar',
+                        grading: 'Sahih',
+                        ref: 'Sahih Bukhari 2446'
+                    }
+                ],
+                'sahih-muslim': [
+                    {
+                        id: 6,
+                        collection: 'sahih-muslim',
+                        bookNumber: 1,
+                        hadithNumber: 216,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "الطُّهُورُ شَطْرُ الإِيمَانِ، وَالْحَمْدُ لِلهِ تَمْلأُ الْمِيزَانَ، وَسُبْحَانَ اللهِ وَالْحَمْدُ لِلهِ تَمْلآنِ - أَوْ تَمْلأُ - مَا بَيْنَ السَّمَوَاتِ وَالأَرْضِ"',
+                        english: 'Purification is half of faith, and "Alhamdulillah" fills the scale, and "Subhanallah" and "Alhamdulillah" fill what is between the heavens and the earth.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Sahih Muslim 223'
+                    },
+                    {
+                        id: 7,
+                        collection: 'sahih-muslim',
+                        bookNumber: 1,
+                        hadithNumber: 165,
+                        arabic: 'عَنْ أَبِي مَالِكٍ الأَشْعَرِيِّ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "الطُّهُورُ شَطْرُ الإِيمَانِ"',
+                        english: 'Cleanliness is half of faith.',
+                        englishNarrator: 'Narrated by Abu Malik Al-Ash\'ari',
+                        grading: 'Sahih',
+                        ref: 'Sahih Muslim 223'
+                    },
+                    {
+                        id: 8,
+                        collection: 'sahih-muslim',
+                        bookNumber: 17,
+                        hadithNumber: 4231,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ عَنِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "الدِّينُ النَّصِيحَةُ. قُلْنَا: لِمَنْ؟ قَالَ: لِلهِ، وَلِكِتَابِهِ، وَلِرَسُولِهِ، وَلأَئِمَّةِ الْمُسْلِمِينَ، وَعَامَّتِهِمْ"',
+                        english: 'The religion is sincerity. We said: To whom? He said: To Allah, His Book, His Messenger, the leaders of the Muslims, and their common folk.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Sahih Muslim 55'
+                    },
+                    {
+                        id: 9,
+                        collection: 'sahih-muslim',
+                        bookNumber: 35,
+                        hadithNumber: 6540,
+                        arabic: 'عَنْ جَابِرٍ رَضِيَ اللهُ عَنْهُ أَنَّ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "إِنَّ بَيْنَ الرَّجُلِ وَبَيْنَ الشِّرْكِ وَالْكُفْرِ تَرْكَ الصَّلاَةِ"',
+                        english: 'Between a man and polytheism and disbelief is abandoning prayer.',
+                        englishNarrator: 'Narrated by Jabir',
+                        grading: 'Sahih',
+                        ref: 'Sahih Muslim 82'
+                    },
+                    {
+                        id: 10,
+                        collection: 'sahih-muslim',
+                        bookNumber: 42,
+                        hadithNumber: 7058,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: سَمِعْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ يَقُولُ: "مَنْ رَأَى مِنْكُمْ مُنْكَرًا فَلْيُغَيِّرْهُ بِيَدِهِ، فَإِنْ لَمْ يَسْتَطِعْ فَبِلِسَانِهِ، فَإِنْ لَمْ يَسْتَطِعْ فَبِقَلْبِهِ، وَذَلِكَ أَضْعَفُ الإِيمَانِ"',
+                        english: 'Whoever among you sees an evil action, let him change it with his hand; if he cannot, then with his tongue; and if he cannot, then with his heart, and that is the weakest of faith.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Sahih Muslim 49'
+                    }
+                ],
+                'tirmidzi': [
+                    {
+                        id: 11,
+                        collection: 'jami-at-tirmidhi',
+                        bookNumber: 1,
+                        hadithNumber: 1987,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "لاَ يَغْتَبْ رَجُلٌ مُسْلِمٌ مُسْلِمًا، وَلاَ يَحْقِرُهُ، يَقُولُ اللهُ عَزَّ وَجَلَّ: "مَنْ يَعِنْتُ أَخَاهُ الْمُسْلِمَ فِي عِرْضِهِ، كَانَ حَقًّا عَلَى اللهِ أَنْ يُعِينَهُ عَلَيْهِ، وَلاَ يَحْقِرَنَّ أَحَدُكُمْ أَخَاهُ الْمُسْلِمَ"',
+                        english: 'A Muslim does not backbite his Muslim brother, nor does he belittle him. Allah the Almighty says: "Whoever antagonizes his Muslim brother, Allah will antagonize him, so let none of you belittle his Muslim brother."',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Hasan Sahih',
+                        ref: 'Tirmidhi 1936'
+                    },
+                    {
+                        id: 12,
+                        collection: 'jami-at-tirmidhi',
+                        bookNumber: 1,
+                        hadithNumber: 2007,
+                        arabic: 'عَنْ عَائِشَةَ رَضِيَ اللهُ عَنْهَا قَالَتْ: سَمِعْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ يَقُولُ: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى، وَالتُّقَى، وَالْعَفَافَ، وَالْغِنَى"',
+                        english: 'The Prophet (ﷺ) used to say: "O Allah, I ask You for guidance, piety, chastity and self-sufficiency."',
+                        englishNarrator: 'Narrated by Aisha',
+                        grading: 'Hasan',
+                        ref: 'Tirmidhi 3692'
+                    },
+                    {
+                        id: 13,
+                        collection: 'jami-at-tirmidhi',
+                        bookNumber: 2,
+                        hadithNumber: 2016,
+                        arabic: 'عَنْ عَبْدِ اللهِ بْنِ عَمْرٍو رَضِيَ اللهُ عَنْهُمَا قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "أَرْبَعٌ مَنْ كُنَّ فِيهِ كَانَ مُنَافِقًا خَالِصًا، وَمَنْ كَانَتْ فِيهِ خَصْلَةٌ مِنْهُنَّ كَانَتْ فِيهِ خَصْلَةٌ مِنَ النِّفَاقِ حَتَّى يَدَعَهَا: إِذَا اؤْتُمِنَ خَانَ، وَإِذَا حَدَّثَ كَذَبَ، وَإِذَا عَاهَدَ غَدَرَ، وَإِذَا خَاصَمَ فَجَرَ"',
+                        english: 'There are four characteristics, whoever has them is a pure hypocrite, and whoever has one of them has a characteristic of hypocrisy until he leaves it: When he is entrusted with something, he betrays; when he speaks, he lies; when he makes a covenant, he breaks it; and when he disputes, he transgresses.',
+                        englishNarrator: 'Narrated by Abdullah bin Amr',
+                        grading: 'Sahih',
+                        ref: 'Tirmidhi 2631'
+                    },
+                    {
+                        id: 14,
+                        collection: 'jami-at-tirmidhi',
+                        bookNumber: 3,
+                        hadithNumber: 1987,
+                        arabic: 'عَنْ أَنَسِ بْنِ مَالِكٍ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "ثَلاَثٌ مَنْ كُنَّ فِيهِ وَجَدَ بِهِنَّ حَلاَوَةَ الإِيمَانِ: مَنْ كَانَ اللهُ وَرَسُولُهُ أَحَبَّ إِلَيْهِ مِمَّا سِوَاهُمَا، وَمَنْ أَحَبَّ عَبْدًا لاَ يُحِبُّهُ إِلاَّ لِلهِ، وَمَنْ يَكْرَهُ أَنْ يَعُودَ فِي الْكُفْرِ كَمَا يَكْرَهُ أَنْ يُقْذَفَ فِي النَّارِ"',
+                        english: 'There are three characteristics, whoever has them will find the sweetness of faith: Allah and His Messenger are dearer to him than anything else; he loves a person only for the sake of Allah; and he hates to revert to disbelief as much as he hates to be thrown into the Fire.',
+                        englishNarrator: 'Narrated by Anas bin Malik',
+                        grading: 'Sahih',
+                        ref: 'Tirmidhi 2639'
+                    },
+                    {
+                        id: 15,
+                        collection: 'jami-at-tirmidhi',
+                        bookNumber: 4,
+                        hadithNumber: 2037,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "لاَ تَحَاسَدُوا، وَلاَ تَنَاجَشُوا، وَلاَ تَبَاغَضُوا، وَلاَ تَدَابَرُوا، وَلاَ يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا"',
+                        english: 'Do not envy one another, do not outbid one another, do not hate one another, do not turn away from one another, do not undercut one another, and be servants of Allah as brothers.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Hasan Sahih',
+                        ref: 'Tirmidhi 1941'
+                    }
+                ],
+                'abu-dawud': [
+                    {
+                        id: 16,
+                        collection: 'sunan-abu-dawud',
+                        bookNumber: 1,
+                        hadithNumber: 438,
+                        arabic: 'عَنْ طَارِقِ بْنِ شِهَابٍ أَنَّهُ سَأَلَ ابْنَ مَسْعُودٍ رَضِيَ اللهُ عَنْهُ: أَيُّ الأَعْمَالِ أَفْضَلُ؟ قَالَ: "الصَّلاَةُ لِوَقْتِهَا". قُلْتُ: ثُمَّ أَيٌّ؟ قَالَ: "بِرُّ الْوَالِدَيْنِ". قُلْتُ: ثُمَّ أَيٌّ؟ قَالَ: "الْجِهَادُ فِي سَبِيلِ اللهِ"',
+                        english: 'I asked the Messenger of Allah (ﷺ): Which deed is best? He said: "Prayer at its proper time." I said: Then what? He said: "Dutifulness to parents." I said: Then what? He said: "Jihad in the cause of Allah."',
+                        englishNarrator: 'Narrated by Tariq bin Shihab',
+                        grading: 'Sahih',
+                        ref: 'Abu Dawud 438'
+                    },
+                    {
+                        id: 17,
+                        collection: 'sunan-abu-dawud',
+                        bookNumber: 2,
+                        hadithNumber: 1587,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ عَنِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ، فِيهِ خُلِقَ آدَمُ، وَفِيهِ أُهْبِطَ، وَفِيهِ تِيبَ عَلَيْهِ، وَفِيهِ مَاتَ، وَفِيهِ تَقُومُ السَّاعَةُ"',
+                        english: 'The best day on which the sun has risen is Friday; on it Adam was created, on it he was made to enter Paradise, and on it he was expelled from it, and on it the Hour will begin.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Abu Dawud 1046'
+                    },
+                    {
+                        id: 18,
+                        collection: 'sunan-abu-dawud',
+                        bookNumber: 2,
+                        hadithNumber: 1564,
+                        arabic: 'عَنِ النُّعْمَانِ بْنِ بَشِيرٍ رَضِيَ اللهُ عَنْهُ قَالَ: سَمِعْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ يَقُولُ: "مَثَلُ الْمُجْتَمِعِينَ عَلَى طَاعَةِ اللهِ وَمَعْصِيَتِهِ، كَمَثَلِ قَوْمٍ اسْتَهَمُوا بَيْنَهُمْ سَهْمًا، فَأَصَابَ الْقَرِيعُ وَالْمُحَقُّ، وَأَخْطَأَ الْمُقَارِعُ وَالْمُخْطِئُ"',
+                        english: 'The parable of those who gather for obedience to Allah and disobedience to Him, is that of a people who drew lots among themselves, and the winner and the loser appeared.',
+                        englishNarrator: 'Narrated by Nu\'man bin Bashir',
+                        grading: 'Hasan',
+                        ref: 'Abu Dawud 4782'
+                    },
+                    {
+                        id: 19,
+                        collection: 'sunan-abu-dawud',
+                        bookNumber: 3,
+                        hadithNumber: 1608,
+                        arabic: 'عَنْ أَبِي بَكْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "أَلاَ أُخْبِرُكُمْ بِأَكْبَرِ الْكَبَائِرِ؟" ثَلاَثًا، قُلْنَا: بَلَى يَا رَسُولَ اللهِ، قَالَ: "الإِشْرَاكُ بِاللهِ، وَعُقُوقُ الْوَالِدَيْنِ، وَشَهَادَةُ الزُّورِ - أَوْ قَوْلُ الزُّورِ -" قَالَ: وَكَانَ مُتَّكِئًا فَجَلَسَ، فَقَالَ: "أَلاَ وَقَوْلُ الزُّورِ وَشَهَادَةُ الزُّورِ"، فَمَا زَالَ يُكَرِّرُهَا حَتَّى قُلْنَا: لَيْتَهُ سَكَتَ',
+                        english: 'Shall I not tell you of the greatest of major sins? Associating others with Allah, disobeying parents, and false testimony - or false speech. He was reclining, then he sat up and said: And false speech, and false testimony. He kept repeating it until we wished he would stop.',
+                        englishNarrator: 'Narrated by Abu Bakrah',
+                        grading: 'Sahih',
+                        ref: 'Abu Dawud 4883'
+                    },
+                    {
+                        id: 20,
+                        collection: 'sunan-abu-dawud',
+                        bookNumber: 4,
+                        hadithNumber: 2485,
+                        arabic: 'عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللهُ عَنْهُ قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ، وَمَا اجْتَمَعَ قَوْمٌ فِي بَيْتٍ مِنْ بُيُوتِ اللهِ يَتْلُونَ كِتَابَ اللهِ وَيَتَدَارَسُونَهُ بَيْنَهُمْ إِلاَّ نَزَلَتْ عَلَيْهِمُ السَّكِينَةُ وَغَشِيَتْهُمُ الرَّحْمَةُ وَحَفَّتْهُمُ الْمَلاَئِكَةُ وَذَكَرَهُمُ اللهُ فِيمَنْ عِنْدَهُ"',
+                        english: 'Whoever follows a path seeking knowledge, Allah will make a path to Paradise easy for him. Whenever a group of people gather in one of the houses of Allah to recite the Book of Allah and study it together, tranquility descends upon them, mercy covers them, angels surround them, and Allah mentions them to those who are with Him.',
+                        englishNarrator: 'Narrated by Abu Hurairah',
+                        grading: 'Sahih',
+                        ref: 'Abu Dawud 3634'
+                    }
+                ]
+            },
+
+            /**
+             * Get hadiths by collection name
+             * @param {string} collectionName - Collection name (bukhari, muslim, tirmidzi, abudaud)
+             * @returns {Promise<Array>} Array of hadiths
+             */
+            async getHadiths(collectionName) {
+                // Direct return - no delay, no API call, 100% local and instant
+                const hadiths = this.hadithDatabase[collectionName] || [];
+                return Promise.resolve(hadiths);
+            },
+
+            /**
+             * Get all available collections
+             * @returns {Array} Array of collection names
+             */
+            getAvailableCollections() {
+                return Object.keys(this.hadithDatabase);
+            },
+
+            /**
+             * Get collection info
+             * @param {string} collectionName - Collection name
+             * @returns {Object} Collection information
+             */
+            getCollectionInfo(collectionName) {
+                const info = {
+                    bukhari: { name: 'Sahih Bukhari', title: 'صحيح البخاري', total: 5 },
+                    muslim: { name: 'Sahih Muslim', title: 'صحيح مسلم', total: 5 },
+                    tirmidzi: { name: 'Jami at-Tirmidzi', title: 'جامع الترمذي', total: 5 },
+                    abudaud: { name: 'Sunan Abu Daud', title: 'سنن أبي داود', total: 5 }
+                };
+                return info[collectionName] || null;
+            }
+        };
+
+        /**
+         * Hadith API Handler (wrapper for consistency)
+         * Menggunakan data lokal
+         */
+        const HadithAPI = {
+            /**
+             * Get hadiths by collection
+             * @param {string} collectionName - Collection name
+             * @returns {Promise<Array>} Array of hadiths
+             */
+            async getHadiths(collectionName) {
+                return await HadithData.getHadiths(collectionName);
+            },
+
+            /**
+             * Get available collections
+             * @returns {Array} Array of collection info
+             */
+            getAvailableCollections() {
+                return HadithData.getAvailableCollections();
+            },
+
+            /**
+             * Get collection info
+             * @param {string} collectionName - Collection name
+             * @returns {Object} Collection information
+             */
+            getCollectionInfo(collectionName) {
+                return HadithData.getCollectionInfo(collectionName);
             }
         };
 
@@ -2633,6 +3016,463 @@
         };
 
         /**
+         * Hadith Component
+         * Menangani tampilan dan fitur Hadist
+         */
+        const HadithComponent = {
+            currentSource: 'bukhari',
+            hadiths: [],
+            isLoading: false,
+            currentPage: 1,
+            itemsPerPage: 10,
+            totalItems: 0,
+            totalPages: 0,
+            searchQuery: '',
+
+            // Source mapping for API
+            SOURCES: {
+                'bukhari': { name: 'Sahih Bukhari', apiSlug: 'bukhari' },
+                'muslim': { name: 'Sahih Muslim', apiSlug: 'muslim' },
+                'tirmidzi': { name: 'Jami at-Tirmidzi', apiSlug: 'tirmidzi' },
+                'abudaud': { name: 'Sunan Abu Daud', apiSlug: 'abu-dawud' },
+                'ahmad': { name: 'Sunan Ahmad', apiSlug: 'ahmad' },
+                'malik': { name: 'Muwatta Malik', apiSlug: 'malik' },
+                'nasai': { name: 'Sunan Nasai', apiSlug: 'nasai' },
+                'darimi': { name: 'Sunan Darimi', apiSlug: 'darimi' },
+                'ibnu-majah': { name: 'Sunan Ibnu Majah', apiSlug: 'ibnu-majah' }
+            },
+
+            // API Base URL
+            API_BASE_URL: 'https://hadith-api-go.vercel.app/api/v1',
+
+            /**
+             * Initialize the Hadith component
+             */
+            init() {
+                console.log('🚀 Initializing Hadith component');
+                this.setupEventListeners();
+                this.loadHadiths();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Source filter buttons
+                const sourceButtons = document.querySelectorAll('.hadith-source-btn');
+                sourceButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const source = e.target.dataset.source;
+                        if (source && source !== this.currentSource) {
+                            this.currentSource = source;
+                            this.updateSourceButtons();
+                            this.loadHadiths();
+                        }
+                    });
+                });
+
+                // Search input
+                const searchInput = document.getElementById('hadithSearchInput');
+                const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchHadiths(query);
+                        }, 500);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchHadiths(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchHadiths('');
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Update source button states
+             */
+            updateSourceButtons() {
+                const buttons = document.querySelectorAll('.hadith-source-btn');
+                buttons.forEach(btn => {
+                    const source = btn.dataset.source;
+                    if (source === this.currentSource) {
+                        btn.classList.remove('bg-white', 'border-2', 'border-gray-200', 'text-gray-700');
+                        btn.classList.add('bg-primary-600', 'text-white');
+                    } else {
+                        btn.classList.remove('bg-primary-600', 'text-white');
+                        btn.classList.add('bg-white', 'border-2', 'border-gray-200', 'text-gray-700');
+                    }
+                });
+            },
+
+            /**
+             * Fetch hadiths from API
+             */
+            async fetchHadithsFromAPI(slug, page = 1, limit = 10, searchQuery = '') {
+                try {
+                    let url = `${this.API_BASE_URL}/hadis/${slug}?page=${page}&limit=${limit}`;
+                    if (searchQuery) {
+                        url += `&q=${encodeURIComponent(searchQuery)}`;
+                    }
+
+                    console.log('🌐 Fetching from:', url);
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        return {
+                            hadiths: result.data,
+                            pagination: result.pagination
+                        };
+                    } else {
+                        throw new Error(result.message || 'Failed to fetch hadiths');
+                    }
+                } catch (error) {
+                    console.error('❌ API Error:', error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Load hadiths from API with pagination
+             */
+            async loadHadiths(resetPage = true) {
+                // Skip if already loading
+                if (this.isLoading) return;
+
+                const container = document.getElementById('hadithList');
+                const sourceInfo = this.SOURCES[this.currentSource];
+
+                if (!container || !sourceInfo) {
+                    console.error('Container or source info not found');
+                    return;
+                }
+
+                // Reset page if switching source or searching
+                if (resetPage) {
+                    this.currentPage = 1;
+                }
+
+                this.isLoading = true;
+
+                // Show loading state
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="spinner text-primary-600 mb-4"></div>
+                        <p class="text-gray-500 text-sm">Memuat hadist...</p>
+                    </div>
+                `;
+
+                try {
+                    // Fetch from API
+                    const { hadiths, pagination } = await this.fetchHadithsFromAPI(
+                        sourceInfo.apiSlug,
+                        this.currentPage,
+                        this.itemsPerPage,
+                        this.searchQuery
+                    );
+
+                    console.log('📚 Loading hadiths from:', sourceInfo.apiSlug);
+                    console.log('✅ Found', hadiths.length, 'hadiths');
+
+                    if (hadiths.length === 0) {
+                        UI.showEmpty(container, 'Tidak ada hadist ditemukan', 'book-open');
+                        return;
+                    }
+
+                    // Update pagination info
+                    this.hadiths = hadiths;
+                    this.totalItems = pagination.total_items;
+                    this.totalPages = pagination.total_pages;
+
+                    // Render hadiths
+                    const html = hadiths.map(hadith => this.createHadithCard(hadith, sourceInfo.name)).join('');
+
+                    // Render pagination
+                    const paginationHtml = this.createPaginationControls();
+
+                    container.innerHTML = html + paginationHtml;
+
+                    console.log('✅ Hadiths rendered successfully!');
+                } catch (error) {
+                    console.error('❌ Failed to load hadiths:', error);
+                    this.showError('Gagal memuat hadist. Periksa koneksi internet Anda.');
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            /**
+             * Create a hadith card HTML
+             */
+            createHadithCard(hadith, sourceName) {
+                // Clean and format the Arabic text
+                const arabicText = this.cleanArabicText(hadith.arab);
+
+                // Format the Indonesian translation
+                const translationText = this.formatTranslation(hadith.id);
+
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full font-medium">
+                                    ${sourceName}
+                                </span>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                    #${hadith.number}
+                                </span>
+                            </div>
+                            <button onclick="HadithComponent.shareHadith('${hadith.number}')"
+                                class="text-gray-400 hover:text-primary-600 transition">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Arabic Text -->
+                        <div class="mb-3">
+                            <p class="font-arabic text-lg leading-relaxed text-right text-gray-800">
+                                ${arabicText}
+                            </p>
+                        </div>
+
+                        <!-- Translation -->
+                        <div class="mb-3">
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                ${translationText}
+                            </p>
+                        </div>
+
+                        <!-- Reference -->
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                            <span class="text-xs text-gray-500">
+                                <i class="fas fa-bookmark mr-1"></i>
+                                Hadist #${hadith.number}
+                            </span>
+                            <button onclick="HadithComponent.copyHadith('${hadith.number}')"
+                                class="text-xs text-primary-600 hover:text-primary-700 transition">
+                                <i class="fas fa-copy mr-1"></i>
+                                Salin
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Clean Arabic text
+             */
+            cleanArabicText(text) {
+                if (!text) return '-';
+                // Remove extra whitespace and special characters
+                return text.replace(/\s+/g, ' ').trim();
+            },
+
+            /**
+             * Format translation text
+             */
+            formatTranslation(text) {
+                if (!text) return 'Terjemahan tidak tersedia';
+                // Clean up the text
+                return text.replace(/\s+/g, ' ').trim();
+            },
+
+            /**
+             * Get grading color based on grading status
+             */
+            getGradingColor(grading) {
+                if (!grading) return 'bg-gray-100 text-gray-600';
+
+                const gradingLower = grading.toLowerCase();
+
+                if (gradingLower.includes('sahih') || gradingLower.includes('hasan')) {
+                    return 'bg-green-100 text-green-700';
+                } else if (gradingLower.includes('daif') || gradingLower.includes('weak')) {
+                    return 'bg-amber-100 text-amber-700';
+                } else if (gradingLower.includes('mawdu') || gradingLower.includes('fabricated')) {
+                    return 'bg-red-100 text-red-700';
+                }
+
+                return 'bg-gray-100 text-gray-600';
+            },
+
+            /**
+             * Copy hadith to clipboard
+             */
+            copyHadith(hadithNumber) {
+                const hadith = this.hadiths.find(h => h.number == hadithNumber);
+                if (!hadith) return;
+
+                const text = `${hadith.arab}\n\n${hadith.id}\n\nHadist #${hadith.number}`;
+
+                UI.copyToClipboard(text, 'Hadist disalin ke clipboard');
+            },
+
+            /**
+             * Share hadith
+             */
+            shareHadith(hadithNumber) {
+                const hadith = this.hadiths.find(h => h.number == hadithNumber);
+                if (!hadith) return;
+
+                const text = `${hadith.arab}\n\n${hadith.id}`;
+
+                UI.share('Hadist Nabi SAW', text, window.location.href);
+            },
+
+            /**
+             * Create pagination controls
+             */
+            createPaginationControls() {
+                if (this.totalPages <= 1) return '';
+
+                const currentPage = this.currentPage;
+                const totalPages = this.totalPages;
+                const totalItems = this.totalItems;
+
+                // Calculate page range to show
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+
+                if (currentPage <= 3) {
+                    endPage = Math.min(5, totalPages);
+                }
+
+                if (currentPage >= totalPages - 2) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+
+                let pages = [];
+                for (let i = startPage; i <= endPage; i++) {
+                    pages.push(i);
+                }
+
+                const pageButtons = pages.map(page => `
+                    <button onclick="HadithComponent.goToPage(${page})"
+                        class="w-10 h-10 rounded-lg ${page === currentPage
+                            ? 'bg-primary-600 text-white font-semibold'
+                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'} transition text-sm">
+                        ${page}
+                    </button>
+                `).join('');
+
+                return `
+                    <div class="mt-6 flex flex-col items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="HadithComponent.previousPage()"
+                                class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                ${currentPage === 1 ? 'disabled' : ''}>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            ${pageButtons}
+                            <button onclick="HadithComponent.nextPage()"
+                                class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                ${currentPage === totalPages ? 'disabled' : ''}>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            Halaman ${currentPage} dari ${totalPages} • Total ${totalItems} hadist
+                        </p>
+                    </div>
+                `;
+            },
+
+            /**
+             * Go to specific page
+             */
+            goToPage(page) {
+                if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+                this.currentPage = page;
+                this.loadHadiths(false);
+            },
+
+            /**
+             * Next page
+             */
+            nextPage() {
+                if (this.currentPage < this.totalPages) {
+                    this.currentPage++;
+                    this.loadHadiths(false);
+                }
+            },
+
+            /**
+             * Previous page
+             */
+            previousPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.loadHadiths(false);
+                }
+            },
+
+            /**
+             * Search hadiths
+             */
+            searchHadiths(query) {
+                this.searchQuery = query;
+                this.currentPage = 1;
+                this.loadHadiths(false);
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('hadithList');
+                if (!container) {
+                    console.error('Container hadithList not found');
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-600 text-center px-4">${message}</p>
+                        <button onclick="HadithComponent.loadHadiths()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            }
+        };
+
+        /**
          * Quran Component
          * Menangani tampilan dan interaksi fitur Al-Quran
          */
@@ -3103,6 +3943,7 @@
                 QuranComponent.init();
                 PrayerTimesComponent.init();
                 NearbyMosqueComponent.init();
+                HadithComponent.init();
             },
 
             /**
@@ -3182,9 +4023,13 @@
                     NearbyMosqueComponent.loadNearbyMosques();
                 });
 
+                // Hadith button
+                document.getElementById('btnHadith').addEventListener('click', () => {
+                    this.navigateTo('hadith');
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
-                    'btnHadith',
                     'btnDailyPrayer',
                     'btnArticles',
                     'btnDzikir',
@@ -3363,6 +4208,14 @@
                         settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
                         break;
 
+                    case 'hadith':
+                        headerTitle.textContent = 'Hadist Nabi';
+                        headerSubtitle.textContent = 'Kumpulan hadist-hadist sahih';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-book-open"></i>';
+                        break;
+
                     default:
                         headerTitle.textContent = 'Al-Quran Digital';
                         backBtn.classList.add('hidden');
@@ -3388,6 +4241,10 @@
 
                     case 'prayerTimes':
                         // Prayer times already loaded on init
+                        break;
+
+                    case 'hadith':
+                        // Hadiths already loaded on init
                         break;
 
                     case 'surahDetail':
