@@ -580,6 +580,128 @@
                     </div>
                 </div>
 
+                <!-- Dzikir Page -->
+                <div id="dhikrPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-circle-notch text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">Kumpulan</p>
+                                    <p class="font-semibold text-lg">Dzikir</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-primary-100">Dzikir dari Al-Quran & As-Sunnah</p>
+                        </div>
+
+                        <!-- Back Button (hidden by default) -->
+                        <button id="dhikrBackButton" class="hidden mb-4 flex items-center gap-2 text-primary-600 font-medium" onclick="DhikrComponent.goBackToCategories()">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Kembali ke Kategori</span>
+                        </button>
+
+                        <!-- Categories Container -->
+                        <div id="dhikrCategoriesContainer">
+                            <!-- Categories List -->
+                            <div id="dhikrCategoriesList" class="grid grid-cols-1 gap-3">
+                                <!-- Loading State -->
+                                <div class="flex flex-col items-center justify-center py-20">
+                                    <div class="spinner text-primary-600 mb-4"></div>
+                                    <p class="text-gray-500 text-sm">Memuat kategori dzikir...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dhikr Container (hidden by default) -->
+                        <div id="dhikrContainer" class="hidden">
+                            <!-- Search Bar -->
+                            <div class="mb-4">
+                                <div class="relative">
+                                    <input
+                                        type="text"
+                                        id="dhikrSearchInput"
+                                        placeholder="Cari dzikir..."
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                    >
+                                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <button
+                                        id="clearDhikrSearchBtn"
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="dhikrList" class="space-y-3">
+                                <!-- Dhikr items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dua Page -->
+                <div id="duaPage" class="page hidden">
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white mb-6 shadow-lg">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-hands-praying text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-primary-100">Kumpulan</p>
+                                    <p class="font-semibold text-lg">Doa</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-primary-100">Doa harian dari Al-Quran & As-Sunnah</p>
+                        </div>
+
+                        <!-- Back Button (hidden by default) -->
+                        <button id="duaBackButton" class="hidden mb-4 flex items-center gap-2 text-primary-600 font-medium" onclick="DuaComponent.goBackToCategories()">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Kembali ke Kategori</span>
+                        </button>
+
+                        <!-- Categories Container -->
+                        <div id="duaCategoriesContainer">
+                            <!-- Categories List -->
+                            <div id="duaCategoriesList" class="grid grid-cols-1 gap-3">
+                                <!-- Loading State -->
+                                <div class="flex flex-col items-center justify-center py-20">
+                                    <div class="spinner text-primary-600 mb-4"></div>
+                                    <p class="text-gray-500 text-sm">Memuat kategori doa...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dua Container (hidden by default) -->
+                        <div id="duaContainer" class="hidden">
+                            <!-- Search Bar -->
+                            <div class="mb-4">
+                                <div class="relative">
+                                    <input
+                                        type="text"
+                                        id="duaSearchInput"
+                                        placeholder="Cari doa..."
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                    >
+                                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <button
+                                        id="clearDuaSearchBtn"
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="duaList" class="space-y-3">
+                                <!-- Dua items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -773,6 +895,32 @@
                 }, duration);
             },
 
+            // Show rate limit warning with retry info
+            showRateLimitWarning(retryAfterSeconds) {
+                const message = `Rate limit terlampaui. Mencoba ulang dalam ${retryAfterSeconds} detik...`;
+                this.toast(message, 5000);
+            },
+
+            // Show loading progress with percentage
+            showLoadingProgress(containerId, message, current, total) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const percentage = Math.round((current / total) * 100);
+                const progressText = total > 1 ? `(${current}/${total})` : '';
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="spinner text-primary-600 mb-4"></div>
+                        <p class="text-gray-500 text-sm">${message}</p>
+                        <p class="text-gray-400 text-xs mt-2">${progressText} ${percentage}%</p>
+                        <div class="w-32 h-2 bg-gray-200 rounded-full mt-3 overflow-hidden">
+                            <div class="h-full bg-primary-600 transition-all duration-300" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            },
+
             // Show loading state
             showLoading(containerId, message = 'Memuat...') {
                 const container = document.getElementById(containerId);
@@ -896,6 +1044,68 @@
         };
 
         /**
+         * Request Queue System
+         * Membatasi jumlah request simultan untuk menghindari rate limiting
+         */
+        class RequestQueue {
+            constructor(concurrency = 2, delayBetween = 500) {
+                this.concurrency = concurrency; // Max simultaneous requests
+                this.delayBetween = delayBetween; // Delay between requests (ms)
+                this.running = 0;
+                this.queue = [];
+                this.lastRequestTime = 0;
+            }
+
+            /**
+             * Add a request to the queue
+             * @param {Function} fn - The async function to execute
+             * @returns {Promise} Promise that resolves when the request completes
+             */
+            async add(fn) {
+                // Wait if too many requests are running
+                while (this.running >= this.concurrency) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                // Add delay between requests to prevent rate limiting
+                const now = Date.now();
+                const timeSinceLastRequest = now - this.lastRequestTime;
+
+                if (timeSinceLastRequest < this.delayBetween && this.lastRequestTime > 0) {
+                    const waitTime = this.delayBetween - timeSinceLastRequest;
+                    console.log(`⏳ Waiting ${waitTime}ms to prevent rate limiting...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+
+                this.running++;
+                this.lastRequestTime = Date.now();
+
+                try {
+                    return await fn();
+                } finally {
+                    this.running--;
+                }
+            }
+
+            /**
+             * Add multiple requests to the queue and execute them in sequence
+             * @param {Array<Function>} fns - Array of async functions to execute
+             * @returns {Promise<Array>} Array of results
+             */
+            async addAll(fns) {
+                const results = [];
+                for (const fn of fns) {
+                    const result = await this.add(fn);
+                    results.push(result);
+                }
+                return results;
+            }
+        }
+
+        // Create global request queue instance (max 2 simultaneous requests, 500ms delay)
+        const APIQueue = new RequestQueue(2, 500);
+
+        /**
          * Quran API Handler
          * Mengambil data dari AlQuran Cloud API
          * API Documentation: https://alquran.cloud/api
@@ -906,7 +1116,7 @@
             MAX_RETRIES: 3,
 
             /**
-             * Fetch with timeout and retry
+             * Fetch with timeout, retry, and proper 429 handling
              */
             async fetchWithRetry(url, retries = 0) {
                 try {
@@ -919,6 +1129,40 @@
 
                     clearTimeout(timeoutId);
 
+                    // Handle 429 Rate Limit specifically
+                    if (response.status === 429) {
+                        console.warn(`⚠️ Rate limited on ${url}`);
+
+                        // Try to parse retry-after header or default to exponential backoff
+                        let waitTime = 1000 * Math.pow(2, retries); // Exponential: 1s, 2s, 4s, 8s
+
+                        try {
+                            const errorData = await response.json();
+                            if (errorData.message && errorData.message.includes('retry in')) {
+                                const match = errorData.message.match(/retry in (\d+) second/);
+                                if (match) {
+                                    waitTime = (parseInt(match[1]) + 1) * 1000; // Add 1 second buffer
+                                    // Show user-friendly message
+                                    if (typeof UI !== 'undefined' && retries === 0) {
+                                        UI.showRateLimitWarning(parseInt(match[1]));
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // Use default exponential backoff
+                        }
+
+                        waitTime = Math.min(waitTime, 10000); // Cap at 10 seconds
+
+                        if (retries < this.MAX_RETRIES) {
+                            console.log(`⏳ Rate limit hit. Waiting ${waitTime/1000}s before retry ${retries + 1}/${this.MAX_RETRIES}...`);
+                            await this.delay(waitTime);
+                            return this.fetchWithRetry(url, retries + 1);
+                        }
+
+                        throw new Error('Rate limit exceeded. Please try again later.');
+                    }
+
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -927,10 +1171,15 @@
                 } catch (error) {
                     console.error(`Fetch attempt ${retries + 1} failed:`, error);
 
-                    // Retry on timeout or network error
-                    if (retries < this.MAX_RETRIES && (error.name === 'AbortError' || error.message.includes('Failed to fetch'))) {
-                        console.log(`Retrying... (${retries + 1}/${this.MAX_RETRIES})`);
-                        await this.delay(1000 * (retries + 1)); // Exponential backoff
+                    // Retry on timeout, network error, or rate limit
+                    if (retries < this.MAX_RETRIES && (
+                        error.name === 'AbortError' ||
+                        error.message.includes('Failed to fetch') ||
+                        error.message.includes('Rate limit')
+                    )) {
+                        const waitTime = 1000 * Math.pow(2, retries);
+                        console.log(`🔄 Retrying... (${retries + 1}/${this.MAX_RETRIES}) after ${waitTime}ms`);
+                        await this.delay(waitTime);
                         return this.fetchWithRetry(url, retries + 1);
                     }
 
@@ -953,7 +1202,7 @@
                 try {
                     // Check cache first
                     const cached = Storage.getCachedSurahList();
-                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+                    const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days (Quran data rarely changes)
 
                     if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
                         console.log('✅ Using cached surah list');
@@ -995,7 +1244,7 @@
                 try {
                     // Check cache first
                     const cached = Storage.getCachedSurahDetail(surahNumber);
-                    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+                    const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days (Quran data rarely changes)
 
                     if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
                         console.log(`✅ Using cached surah ${surahNumber} detail`);
@@ -1277,6 +1526,248 @@
                 if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
 
                 return parts.length > 0 ? parts.join(', ') : 'Alamat tidak tersedia';
+            }
+        };
+
+        /**
+         * Dua & Dhikr API Handler
+         * Mengambil data doa dan dzikir dari dua-dhikr API
+         * API Documentation: https://github.com/fitrahive/dua-dhikr
+         */
+        const DuaDhikrAPI = {
+            BASE_URL: 'https://dua-dhikr.vercel.app',
+            ALT_URL: 'https://dua-dhikr.onrender.com',
+            TIMEOUT: 30000,
+            MAX_RETRIES: 3,
+
+            /**
+             * Fetch with timeout, retry, and proper 429 handling
+             */
+            async fetchWithRetry(url, retries = 0) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+
+                    // Headers for API request
+                    const headers = {
+                        'Accept-Language': 'id'
+                    };
+
+                    // Try primary URL first
+                    let response = await fetch(url, {
+                        signal: controller.signal,
+                        headers: headers
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    // Handle 429 Rate Limit specifically
+                    if (response.status === 429) {
+                        console.warn(`⚠️ Rate limited on ${url}`);
+
+                        let waitTime = 1000 * Math.pow(2, retries); // Exponential: 1s, 2s, 4s, 8s
+
+                        try {
+                            const errorData = await response.json();
+                            if (errorData.message && errorData.message.includes('retry in')) {
+                                const match = errorData.message.match(/retry in (\d+) second/);
+                                if (match) {
+                                    waitTime = (parseInt(match[1]) + 1) * 1000; // Add 1 second buffer
+                                    // Show user-friendly message
+                                    if (typeof UI !== 'undefined' && retries === 0) {
+                                        UI.showRateLimitWarning(parseInt(match[1]));
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // Use default exponential backoff
+                        }
+
+                        waitTime = Math.min(waitTime, 10000); // Cap at 10 seconds
+
+                        if (retries < this.MAX_RETRIES) {
+                            console.log(`⏳ Rate limit hit. Waiting ${waitTime/1000}s before retry ${retries + 1}/${this.MAX_RETRIES}...`);
+                            await this.delay(waitTime);
+                            return this.fetchWithRetry(url, retries + 1);
+                        }
+
+                        throw new Error('Rate limit exceeded. Please try again later.');
+                    }
+
+                    // If primary fails with other errors, try alternate URL
+                    if (!response.ok && retries === 0) {
+                        const altUrl = url.replace(this.BASE_URL, this.ALT_URL);
+                        console.log('🔄 Trying alternate URL...');
+                        const altResponse = await fetch(altUrl, { headers: headers });
+
+                        if (altResponse.ok) {
+                            const result = await altResponse.json();
+                            if (result.statusCode === 200) {
+                                return result.data || result;
+                            }
+                        }
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    // Check for API errors
+                    if (result.statusCode !== 200) {
+                        throw new Error(result.message || 'API request failed');
+                    }
+
+                    return result.data || result;
+                } catch (error) {
+                    console.error(`Fetch attempt ${retries + 1} failed:`, error);
+
+                    if (retries < this.MAX_RETRIES && (
+                        error.name === 'AbortError' ||
+                        error.message.includes('Failed to fetch') ||
+                        error.message.includes('Rate limit')
+                    )) {
+                        const waitTime = 1000 * Math.pow(2, retries);
+                        console.log(`🔄 Retrying... (${retries + 1}/${this.MAX_RETRIES}) after ${waitTime}ms`);
+                        await this.delay(waitTime);
+                        return this.fetchWithRetry(url, retries + 1);
+                    }
+
+                    throw error;
+                }
+            },
+
+            /**
+             * Delay helper
+             */
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            /**
+             * Get supported languages
+             * @returns {Promise<Array>} Array of language codes
+             */
+            async getLanguages() {
+                try {
+                    const data = await this.fetchWithRetry(`${this.BASE_URL}/languages`);
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching languages:', error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Get all categories
+             * @returns {Promise<Array>} Array of category objects
+             */
+            async getCategories() {
+                try {
+                    const data = await this.fetchWithRetry(`${this.BASE_URL}/categories`);
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching categories:', error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Get dua/dhikr by category slug
+             * @param {string} slug - Category slug (e.g., 'morning-dhikr', 'evening-dhikr')
+             * @returns {Promise<Array>} Array of dua/dhikr objects
+             */
+            async getByCategory(slug) {
+                try {
+                    const data = await this.fetchWithRetry(`${this.BASE_URL}/categories/${slug}`);
+                    return data;
+                } catch (error) {
+                    console.error(`Error fetching category ${slug}:`, error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Get specific dua/dhikr by category slug and ID
+             * @param {string} slug - Category slug
+             * @param {number} id - Dua/dhikr ID
+             * @returns {Promise<Object>} Dua/dhikr object
+             */
+            async getById(slug, id) {
+                try {
+                    const data = await this.fetchWithRetry(`${this.BASE_URL}/categories/${slug}/${id}`);
+                    return data;
+                } catch (error) {
+                    console.error(`Error fetching ${slug}/${id}:`, error);
+                    throw error;
+                }
+            },
+
+            /**
+             * Search dua/dhikr by query
+             * @param {string} query - Search query
+             * @param {Array} items - Items to search from
+             * @returns {Array} Filtered items
+             */
+            search(query, items) {
+                if (!query || !query.trim()) {
+                    return items;
+                }
+
+                const lowerQuery = query.toLowerCase().trim();
+                return items.filter(item => {
+                    // Search in title
+                    if (item.title && item.title.toLowerCase().includes(lowerQuery)) {
+                        return true;
+                    }
+
+                    // Search in Arabic text
+                    if (item.arabic && item.arabic.includes(query)) {
+                        return true;
+                    }
+
+                    // Search in latin/transliteration
+                    if (item.latin && item.latin.toLowerCase().includes(lowerQuery)) {
+                        return true;
+                    }
+
+                    // Search in translation
+                    if (item.translation && item.translation.toLowerCase().includes(lowerQuery)) {
+                        return true;
+                    }
+
+                    // Search in notes
+                    if (item.notes && item.notes.toLowerCase().includes(lowerQuery)) {
+                        return true;
+                    }
+
+                    // Search in fawaid
+                    if (item.fawaid && item.fawaid.toLowerCase().includes(lowerQuery)) {
+                        return true;
+                    }
+
+                    return false;
+                });
+            },
+
+            /**
+             * Format dua/dhikr for display
+             * @param {Object} item - Dua/dhikr object
+             * @returns {Object} Formatted object
+             */
+            formatDuaDhikr(item) {
+                return {
+                    id: item.id,
+                    title: item.title || '',
+                    category: item.categoryName || item.category || '',
+                    arabic: item.arabic || '',
+                    latin: item.latin || '',
+                    translation: item.translation || '',
+                    notes: item.notes || '',
+                    fawaid: item.fawaid || '',
+                    source: item.source || ''
+                };
             }
         };
 
@@ -1832,7 +2323,7 @@
 
                 // Check if location is cached
                 const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
-                const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+                const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (location doesn't change frequently)
 
                 if (cachedLocation && (Date.now() - cachedLocation.timestamp) < CACHE_DURATION) {
                     console.log('Using cached location');
@@ -2733,7 +3224,7 @@
 
                 // Check if location is available from prayer times
                 const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
-                const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+                const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (location doesn't change frequently)
 
                 if (cachedLocation && (Date.now() - cachedLocation.timestamp) < CACHE_DURATION) {
                     this.currentLocation = cachedLocation;
@@ -3473,6 +3964,1629 @@
         };
 
         /**
+         * Dhikr Component
+         * Menangani tampilan dan interaksi fitur Dzikir
+         */
+        const DhikrComponent = {
+            allCategories: [],
+            categories: [],
+            currentCategory: null,
+            currentDhikr: [],
+            isLoading: false,
+            searchQuery: '',
+
+            // Filter: hanya kategori dzikir
+            filterDhikrCategories(categories) {
+                return categories.filter(cat => cat.name.toLowerCase().includes('dzikir'));
+            },
+
+            /**
+             * Initialize the Dhikr component
+             */
+            async init() {
+                console.log('🚀 Initializing Dhikr component');
+                await this.loadCategories();
+                this.setupEventListeners();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Search input
+                const searchInput = document.getElementById('dhikrSearchInput');
+                const clearSearchBtn = document.getElementById('clearDhikrSearchBtn');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchDhikr(query);
+                        }, 500);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchDhikr(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchDhikr('');
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Load categories from API
+             */
+            async loadCategories() {
+                try {
+                    console.log('📡 Loading all categories...');
+                    this.allCategories = await DuaDhikrAPI.getCategories();
+                    // Filter hanya kategori dzikir
+                    this.categories = this.filterDhikrCategories(this.allCategories);
+                    console.log('✅ Dhikr categories loaded:', this.categories.length);
+                    this.renderCategories();
+                } catch (error) {
+                    console.error('❌ Error loading categories:', error);
+                    this.showError('Gagal memuat kategori dzikir. Silakan coba lagi.');
+                }
+            },
+
+            /**
+             * Render categories grid
+             */
+            renderCategories() {
+                const container = document.getElementById('dhikrCategoriesList');
+                if (!container) return;
+
+                if (this.categories.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada kategori dzikir');
+                    return;
+                }
+
+                const html = this.categories.map(cat => `
+                    <div class="dhikr-category-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all"
+                         data-category="${cat.slug}" onclick="DhikrComponent.loadCategory('${cat.slug}')">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-circle-notch text-primary-600 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-800 mb-1">${this.escapeHtml(cat.name)}</h3>
+                                <p class="text-sm text-gray-500">${cat.total || 0} dzikir</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-300 mt-6"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Load dhikr by category - simple list only (no details until clicked)
+             * This reduces API calls dramatically and prevents 429 errors
+             */
+            async loadCategory(slug) {
+                this.isLoading = true;
+                this.currentCategory = slug;
+
+                const container = document.getElementById('dhikrList');
+                if (!container) return;
+
+                // Show loading
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="spinner text-primary-600 mb-4"></div>
+                        <p class="text-gray-500 text-sm">Memuat daftar dzikir...</p>
+                    </div>
+                `;
+
+                try {
+                    console.log(`📡 Loading dhikr list for category: ${slug}`);
+
+                    // Get the list ONLY (id, title, category, categoryName)
+                    const list = await DuaDhikrAPI.getByCategory(slug);
+                    console.log(`✅ Got ${list.length} dhikr items (list only)`);
+
+                    // Store the list - no details fetched yet
+                    this.currentDhikr = list.map(item => ({ ...item, hasDetail: false }));
+                    this.isLoading = false;
+
+                    // Render simple list
+                    this.renderDhikrSimpleList(this.currentDhikr, slug);
+                    this.showBackButton();
+
+                } catch (error) {
+                    console.error('❌ Error loading category:', error);
+                    this.isLoading = false;
+                    this.showError('Gagal memuat daftar dzikir. Silakan coba lagi.');
+                }
+            },
+
+            /**
+             * Lazy load remaining items with retry and cache
+             */
+            async lazyLoadRest(items, slug, container) {
+                const CACHE_KEY_PREFIX = 'dhikr_detail_';
+
+                for (const item of items) {
+                    // Check cache first
+                    const cacheKey = `${CACHE_KEY_PREFIX}${slug}_${item.id}`;
+                    const cached = localStorage.getItem(cacheKey);
+
+                    if (cached) {
+                        try {
+                            const cachedDetail = JSON.parse(cached);
+                            console.log(`✅ Using cached data for: ${item.title}`);
+
+                            const placeholderInDOM = document.getElementById(`dhikr-placeholder-${item.id}`);
+                            if (placeholderInDOM) {
+                                const actualCard = this.createDhikrCard(cachedDetail);
+                                placeholderInDOM.replaceWith(actualCard);
+
+                                const index = this.currentDhikr.findIndex(d => d.id === item.id);
+                                if (index !== -1) {
+                                    this.currentDhikr[index] = { ...cachedDetail, hasDetail: true };
+                                }
+                            }
+                            continue; // Skip API call if cache exists
+                        } catch (error) {
+                            console.error('Cache parse error:', error);
+                        }
+                    }
+
+                    // Create a placeholder card for this item
+                    const placeholder = document.createElement('div');
+                    placeholder.id = `dhikr-placeholder-${item.id}`;
+                    placeholder.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 opacity-60';
+                    placeholder.innerHTML = `
+                        <div class="flex items-center justify-center py-8">
+                            <div class="spinner text-primary-600 mr-3"></div>
+                            <span class="text-gray-500 text-sm">Memuat ${this.escapeHtml(item.title)}...</span>
+                        </div>
+                    `;
+
+                    // Wait for placeholder to be in DOM
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // Find the placeholder in the list
+                    const placeholderInDOM = document.getElementById(`dhikr-placeholder-${item.id}`);
+                    if (!placeholderInDOM) {
+                        console.log(`Placeholder for ${item.id} not in DOM yet, skipping`);
+                        continue;
+                    }
+
+                    // Check if placeholder is visible in viewport
+                    const isVisible = this.isElementInViewport(placeholderInDOM);
+                    if (!isVisible) {
+                        console.log(`Skipping ${item.title} - not in viewport`);
+                        continue;
+                    }
+
+                    // Fetch detail with retry mechanism
+                    let detail;
+                    let retries = 0;
+                    const maxRetries = 3;
+
+                    while (retries < maxRetries) {
+                        try {
+                            detail = await DuaDhikrAPI.getById(slug, item.id);
+
+                            // Cache the result
+                            try {
+                                localStorage.setItem(cacheKey, JSON.stringify(detail));
+                            } catch (e) {
+                                console.warn('Failed to cache:', e);
+                            }
+
+                            console.log(`✅ Lazy loaded: ${item.title}`);
+                            break; // Success, exit retry loop
+                        } catch (error) {
+                            retries++;
+                            if (retries >= maxRetries) {
+                                console.error(`❌ Failed after ${maxRetries} retries for ${item.id}:`, error);
+                                // Show error in placeholder
+                                placeholderInDOM.innerHTML = `
+                                    <div class="flex flex-col items-center justify-center py-8">
+                                        <i class="fas fa-exclamation-circle text-red-400 mb-2"></i>
+                                        <span class="text-gray-500 text-sm">Gagal memuat dzikir</span>
+                                        <button onclick="DhikrComponent.retryLazyLoad('${slug}', ${item.id})"
+                                                class="mt-2 text-primary-600 text-sm underline">
+                                            Coba Lagi
+                                        </button>
+                                    </div>
+                                `;
+                                break; // Exit loop, show error
+                            }
+
+                            // Exponential backoff: 1s, 2s, 4s
+                            const backoffDelay = Math.min(1000 * Math.pow(2, retries - 1), 4000);
+                            console.log(`Retry ${retries}/${maxRetries} for ${item.title} after ${backoffDelay}ms`);
+                            await new Promise(resolve => setTimeout(resolve, backoffDelay));
+                        }
+                    }
+
+                    if (detail) {
+                        // Replace placeholder with actual card
+                        const actualCard = this.createDhikrCard(detail);
+                        placeholderInDOM.replaceWith(actualCard);
+
+                        // Update currentDhikr array
+                        const index = this.currentDhikr.findIndex(d => d.id === item.id);
+                        if (index !== -1) {
+                            this.currentDhikr[index] = { ...detail, hasDetail: true };
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Check if element is in viewport
+             */
+            isElementInViewport(el) {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top >= 0 &&
+                    rect.top <= (window.innerHeight || document.documentElement.clientHeight)
+                );
+            },
+
+            /**
+             * Create dhikr card HTML element
+             */
+            createDhikrCard(item) {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dhikr-card';
+                card.setAttribute('data-id', item.id);
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                            ${this.escapeHtml(item.categoryName || item.category || 'Dzikir')}
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="DhikrComponent.copyDhikr(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Salin">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="DhikrComponent.shareDhikr(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Bagikan">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                        ${this.escapeHtml(item.arabic)}
+                    </p>
+
+                    ${item.latin ? `
+                    <p class="text-sm text-primary-600 mb-2 italic">
+                        ${this.escapeHtml(item.latin)}
+                    </p>
+                    ` : ''}
+
+                    ${item.translation ? `
+                    <p class="text-sm text-gray-600 mb-3">
+                        ${this.escapeHtml(item.translation)}
+                    </p>
+                    ` : ''}
+
+                    ${item.source ? `
+                    <div class="flex items-center text-xs text-gray-500 mt-2">
+                        <i class="fas fa-book-open mr-2"></i>
+                        <span>${this.escapeHtml(item.source)}</span>
+                    </div>
+                    ` : ''}
+
+                    ${item.fawaid ? `
+                    <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                            <p class="text-xs text-amber-800">
+                                <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                return card;
+            },
+
+            /**
+             * Render dhikr list with lazy loading placeholders
+             */
+            renderDhikrListWithLazyLoading(items, slug) {
+                const container = document.getElementById('dhikrList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada dzikir');
+                    return;
+                }
+
+                const html = items.map(item => {
+                    if (item.hasDetail) {
+                        // Render full card for first 5
+                        return `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dhikr-card" data-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                                ${this.escapeHtml(item.categoryName || item.category || 'Dzikir')}
+                            </span>
+                            <div class="flex space-x-2">
+                                <button onclick="DhikrComponent.copyDhikr(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Salin">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button onclick="DhikrComponent.shareDhikr(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Bagikan">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                            ${this.escapeHtml(item.arabic)}
+                        </p>
+
+                        ${item.latin ? `
+                        <p class="text-sm text-primary-600 mb-2 italic">
+                            ${this.escapeHtml(item.latin)}
+                        </p>
+                        ` : ''}
+
+                        ${item.translation ? `
+                        <p class="text-sm text-gray-600 mb-3">
+                            ${this.escapeHtml(item.translation)}
+                        </p>
+                        ` : ''}
+
+                        ${item.source ? `
+                        <div class="flex items-center text-xs text-gray-500 mt-2">
+                            <i class="fas fa-book-open mr-2"></i>
+                            <span>${this.escapeHtml(item.source)}</span>
+                        </div>
+                        ` : ''}
+
+                        ${item.fawaid ? `
+                        <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                                <p class="text-xs text-amber-800">
+                                    <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                                </p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                        `;
+                    } else {
+                        // Render placeholder for rest
+                        return `
+                    <div id="dhikr-placeholder-${item.id}" class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="spinner text-primary-600 mr-3"></div>
+                            <span class="text-gray-500 text-sm">Memuat ${this.escapeHtml(item.title)}...</span>
+                        </div>
+                    </div>
+                        `;
+                    }
+                }).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Retry lazy load for single item
+             */
+            async retryLazyLoad(slug, id) {
+                try {
+                    const detail = await DuaDhikrAPI.getById(slug, id);
+                    console.log(`✅ Retry successful for: ${detail.title}`);
+
+                    const placeholder = document.getElementById(`dhikr-placeholder-${id}`);
+                    if (placeholder) {
+                        const actualCard = this.createDhikrCard(detail);
+                        placeholder.replaceWith(actualCard);
+
+                        const index = this.currentDhikr.findIndex(d => d.id === id);
+                        if (index !== -1) {
+                            this.currentDhikr[index] = { ...detail, hasDetail: true };
+                        }
+                    }
+                } catch (error) {
+                    console.error('Retry failed:', error);
+                    UI.toast('Gagal memuat dzikir. Silakan coba lagi nanti.');
+                }
+            },
+
+            /**
+             * Render dhikr list
+             */
+            renderDhikrList(items) {
+                const container = document.getElementById('dhikrList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada dzikir');
+                    return;
+                }
+
+                const html = items.map(item => `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dhikr-card" data-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                                ${this.escapeHtml(item.categoryName || item.category || 'Dzikir')}
+                            </span>
+                            <div class="flex space-x-2">
+                                <button onclick="DhikrComponent.copyDhikr(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Salin">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button onclick="DhikrComponent.shareDhikr(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Bagikan">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                            ${this.escapeHtml(item.arabic)}
+                        </p>
+
+                        ${item.latin ? `
+                        <p class="text-sm text-primary-600 mb-2 italic">
+                            ${this.escapeHtml(item.latin)}
+                        </p>
+                        ` : ''}
+
+                        ${item.translation ? `
+                        <p class="text-sm text-gray-600 mb-3">
+                            ${this.escapeHtml(item.translation)}
+                        </p>
+                        ` : ''}
+
+                        ${item.source ? `
+                        <div class="flex items-center text-xs text-gray-500 mt-2">
+                            <i class="fas fa-book-open mr-2"></i>
+                            <span>${this.escapeHtml(item.source)}</span>
+                        </div>
+                        ` : ''}
+
+                        ${item.fawaid ? `
+                        <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                                <p class="text-xs text-amber-800">
+                                    <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                                </p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Render simple dhikr list (title only) - click to load detail
+             * This prevents multiple API calls and rate limiting
+             */
+            renderDhikrSimpleList(items, slug) {
+                const container = document.getElementById('dhikrList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada dzikir');
+                    return;
+                }
+
+                const html = items.map(item => `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all dhikr-simple-card"
+                         data-id="${item.id}"
+                         onclick="DhikrComponent.showDhikrDetail('${slug}', ${item.id})">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3 flex-1">
+                                <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-primary-600 font-bold text-sm">${item.id}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-semibold text-gray-800 mb-1">${this.escapeHtml(item.title)}</h4>
+                                    <span class="inline-block bg-primary-50 text-primary-600 text-xs px-2 py-0.5 rounded-full">
+                                        ${this.escapeHtml(item.categoryName || 'Dzikir')}
+                                    </span>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-300 ml-3"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+                console.log(`✅ Rendered ${items.length} dhikr items (simple list)`);
+            },
+
+            /**
+             * Load and show detail for a specific dhikr when clicked
+             */
+            async showDhikrDetail(slug, id) {
+                console.log(`📡 Loading detail for dhikr ID: ${id}`);
+
+                // Check if already loaded
+                const existingItem = this.currentDhikr.find(d => d.id === id);
+                if (existingItem && existingItem.hasDetail) {
+                    // Already have details, just scroll to it
+                    const card = document.querySelector(`.dhikr-card[data-id="${id}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('ring-2', 'ring-primary-400');
+                        setTimeout(() => card.classList.remove('ring-2', 'ring-primary-400'), 2000);
+                    }
+                    return;
+                }
+
+                // Show loading in place of the clicked card
+                const simpleCard = document.querySelector(`.dhikr-simple-card[data-id="${id}"]`);
+                if (!simpleCard) return;
+
+                simpleCard.innerHTML = `
+                    <div class="flex items-center justify-center py-8">
+                        <div class="spinner text-primary-600 mr-3"></div>
+                        <span class="text-gray-500 text-sm">Memuat detail...</span>
+                    </div>
+                `;
+                simpleCard.classList.remove('cursor-pointer', 'hover:shadow-md');
+                simpleCard.removeAttribute('onclick');
+
+                try {
+                    // Fetch detail from API
+                    const detail = await DuaDhikrAPI.getById(slug, id);
+                    console.log(`✅ Loaded detail for: ${detail.title}`);
+
+                    // Update in currentDhikr array
+                    const index = this.currentDhikr.findIndex(d => d.id === id);
+                    if (index !== -1) {
+                        this.currentDhikr[index] = { ...detail, hasDetail: true };
+                    }
+
+                    // Replace simple card with detailed card
+                    const detailedCard = this.createDhikrCard(detail);
+                    simpleCard.replaceWith(detailedCard);
+
+                    UI.toast(`Dzikir "${detail.title}" dimuat`);
+
+                } catch (error) {
+                    console.error('❌ Error loading dhikr detail:', error);
+
+                    // Show error in card
+                    simpleCard.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8">
+                            <i class="fas fa-exclamation-circle text-red-400 mb-2"></i>
+                            <span class="text-gray-500 text-sm">Gagal memuat detail</span>
+                            <button onclick="DhikrComponent.showDhikrDetail('${slug}', ${id})"
+                                    class="mt-2 text-primary-600 text-sm underline">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    `;
+
+                    // Check if it's a rate limit error
+                    if (error.message && error.message.includes('Rate limit')) {
+                        UI.toast('Rate limit terlampaui. Silakan tunggu sebentar.');
+                    }
+                }
+            },
+
+            /**
+             * Create a detailed dhikr card HTML
+             */
+            createDhikrCard(item) {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dhikr-card';
+                card.dataset.id = item.id;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                            ${this.escapeHtml(item.categoryName || item.category || 'Dzikir')}
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="DhikrComponent.copyDhikr(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Salin">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="DhikrComponent.shareDhikr(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Bagikan">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-800 mb-3">${this.escapeHtml(item.title)}</h4>
+
+                    <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                        ${this.escapeHtml(item.arabic)}
+                    </p>
+
+                    ${item.latin ? `
+                    <p class="text-sm text-primary-600 mb-2 italic">
+                        ${this.escapeHtml(item.latin)}
+                    </p>
+                    ` : ''}
+
+                    ${item.translation ? `
+                    <p class="text-sm text-gray-600 mb-3">
+                        ${this.escapeHtml(item.translation)}
+                    </p>
+                    ` : ''}
+
+                    ${item.source ? `
+                    <div class="flex items-center text-xs text-gray-500 mt-2">
+                        <i class="fas fa-book-open mr-2"></i>
+                        <span>${this.escapeHtml(item.source)}</span>
+                    </div>
+                    ` : ''}
+
+                    ${item.fawaid ? `
+                    <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                            <p class="text-xs text-amber-800">
+                                <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+
+                return card;
+            },
+
+            /**
+             * Search dhikr
+             */
+            /**
+             * Search dhikr within current category
+             */
+            searchDhikr(query) {
+                this.searchQuery = query;
+
+                // Only search if we have data
+                if (!this.currentDhikr.length) {
+                    return;
+                }
+
+                // Filter by query
+                const filtered = DuaDhikrAPI.search(query, this.currentDhikr);
+
+                // Render filtered results
+                this.renderDhikrSimpleList(filtered, this.currentCategory);
+            },
+
+            /**
+             * Go back to categories
+             */
+            goBackToCategories() {
+                this.currentCategory = null;
+                this.currentDhikr = [];
+                this.searchQuery = '';
+
+                document.getElementById('dhikrCategoriesContainer').classList.remove('hidden');
+                document.getElementById('dhikrContainer').classList.add('hidden');
+                document.getElementById('dhikrBackButton').classList.add('hidden');
+            },
+
+            /**
+             * Show back button
+             */
+            showBackButton() {
+                const backBtn = document.getElementById('dhikrBackButton');
+                const categoriesContainer = document.getElementById('dhikrCategoriesContainer');
+                const dhikrContainer = document.getElementById('dhikrContainer');
+
+                if (backBtn) backBtn.classList.remove('hidden');
+                if (categoriesContainer) categoriesContainer.classList.add('hidden');
+                if (dhikrContainer) dhikrContainer.classList.remove('hidden');
+            },
+
+            /**
+             * Copy dhikr to clipboard
+             */
+            copyDhikr(id) {
+                const item = this.currentDhikr.find(d => d.id === id);
+                if (!item) return;
+
+                const text = `${item.arabic}\n\n${item.latin || ''}\n\n${item.translation || ''}\n\n${item.source || ''}`;
+
+                UI.copyToClipboard(text, 'Dzikir disalin!');
+            },
+
+            /**
+             * Share dhikr
+             */
+            shareDhikr(id) {
+                const item = this.currentDhikr.find(d => d.id === id);
+                if (!item) return;
+
+                const text = `${item.arabic}\n\n${item.translation || ''}`;
+
+                UI.share('Dzikir', text, window.location.href);
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('dhikrCategoriesList');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-600 text-center px-4">${message}</p>
+                        <button onclick="DhikrComponent.loadCategories()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            },
+
+            /**
+             * Escape HTML
+             */
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        /**
+         * Dua Component
+         * Menangani tampilan dan interaksi fitur Doa
+         */
+        const DuaComponent = {
+            allCategories: [],
+            categories: [],
+            currentCategory: null,
+            currentDua: [],
+            isLoading: false,
+            searchQuery: '',
+
+            // Filter: hanya kategori doa
+            filterDuaCategories(categories) {
+                return categories.filter(cat => cat.name.toLowerCase().includes('doa'));
+            },
+
+            /**
+             * Initialize the Dua component
+             */
+            async init() {
+                console.log('🚀 Initializing Dua component');
+                await this.loadCategories();
+                this.setupEventListeners();
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Search input
+                const searchInput = document.getElementById('duaSearchInput');
+                const clearSearchBtn = document.getElementById('clearDuaSearchBtn');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchDua(query);
+                        }, 500);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchDua(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchDua('');
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Load categories from API
+             */
+            async loadCategories() {
+                try {
+                    console.log('📡 Loading all categories...');
+                    this.allCategories = await DuaDhikrAPI.getCategories();
+                    // Filter hanya kategori doa
+                    this.categories = this.filterDuaCategories(this.allCategories);
+                    console.log('✅ Dua categories loaded:', this.categories.length);
+                    this.renderCategories();
+                } catch (error) {
+                    console.error('❌ Error loading categories:', error);
+                    this.showError('Gagal memuat kategori doa. Silakan coba lagi.');
+                }
+            },
+
+            /**
+             * Render categories grid
+             */
+            renderCategories() {
+                const container = document.getElementById('duaCategoriesList');
+                if (!container) return;
+
+                if (this.categories.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada kategori doa');
+                    return;
+                }
+
+                const html = this.categories.map(cat => `
+                    <div class="dua-category-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all"
+                         data-category="${cat.slug}" onclick="DuaComponent.loadCategory('${cat.slug}')">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-hands-praying text-primary-600 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-800 mb-1">${this.escapeHtml(cat.name)}</h3>
+                                <p class="text-sm text-gray-500">${cat.total || 0} doa</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-300 mt-6"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Load dua by category - simple list only (no details until clicked)
+             * This reduces API calls dramatically and prevents 429 errors
+             */
+            async loadCategory(slug) {
+                this.isLoading = true;
+                this.currentCategory = slug;
+
+                const container = document.getElementById('duaList');
+                if (!container) return;
+
+                // Show loading
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="spinner text-primary-600 mb-4"></div>
+                        <p class="text-gray-500 text-sm">Memuat daftar doa...</p>
+                    </div>
+                `;
+
+                try {
+                    console.log(`📡 Loading dua list for category: ${slug}`);
+
+                    // Get the list ONLY (id, title, category, categoryName)
+                    const list = await DuaDhikrAPI.getByCategory(slug);
+                    console.log(`✅ Got ${list.length} dua items (list only)`);
+
+                    // Store the list - no details fetched yet
+                    this.currentDua = list.map(item => ({ ...item, hasDetail: false }));
+                    this.isLoading = false;
+
+                    // Render simple list
+                    this.renderDuaSimpleList(this.currentDua, slug);
+                    this.showBackButton();
+
+                } catch (error) {
+                    console.error('❌ Error loading category:', error);
+                    this.isLoading = false;
+                    this.showError('Gagal memuat daftar doa. Silakan coba lagi.');
+                }
+            },
+
+            /**
+             * Lazy load remaining items with retry and cache
+             */
+            async lazyLoadRest(items, slug, container) {
+                const CACHE_KEY_PREFIX = 'dua_detail_';
+
+                for (const item of items) {
+                    // Check cache first
+                    const cacheKey = `${CACHE_KEY_PREFIX}${slug}_${item.id}`;
+                    const cached = localStorage.getItem(cacheKey);
+
+                    if (cached) {
+                        try {
+                            const cachedDetail = JSON.parse(cached);
+                            console.log(`✅ Using cached data for: ${item.title}`);
+
+                            const placeholderInDOM = document.getElementById(`dua-placeholder-${item.id}`);
+                            if (placeholderInDOM) {
+                                const actualCard = this.createDuaCard(cachedDetail);
+                                placeholderInDOM.replaceWith(actualCard);
+
+                                const index = this.currentDua.findIndex(d => d.id === item.id);
+                                if (index !== -1) {
+                                    this.currentDua[index] = { ...cachedDetail, hasDetail: true };
+                                }
+                            }
+                            continue; // Skip API call if cache exists
+                        } catch (error) {
+                            console.error('Cache parse error:', error);
+                        }
+                    }
+
+                    // Create a placeholder card for this item
+                    const placeholder = document.createElement('div');
+                    placeholder.id = `dua-placeholder-${item.id}`;
+                    placeholder.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 opacity-60';
+                    placeholder.innerHTML = `
+                        <div class="flex items-center justify-center py-8">
+                            <div class="spinner text-primary-600 mr-3"></div>
+                            <span class="text-gray-500 text-sm">Memuat ${this.escapeHtml(item.title)}...</span>
+                        </div>
+                    `;
+
+                    // Wait for placeholder to be in DOM
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // Find the placeholder in the list
+                    const placeholderInDOM = document.getElementById(`dua-placeholder-${item.id}`);
+                    if (!placeholderInDOM) {
+                        console.log(`Placeholder for ${item.id} not in DOM yet, skipping`);
+                        continue;
+                    }
+
+                    // Check if placeholder is visible in viewport
+                    const isVisible = this.isElementInViewport(placeholderInDOM);
+                    if (!isVisible) {
+                        console.log(`Skipping ${item.title} - not in viewport`);
+                        continue;
+                    }
+
+                    // Fetch detail with retry mechanism
+                    let detail;
+                    let retries = 0;
+                    const maxRetries = 3;
+
+                    while (retries < maxRetries) {
+                        try {
+                            detail = await DuaDhikrAPI.getById(slug, item.id);
+
+                            // Cache the result
+                            try {
+                                localStorage.setItem(cacheKey, JSON.stringify(detail));
+                            } catch (e) {
+                                console.warn('Failed to cache:', e);
+                            }
+
+                            console.log(`✅ Lazy loaded: ${item.title}`);
+                            break; // Success, exit retry loop
+                        } catch (error) {
+                            retries++;
+                            if (retries >= maxRetries) {
+                                console.error(`❌ Failed after ${maxRetries} retries for ${item.id}:`, error);
+                                // Show error in placeholder
+                                placeholderInDOM.innerHTML = `
+                                    <div class="flex flex-col items-center justify-center py-8">
+                                        <i class="fas fa-exclamation-circle text-red-400 mb-2"></i>
+                                        <span class="text-gray-500 text-sm">Gagal memuat doa</span>
+                                        <button onclick="DuaComponent.retryLazyLoad('${slug}', ${item.id})"
+                                                class="mt-2 text-primary-600 text-sm underline">
+                                            Coba Lagi
+                                        </button>
+                                    </div>
+                                `;
+                                break; // Exit loop, show error
+                            }
+
+                            // Exponential backoff: 1s, 2s, 4s
+                            const backoffDelay = Math.min(1000 * Math.pow(2, retries - 1), 4000);
+                            console.log(`Retry ${retries}/${maxRetries} for ${item.title} after ${backoffDelay}ms`);
+                            await new Promise(resolve => setTimeout(resolve, backoffDelay));
+                        }
+                    }
+
+                    if (detail) {
+                        // Replace placeholder with actual card
+                        const actualCard = this.createDuaCard(detail);
+                        placeholderInDOM.replaceWith(actualCard);
+
+                        // Update currentDua array
+                        const index = this.currentDua.findIndex(d => d.id === item.id);
+                        if (index !== -1) {
+                            this.currentDua[index] = { ...detail, hasDetail: true };
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Check if element is in viewport
+             */
+            isElementInViewport(el) {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top >= 0 &&
+                    rect.top <= (window.innerHeight || document.documentElement.clientHeight)
+                );
+            },
+
+            /**
+             * Create dua card HTML element
+             */
+            createDuaCard(item) {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dua-card';
+                card.setAttribute('data-id', item.id);
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                            ${this.escapeHtml(item.categoryName || item.category || 'Doa')}
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="DuaComponent.copyDua(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Salin">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="DuaComponent.shareDua(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Bagikan">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                        ${this.escapeHtml(item.arabic)}
+                    </p>
+
+                    ${item.latin ? `
+                    <p class="text-sm text-primary-600 mb-2 italic">
+                        ${this.escapeHtml(item.latin)}
+                    </p>
+                    ` : ''}
+
+                    ${item.translation ? `
+                    <p class="text-sm text-gray-600 mb-3">
+                        ${this.escapeHtml(item.translation)}
+                    </p>
+                    ` : ''}
+
+                    ${item.source ? `
+                    <div class="flex items-center text-xs text-gray-500 mt-2">
+                        <i class="fas fa-book-open mr-2"></i>
+                        <span>${this.escapeHtml(item.source)}</span>
+                    </div>
+                    ` : ''}
+
+                    ${item.fawaid ? `
+                    <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                            <p class="text-xs text-amber-800">
+                                <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                return card;
+            },
+
+            /**
+             * Render dua list with lazy loading placeholders
+             */
+            renderDuaListWithLazyLoading(items, slug) {
+                const container = document.getElementById('duaList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada doa');
+                    return;
+                }
+
+                const html = items.map(item => {
+                    if (item.hasDetail) {
+                        // Render full card for first 5
+                        return `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dua-card" data-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                                ${this.escapeHtml(item.categoryName || item.category || 'Doa')}
+                            </span>
+                            <div class="flex space-x-2">
+                                <button onclick="DuaComponent.copyDua(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Salin">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button onclick="DuaComponent.shareDua(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Bagikan">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                            ${this.escapeHtml(item.arabic)}
+                        </p>
+
+                        ${item.latin ? `
+                        <p class="text-sm text-primary-600 mb-2 italic">
+                            ${this.escapeHtml(item.latin)}
+                        </p>
+                        ` : ''}
+
+                        ${item.translation ? `
+                        <p class="text-sm text-gray-600 mb-3">
+                            ${this.escapeHtml(item.translation)}
+                        </p>
+                        ` : ''}
+
+                        ${item.source ? `
+                        <div class="flex items-center text-xs text-gray-500 mt-2">
+                            <i class="fas fa-book-open mr-2"></i>
+                            <span>${this.escapeHtml(item.source)}</span>
+                        </div>
+                        ` : ''}
+
+                        ${item.fawaid ? `
+                        <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                                <p class="text-xs text-amber-800">
+                                    <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                                </p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                        `;
+                    } else {
+                        // Render placeholder for rest
+                        return `
+                    <div id="dua-placeholder-${item.id}" class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="spinner text-primary-600 mr-3"></div>
+                            <span class="text-gray-500 text-sm">Memuat ${this.escapeHtml(item.title)}...</span>
+                        </div>
+                    </div>
+                        `;
+                    }
+                }).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Retry lazy load for single item
+             */
+            async retryLazyLoad(slug, id) {
+                try {
+                    const detail = await DuaDhikrAPI.getById(slug, id);
+                    console.log(`✅ Retry successful for: ${detail.title}`);
+
+                    const placeholder = document.getElementById(`dua-placeholder-${id}`);
+                    if (placeholder) {
+                        const actualCard = this.createDuaCard(detail);
+                        placeholder.replaceWith(actualCard);
+
+                        const index = this.currentDua.findIndex(d => d.id === id);
+                        if (index !== -1) {
+                            this.currentDua[index] = { ...detail, hasDetail: true };
+                        }
+                    }
+                } catch (error) {
+                    console.error('Retry failed:', error);
+                    UI.toast('Gagal memuat doa. Silakan coba lagi nanti.');
+                }
+            },
+
+            /**
+             * Render dua list
+             */
+            renderDuaList(items) {
+                const container = document.getElementById('duaList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada doa');
+                    return;
+                }
+
+                const html = items.map(item => `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dua-card" data-id="${item.id}">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                                ${this.escapeHtml(item.categoryName || item.category || 'Doa')}
+                            </span>
+                            <div class="flex space-x-2">
+                                <button onclick="DuaComponent.copyDua(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Salin">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button onclick="DuaComponent.shareDua(${item.id})"
+                                        class="text-gray-400 hover:text-primary-600 transition p-1"
+                                        title="Bagikan">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                            ${this.escapeHtml(item.arabic)}
+                        </p>
+
+                        ${item.latin ? `
+                        <p class="text-sm text-primary-600 mb-2 italic">
+                            ${this.escapeHtml(item.latin)}
+                        </p>
+                        ` : ''}
+
+                        ${item.translation ? `
+                        <p class="text-sm text-gray-600 mb-3">
+                            ${this.escapeHtml(item.translation)}
+                        </p>
+                        ` : ''}
+
+                        ${item.source ? `
+                        <div class="flex items-center text-xs text-gray-500 mt-2">
+                            <i class="fas fa-book-open mr-2"></i>
+                            <span>${this.escapeHtml(item.source)}</span>
+                        </div>
+                        ` : ''}
+
+                        ${item.fawaid ? `
+                        <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                                <p class="text-xs text-amber-800">
+                                    <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                                </p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Render simple dua list (title only) - click to load detail
+             * This prevents multiple API calls and rate limiting
+             */
+            renderDuaSimpleList(items, slug) {
+                const container = document.getElementById('duaList');
+                if (!container) return;
+
+                if (!items || items.length === 0) {
+                    UI.showEmpty(container, 'Tidak ada doa');
+                    return;
+                }
+
+                const html = items.map(item => `
+                    <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all dua-simple-card"
+                         data-id="${item.id}"
+                         onclick="DuaComponent.showDuaDetail('${slug}', ${item.id})">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3 flex-1">
+                                <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-primary-600 font-bold text-sm">${item.id}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-semibold text-gray-800 mb-1">${this.escapeHtml(item.title)}</h4>
+                                    <span class="inline-block bg-primary-50 text-primary-600 text-xs px-2 py-0.5 rounded-full">
+                                        ${this.escapeHtml(item.categoryName || 'Doa')}
+                                    </span>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-300 ml-3"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+                console.log(`✅ Rendered ${items.length} dua items (simple list)`);
+            },
+
+            /**
+             * Load and show detail for a specific dua when clicked
+             */
+            async showDuaDetail(slug, id) {
+                console.log(`📡 Loading detail for dua ID: ${id}`);
+
+                // Check if already loaded
+                const existingItem = this.currentDua.find(d => d.id === id);
+                if (existingItem && existingItem.hasDetail) {
+                    // Already have details, just scroll to it
+                    const card = document.querySelector(`.dua-card[data-id="${id}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('ring-2', 'ring-primary-400');
+                        setTimeout(() => card.classList.remove('ring-2', 'ring-primary-400'), 2000);
+                    }
+                    return;
+                }
+
+                // Show loading in place of the clicked card
+                const simpleCard = document.querySelector(`.dua-simple-card[data-id="${id}"]`);
+                if (!simpleCard) return;
+
+                simpleCard.innerHTML = `
+                    <div class="flex items-center justify-center py-8">
+                        <div class="spinner text-primary-600 mr-3"></div>
+                        <span class="text-gray-500 text-sm">Memuat detail...</span>
+                    </div>
+                `;
+                simpleCard.classList.remove('cursor-pointer', 'hover:shadow-md');
+                simpleCard.removeAttribute('onclick');
+
+                try {
+                    // Fetch detail from API
+                    const detail = await DuaDhikrAPI.getById(slug, id);
+                    console.log(`✅ Loaded detail for: ${detail.title}`);
+
+                    // Update in currentDua array
+                    const index = this.currentDua.findIndex(d => d.id === id);
+                    if (index !== -1) {
+                        this.currentDua[index] = { ...detail, hasDetail: true };
+                    }
+
+                    // Replace simple card with detailed card
+                    const detailedCard = this.createDuaCard(detail);
+                    simpleCard.replaceWith(detailedCard);
+
+                    UI.toast(`Doa "${detail.title}" dimuat`);
+
+                } catch (error) {
+                    console.error('❌ Error loading dua detail:', error);
+
+                    // Show error in card
+                    simpleCard.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8">
+                            <i class="fas fa-exclamation-circle text-red-400 mb-2"></i>
+                            <span class="text-gray-500 text-sm">Gagal memuat detail</span>
+                            <button onclick="DuaComponent.showDuaDetail('${slug}', ${id})"
+                                    class="mt-2 text-primary-600 text-sm underline">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    `;
+
+                    // Check if it's a rate limit error
+                    if (error.message && error.message.includes('Rate limit')) {
+                        UI.toast('Rate limit terlampaui. Silakan tunggu sebentar.');
+                    }
+                }
+            },
+
+            /**
+             * Create a detailed dua card HTML
+             */
+            createDuaCard(item) {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100 dua-card';
+                card.dataset.id = item.id;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="bg-primary-100 text-primary-700 text-xs font-medium px-2 py-1 rounded-full">
+                            ${this.escapeHtml(item.categoryName || item.category || 'Doa')}
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="DuaComponent.copyDua(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Salin">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="DuaComponent.shareDua(${item.id})"
+                                    class="text-gray-400 hover:text-primary-600 transition p-1"
+                                    title="Bagikan">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-800 mb-3">${this.escapeHtml(item.title)}</h4>
+
+                    <p class="font-arabic text-2xl text-gray-800 leading-loose mb-4 text-right" dir="rtl">
+                        ${this.escapeHtml(item.arabic)}
+                    </p>
+
+                    ${item.latin ? `
+                    <p class="text-sm text-primary-600 mb-2 italic">
+                        ${this.escapeHtml(item.latin)}
+                    </p>
+                    ` : ''}
+
+                    ${item.translation ? `
+                    <p class="text-sm text-gray-600 mb-3">
+                        ${this.escapeHtml(item.translation)}
+                    </p>
+                    ` : ''}
+
+                    ${item.source ? `
+                    <div class="flex items-center text-xs text-gray-500 mt-2">
+                        <i class="fas fa-book-open mr-2"></i>
+                        <span>${this.escapeHtml(item.source)}</span>
+                    </div>
+                    ` : ''}
+
+                    ${item.fawaid ? `
+                    <div class="mt-3 p-3 bg-amber-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-lightbulb text-amber-500 mr-2 mt-0.5 text-sm"></i>
+                            <p class="text-xs text-amber-800">
+                                <strong>Keutamaan:</strong> ${this.escapeHtml(item.fawaid)}
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+
+                return card;
+            },
+
+            /**
+             * Search dua within current category
+             */
+            searchDua(query) {
+                this.searchQuery = query;
+
+                // Only search if we have data
+                if (!this.currentDua.length) {
+                    return;
+                }
+
+                // Filter by query
+                const filtered = DuaDhikrAPI.search(query, this.currentDua);
+
+                // Render filtered results
+                this.renderDuaSimpleList(filtered, this.currentCategory);
+            },
+
+            /**
+             * Go back to categories
+             */
+            goBackToCategories() {
+                this.currentCategory = null;
+                this.currentDua = [];
+                this.searchQuery = '';
+
+                document.getElementById('duaCategoriesContainer').classList.remove('hidden');
+                document.getElementById('duaContainer').classList.add('hidden');
+                document.getElementById('duaBackButton').classList.add('hidden');
+            },
+
+            /**
+             * Show back button
+             */
+            showBackButton() {
+                const backBtn = document.getElementById('duaBackButton');
+                const categoriesContainer = document.getElementById('duaCategoriesContainer');
+                const duaContainer = document.getElementById('duaContainer');
+
+                if (backBtn) backBtn.classList.remove('hidden');
+                if (categoriesContainer) categoriesContainer.classList.add('hidden');
+                if (duaContainer) duaContainer.classList.remove('hidden');
+            },
+
+            /**
+             * Copy dua to clipboard
+             */
+            copyDua(id) {
+                const item = this.currentDua.find(d => d.id === id);
+                if (!item) return;
+
+                const text = `${item.arabic}\n\n${item.latin || ''}\n\n${item.translation || ''}\n\n${item.source || ''}`;
+
+                UI.copyToClipboard(text, 'Doa disalin!');
+            },
+
+            /**
+             * Share dua
+             */
+            shareDua(id) {
+                const item = this.currentDua.find(d => d.id === id);
+                if (!item) return;
+
+                const text = `${item.arabic}\n\n${item.translation || ''}`;
+
+                UI.share('Doa', text, window.location.href);
+            },
+
+            /**
+             * Show error state
+             */
+            showError(message) {
+                const container = document.getElementById('duaCategoriesList');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+                        <p class="text-gray-600 text-center px-4">${message}</p>
+                        <button onclick="DuaComponent.loadCategories()"
+                            class="mt-4 bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                            <i class="fas fa-redo mr-2"></i>
+                            Coba Lagi
+                        </button>
+                    </div>
+                `;
+            },
+
+            /**
+             * Escape HTML
+             */
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        /**
          * Quran Component
          * Menangani tampilan dan interaksi fitur Al-Quran
          */
@@ -3935,15 +6049,42 @@
             /**
              * Initialize application
              */
-            init() {
+            async init() {
                 console.log('Initializing Al-Quran Webview App');
+
+                // Setup UI first
                 this.setupNavigation();
                 this.loadLastRead();
                 this.setupQuickActions();
-                QuranComponent.init();
-                PrayerTimesComponent.init();
-                NearbyMosqueComponent.init();
-                HadithComponent.init();
+
+                // Initialize components sequentially with delays to prevent rate limiting
+                console.log('📦 Initializing components sequentially...');
+
+                // 1. Quran - Load first (lightweight: just the list)
+                await QuranComponent.init();
+                console.log('✅ Quran component initialized');
+                await this.delay(300);
+
+                // 2. Prayer Times - Load with delay
+                await PrayerTimesComponent.init();
+                console.log('✅ Prayer Times component initialized');
+                await this.delay(300);
+
+                // 3. Hadith - Load with delay (lazy: actual content loads on demand)
+                await HadithComponent.init();
+                console.log('✅ Hadith component initialized');
+                await this.delay(300);
+
+                // 4. Nearby Mosque - Load last (heavy API call, user may not need it immediately)
+                await NearbyMosqueComponent.init();
+                console.log('✅ Nearby Mosque component initialized');
+            },
+
+            /**
+             * Delay helper for sequential loading
+             */
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             },
 
             /**
@@ -4028,11 +6169,21 @@
                     this.navigateTo('hadith');
                 });
 
+                // Dzikir button
+                document.getElementById('btnDzikir').addEventListener('click', () => {
+                    this.navigateTo('dhikr');
+                    DhikrComponent.init();
+                });
+
+                // Doa Harian button
+                document.getElementById('btnDailyPrayer').addEventListener('click', () => {
+                    this.navigateTo('dua');
+                    DuaComponent.init();
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
-                    'btnDailyPrayer',
                     'btnArticles',
-                    'btnDzikir',
                     'btnDonation',
                     'btnAsmaulHusna'
                 ];
@@ -4216,6 +6367,22 @@
                         settingsBtn.innerHTML = '<i class="fas fa-book-open"></i>';
                         break;
 
+                    case 'dhikr':
+                        headerTitle.textContent = 'Dzikir';
+                        headerSubtitle.textContent = 'Dzikir dari Al-Quran & As-Sunnah';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-circle-notch"></i>';
+                        break;
+
+                    case 'dua':
+                        headerTitle.textContent = 'Doa Harian';
+                        headerSubtitle.textContent = 'Doa harian dari Al-Quran & As-Sunnah';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-hands-praying"></i>';
+                        break;
+
                     default:
                         headerTitle.textContent = 'Al-Quran Digital';
                         backBtn.classList.add('hidden');
@@ -4245,6 +6412,16 @@
 
                     case 'hadith':
                         // Hadiths already loaded on init
+                        break;
+
+                    case 'dhikr':
+                        // Initialize dhikr component
+                        DhikrComponent.init();
+                        break;
+
+                    case 'dua':
+                        // Initialize dua component
+                        DuaComponent.init();
                         break;
 
                     case 'surahDetail':
