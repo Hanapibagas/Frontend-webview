@@ -23,6 +23,15 @@
 
     <style>
         /* Custom Styles */
+        /* KFGQPC Uthmanic Script HAFS Font */
+        @font-face {
+            font-family: 'KFGQPC Uthmanic Script HAFS';
+            src: url('font/KFGQPC Uthmanic Script HAFS Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         * {
             -webkit-tap-highlight-color: transparent;
         }
@@ -33,7 +42,7 @@
         }
 
         .font-arabic {
-            font-family: 'Amiri', serif;
+            font-family: 'KFGQPC Uthmanic Script HAFS', 'Amiri', serif;
             direction: rtl;
         }
 
@@ -98,6 +107,17 @@
         @supports (padding: max(0px)) {
             .bottom-nav {
                 padding-bottom: max(16px, env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 640px) {
+            .surah-item {
+                padding: 0.75rem !important;
+            }
+
+            .surah-item .flex {
+                gap: 0.5rem !important;
             }
         }
 
@@ -275,16 +295,16 @@
                 <!-- Quran Page -->
                 <div id="quranPage" class="page hidden">
                     <!-- Search Bar -->
-                    <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-3 sm:px-4 py-2 sm:py-3 z-10">
                         <div class="relative">
                             <input type="text" id="searchSurah" placeholder="Cari surah..."
-                                class="w-full bg-gray-100 rounded-xl py-3 px-4 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition">
-                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                class="w-full bg-gray-100 rounded-xl py-2.5 sm:py-3 px-3 sm:px-4 pl-10 sm:pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition">
+                            <i class="fas fa-search absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm sm:text-base"></i>
                         </div>
                     </div>
 
                     <!-- Surah List -->
-                    <div id="surahList" class="p-4 space-y-2">
+                    <div id="surahList" class="p-3 sm:p-4 space-y-2">
                         <!-- Loading State -->
                         <div id="surahListLoading" class="flex flex-col items-center justify-center py-20">
                             <div class="spinner text-primary-600 mb-4"></div>
@@ -813,23 +833,23 @@
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav bg-white border-t border-gray-200 sticky bottom-0 z-50">
-            <div class="max-w-lg mx-auto px-2">
-                <div class="flex items-center justify-around py-2">
+            <div class="max-w-lg mx-auto px-1 sm:px-2">
+                <div class="flex items-center justify-around py-1 sm:py-2">
                     <button id="navHome"
-                        class="nav-btn flex flex-col items-center py-2 px-3 text-primary-600" data-page="home">
-                        <i class="fas fa-home text-xl mb-1"></i>
+                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-primary-600" data-page="home">
+                        <i class="fas fa-home text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Beranda</span>
                     </button>
                     <button id="navQuran"
-                        class="nav-btn flex flex-col items-center py-2 px-3 text-gray-400 hover:text-primary-600 transition"
+                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-gray-400 hover:text-primary-600 transition"
                         data-page="quran">
-                        <i class="fas fa-book-quran text-xl mb-1"></i>
+                        <i class="fas fa-book-quran text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Quran</span>
                     </button>
                     <button id="navBookmarks"
-                        class="nav-btn flex flex-col items-center py-2 px-3 text-gray-400 hover:text-primary-600 transition"
+                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-gray-400 hover:text-primary-600 transition"
                         data-page="bookmarks">
-                        <i class="fas fa-bookmark text-xl mb-1"></i>
+                        <i class="fas fa-bookmark text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Bookmark</span>
                     </button>
                 </div>
@@ -7004,32 +7024,32 @@
                     const arabicNumber = this.toArabicNumeral(surah.number);
 
                     return `
-                        <div class="surah-item bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md hover:border-primary-200 transition cursor-pointer"
+                        <div class="surah-item bg-white border border-gray-100 rounded-xl p-3 sm:p-4 hover:shadow-md hover:border-primary-200 transition cursor-pointer"
                              onclick="QuranComponent.openSurah(${surah.number})"
                              data-surah-number="${surah.number}">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2 sm:gap-4">
                                 <!-- Surah Number Badge -->
-                                <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="font-arabic text-primary-700 text-lg font-bold">${arabicNumber}</span>
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="font-arabic text-primary-700 text-base sm:text-lg font-bold">${arabicNumber}</span>
                                 </div>
 
                                 <!-- Surah Info -->
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <h3 class="font-semibold text-gray-800 truncate">${surah.englishName}</h3>
-                                        <span class="text-xs px-2 py-0.5 rounded-full ${typeClass}">${surahType}</span>
+                                    <div class="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                                        <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate flex-1">${surah.englishName}</h3>
+                                        <span class="text-xs px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ${typeClass}">${surahType}</span>
                                     </div>
-                                    <p class="text-sm text-gray-500">${surah.englishNameTranslation} • ${surah.numberOfAyahs} Ayat</p>
+                                    <p class="text-xs sm:text-sm text-gray-500 truncate">${surah.englishNameTranslation} • ${surah.numberOfAyahs} Ayat</p>
                                 </div>
 
                                 <!-- Arabic Name -->
-                                <div class="text-right flex-shrink-0">
+                                <div class="text-right flex-shrink-0 hidden sm:block">
                                     <p class="font-arabic text-xl text-gray-800 leading-tight">${surah.name}</p>
                                 </div>
 
                                 <!-- Arrow -->
-                                <div class="flex-shrink-0 text-gray-400">
-                                    <i class="fas fa-chevron-left"></i>
+                                <div class="flex-shrink-0 text-gray-400 ml-1">
+                                    <i class="fas fa-chevron-left text-sm"></i>
                                 </div>
                             </div>
                         </div>
