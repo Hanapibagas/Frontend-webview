@@ -247,14 +247,6 @@
                                 </div>
                                 <span class="font-semibold text-[#2B2B2B] text-sm">Hadist</span>
                             </button>
-                            <button id="btnDailyPrayer"
-                                class="bg-white border-2 border-[#81C784] rounded-xl p-4 text-center hover:border-[#0D3D1E] hover:bg-[#F5F5F5] transition group">
-                                <div
-                                    class="w-12 h-12 bg-[#81C784] rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-[#66BB6A] transition">
-                                    <i class="fas fa-hands-praying text-primary-600 text-xl"></i>
-                                </div>
-                                <span class="font-semibold text-[#2B2B2B] text-sm">Doa Harian</span>
-                            </button>
                             <button id="btnArticles"
                                 class="bg-white border-2 border-[#81C784] rounded-xl p-4 text-center hover:border-[#0D3D1E] hover:bg-[#F5F5F5] transition group">
                                 <div
@@ -262,14 +254,6 @@
                                     <i class="fas fa-newspaper text-primary-600 text-xl"></i>
                                 </div>
                                 <span class="font-semibold text-[#2B2B2B] text-sm">Artikel</span>
-                            </button>
-                            <button id="btnDzikir"
-                                class="bg-white border-2 border-[#81C784] rounded-xl p-4 text-center hover:border-[#0D3D1E] hover:bg-[#F5F5F5] transition group">
-                                <div
-                                    class="w-12 h-12 bg-[#81C784] rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-[#66BB6A] transition">
-                                    <i class="fas fa-circle-notch text-primary-600 text-xl"></i>
-                                </div>
-                                <span class="font-semibold text-[#2B2B2B] text-sm">Dzikir</span>
                             </button>
                             <button id="btnDonation"
                                 class="bg-white border-2 border-[#81C784] rounded-xl p-4 text-center hover:border-[#0D3D1E] hover:bg-[#F5F5F5] transition group">
@@ -651,6 +635,24 @@
 
                         <!-- Dhikr Container (hidden by default) -->
                         <div id="dhikrContainer" class="hidden">
+                            <!-- Search Bar -->
+                            <div class="mb-4">
+                                <div class="relative">
+                                    <input
+                                        type="text"
+                                        id="dhikrSearchInput"
+                                        placeholder="Cari dzikir..."
+                                        class="w-full pl-10 pr-4 py-3 border border-[#66BB6A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D3D1E] focus:border-transparent text-sm"
+                                    >
+                                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#333333]"></i>
+                                    <button
+                                        id="clearDhikrSearchBtn"
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#333333] hover:text-[#333333] hidden"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
                             <div id="dhikrList" class="space-y-3">
                                 <!-- Dhikr items will be loaded here -->
                             </div>
@@ -4705,10 +4707,50 @@
 
             /**
              * Setup event listeners
-             * Search functionality removed - no longer needed
              */
             setupEventListeners() {
-                // Event listeners can be added here if needed in the future
+                // Search input
+                const searchInput = document.getElementById('dhikrSearchInput');
+                const clearSearchBtn = document.getElementById('clearDhikrSearchBtn');
+
+                if (searchInput) {
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value;
+
+                        // Show/hide clear button
+                        if (query) {
+                            clearSearchBtn?.classList.remove('hidden');
+                        } else {
+                            clearSearchBtn?.classList.add('hidden');
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            this.searchDhikr(query);
+                        }, 500);
+                    });
+
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchTimeout);
+                            this.searchDhikr(e.target.value);
+                        }
+                    });
+                }
+
+                // Clear search button
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            clearSearchBtn.classList.add('hidden');
+                            this.searchDhikr('');
+                        }
+                    });
+                }
             },
 
             /**
@@ -4727,13 +4769,19 @@
              */
             renderCategories() {
                 const container = document.getElementById('dhikrCategoriesList');
-                if (!container) return;
+                if (!container) {
+                    console.error('❌ dhikrCategoriesList container not found!');
+                    return;
+                }
+
+                console.log('🎨 Rendering categories, total:', this.categories.length);
 
                 if (this.categories.length === 0) {
                     UI.showEmpty(container, 'Tidak ada kategori dzikir');
                     return;
                 }
 
+                // Gunakan metode sama seperti DuaComponent - innerHTML dengan inline onclick
                 const html = this.categories.map(cat => `
                     <div class="dhikr-category-card bg-white rounded-xl p-4 shadow-sm border border-[#81C784] cursor-pointer hover:shadow-sm hover:border-[#66BB6A] transition-all"
                          data-category="${cat.slug}" onclick="DhikrComponent.loadCategory('${cat.slug}')">
@@ -4751,6 +4799,7 @@
                 `).join('');
 
                 container.innerHTML = html;
+                console.log('✅ All categories rendered with inline onclick:', this.categories.length);
             },
 
             /**
@@ -5615,7 +5664,11 @@
                 }
                 if (dhikrContainer) {
                     dhikrContainer.classList.remove('hidden');
-                    console.log('✅ Dhikr container shown');
+                    dhikrContainer.style.display = 'block';
+                    console.log('✅ Dhikr container shown - display:', dhikrContainer.style.display);
+                    console.log('✅ Dhikr container classes:', dhikrContainer.className);
+                } else {
+                    console.error('❌ dhikrContainer NOT FOUND in DOM!');
                 }
 
                 console.log('🔍 dhikrContainer visible state:', !dhikrContainer?.classList.contains('hidden'));
@@ -8059,16 +8112,6 @@
                     this.navigateTo('hadith');
                 });
 
-                // Dzikir button
-                document.getElementById('btnDzikir').addEventListener('click', () => {
-                    this.navigateTo('dhikr');
-                });
-
-                // Doa Harian button
-                document.getElementById('btnDailyPrayer').addEventListener('click', () => {
-                    this.navigateTo('dua');
-                });
-
                 // Artikel button
                 document.getElementById('btnArticles').addEventListener('click', () => {
                     this.navigateTo('articles');
@@ -8305,8 +8348,8 @@
                         break;
 
                     case 'dua':
-                        headerTitle.textContent = 'Doa Harian';
-                        headerSubtitle.textContent = 'Doa harian dari Al-Quran & As-Sunnah';
+                        headerTitle.textContent = 'Dzikir';
+                        headerSubtitle.textContent = 'Dzikir & doa harian dari Al-Quran & As-Sunnah';
                         headerSubtitle.classList.remove('hidden');
                         backBtn.classList.remove('hidden');
                         settingsBtn.innerHTML = '<i class="fas fa-hands-praying"></i>';
