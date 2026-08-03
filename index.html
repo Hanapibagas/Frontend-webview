@@ -271,6 +271,14 @@
                                 </div>
                                 <span class="font-semibold text-[#2B2B2B] text-sm">Asmaul Husna</span>
                             </button>
+                            <button id="btnDzikirPagiPetang"
+                                class="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-4 text-center hover:border-amber-500 hover:bg-amber-100 transition group">
+                                <div
+                                    class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:from-amber-500 group-hover:to-orange-600 transition shadow-sm">
+                                    <i class="fas fa-sun text-white text-xl"></i>
+                                </div>
+                                <span class="font-semibold text-amber-900 text-sm">Dzikir Pagi & Petang</span>
+                            </button>
                         </div>
 
                     </div>
@@ -809,6 +817,17 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Dzikir Pagi & Petang Category Page -->
+                <div id="dzikirPagiPetangPage" class="page hidden">
+                    <div id="dzikirCategoryList"></div>
+                </div>
+
+                <!-- Dzikir Detail Page -->
+                <div id="dzikirDetailPage" class="page hidden">
+                    <div id="dzikirProgress"></div>
+                    <div id="dzikirDetailContainer" class="flex-1"></div>
                 </div>
 
             </div>
@@ -8128,6 +8147,12 @@
                     this.navigateTo('asmaulHusna');
                 });
 
+                // Dzikir Pagi & Petang button
+                document.getElementById('btnDzikirPagiPetang').addEventListener('click', () => {
+                    this.navigateTo('dzikirPagiPetang');
+                    DzikirPagiPetangComponent.renderCategories();
+                });
+
                 // Placeholder buttons for future features
                 const placeholderButtons = [
                     // 'btnFutureFeature' // Add future placeholder buttons here
@@ -8158,6 +8183,8 @@
                     DhikrComponent.reset();
                 } else if (this.currentPage === 'dua') {
                     DuaComponent.reset();
+                } else if (this.currentPage === 'dzikirPagiPetang' || this.currentPage === 'dzikirDetail') {
+                    DzikirPagiPetangComponent.reset();
                 }
 
                 // Show new page
@@ -8363,6 +8390,22 @@
                         settingsBtn.innerHTML = '<i class="fas fa-newspaper"></i>';
                         break;
 
+                    case 'dzikirPagiPetang':
+                        headerTitle.textContent = 'Dzikir Pagi & Petang';
+                        headerSubtitle.textContent = 'Bacaan dzikir harian';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-book-open"></i>';
+                        break;
+
+                    case 'dzikirDetail':
+                        headerTitle.textContent = data.title || 'Dzikir';
+                        headerSubtitle.textContent = 'Gunakan tombol untuk navigasi';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-bookmark"></i>';
+                        break;
+
                     default:
                         headerTitle.textContent = 'Al-Quran Digital';
                         backBtn.classList.add('hidden');
@@ -8407,6 +8450,18 @@
                     case 'dua':
                         // Initialize dua component
                         DuaComponent.init();
+                        break;
+
+                    case 'dzikirPagiPetang':
+                        // Render dzikir categories
+                        DzikirPagiPetangComponent.renderCategories();
+                        break;
+
+                    case 'dzikirDetail':
+                        // Render dzikir detail
+                        if (data.category) {
+                            DzikirPagiPetangComponent.renderDetail(data.category, 0);
+                        }
                         break;
 
                     case 'surahDetail':
@@ -8518,9 +8573,478 @@
             }
         };
 
+        /**
+         * Dzikir Data
+         * Embedded JSON data to avoid CORS issues
+         */
+        const DZIKIR_DATA = {
+            "pagi": [
+                {
+                    "id": 1,
+                    "category": "pagi",
+                    "title": "Dzikir Pagi 1",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "أَصْبَحْنَا عَلَى فِطْرَةِ اْلإِسْلاَمِ وَعَلَى كَلِمَةِ اْلإِخْلاَصِ، وَعَلَى دِيْنِ نَبِيِّنَا مُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، وَعَلَى مِلَّةِ أَبِيْنَا إِبْرَاهِيْمَ، حَنِيْفًا مُسْلِمًا وَمَا كَانَ مِنَ الْمُشْرِكِيْنَ.",
+                    "transliteration": "Ashbahnaa 'alaa fithrotil islam wa 'alaa kalimatil ikhlas wa 'alaa diini nabiyyinaa muhammad shallahu 'alaihi wasallam wa 'alaa millati abiinaa ibrohiim haniifam muslimaw wa maa kaana minal musyrikiin.",
+                    "translation": "\"Di waktu pagi kami berada di atas fitrah Islam, di atas kalimat ikhlas (syahadatain), di atas agama Nabi kita Muhammad ﷺ, dan di atas agama ayah kami Ibrahim, yang berdiri di atas jalan yang lurus, muslim dan tidak tergolong orang-orang musyrik.\" (1)",
+                    "notes": "(1) HR Ahmad no 15360, An-Nasai di Al-Kubro no 9743 dan 'Amal al-Yaum wa al-Lailah no 1, dishahihkan oleh Al-Albani dan para pentahqiq al-Musnad.\nKandungannya :\n(Di waktu pagi kami berada di atas fitrah Islam) : Sungguh indah tatkala seorang muslim membuka paginya dengan memuji Allah, mengakui betapa mulianya dirinya tatkala di pagi hari ia berada di atas fitrah Islam yang masih murni di atas tauhid dan tidak terkotori oleh kesyirikan. Lihatlah betapa banyak manusia yang membuka paginya dengan ritual kesyirikan, dengan menyembah selain Allah atau memberikan sesajen kepada jin.\n(Di atas kalimat ikhlas) : Yaitu kalimat tauhid laa ilaahaa illallahu. Ini adalah kalimat yang paling agung, karenanya Allah mengutus para Rasul, karenanya Allah menurunkan kitab-kitab suci, dan karenanya terpecahlah manusia menjadi mukmin dan kafir. Barangsiapa yang berada di atas kalimat ikhlas ini berarti dia berada di atas nikmat yang terbesar.\n(di atas agama Nabi kita Muhammad) Demikian juga merupakan kenikmatan yang terbesar adalah seseorang berada di atas agama Nabi Muhammad yaitu agama yang sempurna yang lengkap dari segala sisi. Dialah agama Islam yang merupakan agama penutup yang paling sempurna dan mencakup seluruh bangsa manusia dan berlaku di seluruh zaman.\n(dan di atas agama ayah kami Ibrahim, yang berdiri di atas jalan yang lurus, muslim dan tidak tergolong orang-orang musyrik) yaitu agama Ibrahim yang dengan kedua tangannya menghancurkan berhala-berhala simbol kesyirikan, seorang diri berjuang melawan seluruh penduduk negerinya demi menegakkan tauhid."
+                },
+                {
+                    "id": 2,
+                    "category": "pagi",
+                    "title": "Dzikir pagi 2",
+                    "readCount": "(Dibaca 3x)",
+                    "arabic": "رَضِيْتُ بِاللهِ رَبًّا، وَبِاْلإِسْلاَمِ دِيْنًا، وَبِمُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا.",
+                    "transliteration": "Rodhitubillahi robbaa, wabil islaamidiinaa, wabi muhammadin shollahu'alaihi wasallam nabiyyaa",
+                    "translation": "Aku ridho Allah sebagai Rabb, Islam sebagai agama, dan Muhammad sebagai nabi (yang diutus oleh Allah).\" (1)",
+                    "notes": "(1) HR. Ahmad 18967 dan At-Tirmidzi 3389, dan dinyatakan oleh para pentahqiq al-Musnad : Shahih li ghoirihi.\nKeutamaannya : Nabi berkata :\nإِلَّا كَانَ حَقًّا عَلَى اللهِ أَنْ يُرْضِيَهُ يَوْمَ الْقِيَامَةِ\n\"Kecuali wajib bagi Allah untuk membuatnya ridho pada hari kiamat\"\nHal ini karena terdapat kaidah \"Balasan sesuai dengan perbuatan\". Tatkala ia ridho dengan menjadikan Allah sebagai Tuhannya maka Allahpun pada hari kiamat menjadikan ia ridho yaitu dengan memberikan kepadanya pahala yang besar (Tuhfatul Ahwadzi 9/235)\nTelah datang dalam hadits yang lain tentang keutamaan berdzikir menggunakan dzikir ini dengan dzikir mutlaq, yaitu tidak terikat dengan waktu pagi dan petang. Nabi bersabda :\nمن قال: رَضِيتُ بالله رباً، وبالاسلام ديناً، وبمحمد رسولاً؛ وجبت له الجنة\n\"Barangsiapa yang berkata : Aku ridho Allah sebagai Rabku, Islam sebagai agamaku, dan Muhammad sebagai rasulku, maka wajib baginya masuk surga\" (HR Abu Dawud no 1368 dari Abu Sa'id Al-Khudri dan dishahihkan oleh Al-Albani)\nKandungannya :\nOrang yang mengucapkan dzikir ini dengan penuh keyakinan maka ia akan merasakan manisnya Iman. Nabi bersabda :\nذَاقَ طَعْمَ الْإِيمَانِ مَنْ رَضِيَ بِاللهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ رَسُولًا\n\"Telah merasakan manisnya iman orang yang ridho/suka Allah sebagai Rabbnya, Islam sebagai agamanya dan Muhammad sebagai Rasul\" (HR Muslim no 34)\nMakna \"ridho terhadap sesuatu\" yaitu qonaah dan merasa cukup serta puas dengan sesuatu tersebut sehingga tidak perlu mencari yang lainnya lagi (lihat Al-Minhaaj Syarah Shahih Muslim 2/2)\nMaksud dari dzikir ini adalah aku tidak perlu mencari tuhan dan sesembahan lain selain Allah. Sungguh Allah semata yang disembah karena hanya Dia-lah yang telah memberikan segala karunia yang aku rasakan. Aku juga tidak perlu mencari agama yang lain, karena Islam sudah cukup bagiku, sempurna dan indah aturan-aturannya, mencakup seluruh aspek kehidupan. Tidak seperti agama-agama yang lain, tidak sempurna aturan-aturannya, sering kontradiktif (saling bertentangan), dan tidak mencakup seluruh aspek kehidupan. Dan aku ridho Muhammad sebagai Rasul-ku, aku tunduk kepada seluruh keputusan dan pernyataannya, semuanya aku yakini kebenarannya tanpa keraguan sedikitpun."
+                },
+                {
+                    "id": 3,
+                    "category": "pagi",
+                    "title": "Dzikir Pagi 3",
+                    "readCount": null,
+                    "arabic": "(Dibaca 1x setelah sholat subuh)\nاَللَّهُمَّ إِنِّيْ أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلاً مُتَقَبَّلاً.",
+                    "transliteration": "Allahumma inni asaluka 'ilman naafi'an wa rizkqon toyyiban wa amalan mutaqobbala.",
+                    "translation": "\"Ya Allah, sungguh aku memohon kepada-Mu ilmu yang bermanfaat, rizki yang baik, dan amal yang diterima.\" (1)",
+                    "notes": "(1) HR Ibnu As-Sunni di 'Amal al-yaum wa al-lailah no 54, dari Ummu Salamah dan dihasankan oleh pentahqiq kitab 'Amal al-yaum wa al-lailah yaitu dengan lafal :\nكَانَ إِذَا أَصْبَحَ قَالَ: «اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا»\nNabi kalau di pagi hari beliau berkata : Allahumma inni asaluka 'ilman naafi'an…\nLafal ini umum menunjukan bolehnya dzikir ini dibaca kapan saja yang penting di pagi hari.\nNamun telah datang riwayat dari Ummu Salamah yang menunjukan bahwa dzikir ini dibaca setelah sholat subuh. Lafalnya sebagai berikut :\nكَانَ يَقُولُ إِذَا صَلَّى الصُّبْحَ حِينَ يُسَلِّمُ\nNabi mengucapkannya setelah sholat subuh yaitu setelah salam (HR Ahmad no 26602 dan Ibnu Majah No 925, pada sanadnya ada perawi yang mubham yaitu maula Ummu Salamah, namun hadits ini banyak jalannya sehingga dihasankan oleh oleh Ibnu Hajar dalam Nataaijul Afkaar fi Takhriij Ahaadiits Al-Adzkaar 2/312 dan dishahihkan oleh Al-Albani)\nKandungannya :\nDzikir ini mengajarkan untuk bersandar kepada Allah dalam menghadapi kegiatan harian. Karena seorang muslim tujuannya dalam kehidupan dunia adalah untuk beramal shalih, dan ia tidak akan bisa beramal shalih dengan baik kecuali ia juga mencari rizki untuk menyambung hidupnya dan keluarganya. Maka hendaknya ia meminta bimbingan kepada Allah agar dimudahkan dalam beramal shalih dan memperoleh rizki yang halal. Namun sebelum itu semua, ia terlebih dahulu meminta kepada Allah ilmu yang bermanfaat, karena dengan ilmu yang bermanfaat inilah ia bisa membedakan mana amal yang sholih dan mana amal yang buruk, mana rizki yang halal dan mana rizki yang haram."
+                },
+                {
+                    "id": 4,
+                    "category": "pagi",
+                    "title": "Dzikir Pagi 4",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُوْرُ",
+                    "transliteration": "Allahumma bika ashbahnaa, wa bika amsainaa, wa bika nahyaa, wa bika namuutu wa ilaikannusyuur",
+                    "translation": ": \"Ya Allah, dengan Engkaulah kami memasuki waktu pagi, dan dengan Engkaulah kami memasuki waktu sore. Dengan Engkaulah kami hidup dan dengan Engkaulah kami mati. Dan kepada-Mu kami dibangkitkan.\" (1)",
+                    "notes": "(1) HR. at-Tirmidzi no.3391 dan dishahihkan oleh Al-Albani.\nKandungannya :\n(Ya Allah, dengan Engkaulah kami memasuki waktu pagi) yaitu : Karena Engkau Ya Allah kami memasuki waktu pagi dalam kondisi di bawah penjagaan-Mu, bergelimang dalam karunia-Mu, tersibukan dengan berdzikir kepada-Mu, memohon pertolongan dengan nama-Mu, di bawah bimbingan-Mu, bergerak dengan kekuatan dari-Mu, dan bertindak dengan kehendak-Mu.\n(Dengan Engkaulah kami hidup dan dengan Engkaulah kami mati) yaitu Engkau-lah yang menghidupkan kami kembali (dari tidur kami) dan Engkau-lah yang mematikan kami (menidurkan kami), demikianlah berlanjut kondisi kami dalam setiap waktu dan setiap kondisi.\n(Dan kepada-Mu kami dibangkitkan) yaitu kami hanya kepada-Mu bukan kepada selain-Mu. (Lihat : Tuhfatul Ahwadzi 9/236)"
+                },
+                {
+                    "id": 5,
+                    "category": "pagi",
+                    "title": "Dzikir Pagi 5",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ. رَبِّ أَسْأَلُكَ خَيْرَ مَا فِيْ هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوْذُ بِكَ مِنْ شَرِّ مَا فِيْ هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوْذُ بِكَ مِنَ الْكَسَلِ وَسُوْءِ الْكِبَرِ، رَبِّ أَعُوْذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
+                    "transliteration": "Ashbahnaa wa ashbahalmulku lillah, walhamdulillah, laa ilaha illallahu wahdahu laa syariikalah, lahulmulku walahulhamdu, wahuwa 'ala kuli syai in qodiir. Robbi asaluka khoiro maa fii hadzaal yaum wa khoiro maa ba'dahu, wa a'uudzubika min syarri maa fii hadzal yaum wa syarri maa ba'dahu. Robbi a'uudzubika minal kasali wa suu il kibar. Robbi a'uudzubika min 'adzaabin fiinnaari wa 'adzaabin filqobr",
+                    "translation": ": \"Kami telah memasuki waktu pagi dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada Tuhan (yang berhak disembah) kecuali Allah Yang Maha Esa, tiada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya pujian. Dia-lah Yang Maha Kuasa atas segala sesuatu. Ya Rabb, aku mohon kepada-Mu kebaikan di hari ini dan kebaikan sesudahnya. Aku berlindung kepada-Mu dari kejahatan hari ini dan kejahatan sesudahnya. Ya Rabb, aku berlindung kepada-Mu dari kemalasan dan kejelekan di hari tua. Ya Rabb ku! Aku berlindung kepada-Mu dari siksaan di Neraka dan kubur.\" (1)",
+                    "notes": "(1) HR Muslim no.2723\nKandungannya :\nDzikir ini berisikan doa yang dibuka dengan pujian terhadap Allah. Pengakuan sebagai bentuk bersyukur bisa berada di pagi hari dengan karunia Allah, seraya mengakui bahwa seluruh kerajaan alam semesta dan segala kenikmatan hanyalah dari Allah, sehingga segala pujian hanya milik Allah. Tidak ada yang berhak disembah melainkan Allah semata, dan Dialah yang maha kuasa atas segala sesuatu.\nSetelah memuji Allah lalu memohon kepadaNya :\n(aku mohon kepada-Mu kebaikan di hari ini dan kebaikan sesudahnya), yaitu segala kebaikan yang Engkau kehendaki terjadi hari ini untuk orang-orang shalih, baik kebaikan yang nampak maupun yang batin (tersembunyi), demikian juga hari-hari setelah hari ini\n(Aku berlindung kepada-Mu dari kejahatan hari ini dan kejahatan sesudahnya), yaitu segala keburukan yang Engkau kehendaki untuk terjadi pada hari ini maupun pada hari-hari setelahnya, baik keburukan yang nampak maupun yang tersembunyi.\n(Ya Rabb, aku berlindung kepada-Mu dari kemalasan). Kemalasan berbeda dengan ketidakmampuan, orang yang malas pada hakikatnya ia mampu dan memiliki kekuatan, hanya saja jiwanya enggan untuk melaksanakannya.\n(dan kejelekan di hari tua), yaitu segala perkara-perkara buruk yang muncul di hari tua, seperti pikun, cepat emosi, sifat yang kekanak-kanakan, dan lain-lain."
+                }
+            ],
+            "petang": [
+                {
+                    "id": 1,
+                    "category": "petang",
+                    "title": "Dzikir Petang 1",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "أَمْسَينَا عَلَى فِطْرَةِ اْلإِسْلاَمِ وَعَلَى كَلِمَةِ اْلإِخْلاَصِ، وَعَلَى دِيْنِ نَبِيِّنَا مُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، وَعَلَى مِلَّةِ أَبِيْنَا إِبْرَاهِيْمَ، حَنِيْفًا مُسْلِمًا وَمَا كَانَ مِنَ الْمُشْرِكِيْنَ.",
+                    "transliteration": "Amsainaa 'alaa fithrotil islam wa 'alaa kalimatil ikhlas wa 'alaa diini nabiyyinaa muhammad shallahu 'alaihi wasallam wa 'alaa millati abiinaa ibrohiim haniifam muslimaw wa maa kaana minal musyrikiin.",
+                    "translation": "\"Di waktu petang kami berada di atas fitrah Islam, di atas kalimat ikhlas (syahadatain), di atas agama Nabi kita Muhammad ﷺ, dan di atas agama ayah kami, Ibrahim, yang berdiri di atas jalan yang lurus, muslim dan tidak tergolong orang-orang musyrik.\" (1)",
+                    "notes": "(1) Telah lalu takhrijnya\nKandungannya :\n(Di waktu petang kami berada di atas fitrah Islam) : Sungguh indah seorang muslim membuka petangnya dengan memuji Allah, mengakui betapa mulianya dirinya tatkala di petang hari ia masih berada di atas fitrah Islam yang masih murni di atas tauhid dan tidak terkotori oleh kesyirikan. Lihatlah betapa banyak manusia yang menutup harinya dengan ritual kesyirikan, dengan menyembah selain Allah atau memberikan sesajen kepada jin."
+                },
+                {
+                    "id": 2,
+                    "category": "petang",
+                    "title": "Dzikir Petang 2",
+                    "readCount": "(Dibaca 3x)",
+                    "arabic": "رَضِيْتُ بِاللهِ رَبًّا، وَبِاْلإِسْلاَمِ دِيْنًا، وَبِمُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا.",
+                    "transliteration": "Rodhitubillahi robbaa, wabil islaamidiinaa, wabi muhammadin shollahu'alaihi wasallam nabiyyaa",
+                    "translation": "\"Aku ridho Allah sebagai Rabb, Islam sebagai agama dan Muhammad sebagai nabi (yang diutus oleh Allah).\"",
+                    "notes": ""
+                },
+                {
+                    "id": 3,
+                    "category": "petang",
+                    "title": "Dzikir Petang 3",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": ".\nاللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا ، وَبِكَ نَحْيَا وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيْرُ",
+                    "transliteration": "Allahumma bika amsainaa, wa bika ashbahnaa, wa bika nahyaa, wa bika namuutu wa ilaikal mashiir",
+                    "translation": "\"Ya Allah, dengan Engkaulah kami memasuki waktu petang, dan dengan Engkaulah kami memasuki waktu pagi. Dengan Engkaulah kami hidup dan dengan Engkaulah kami mati. Dan kepada-Mu kami kembali.\"",
+                    "notes": ""
+                },
+                {
+                    "id": 4,
+                    "category": "petang",
+                    "title": "Dzikir Petang 4",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ. رَبِّ أَسْأَلُكَ خَيْرَ مَا فِيْ هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوْذُ بِكَ مِنْ شَرِّ مَا فِيْ هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوْذُ بِكَ مِنَ الْكَسَلِ وَسُوْءِ الْكِبَرِ، رَبِّ أَعُوْذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
+                    "transliteration": "Amsainaa wa amsalmulku lillah, walhamdulillah, laa ilaha illallahu wahdahu laa syariikalah, lahulmulku walahulhamdu, wahuwa 'ala kuli syai in qodiir. Robbi asaluka khoiro maa fii hadzihillailah wa khoiihiro maa ba'dahaa, wa a'uudzubika min syarri maa fii hadzihillailah wa syarri maa ba'dahaa. Robbi a'uudzubika minal kasali wa suu il kibar. Robbi a'uudzubika min 'adzaabin fiinnaari wa 'adzaabin filqobr",
+                    "translation": "\"Kami telah memasuki waktu petang dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada Tuhan (yang berhak disembah) kecuali Allah Yang Maha Esa, tiada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya pujian. Dia-lah Yang Maha Kuasa atas segala sesuatu. Ya Rabb, aku mohon kepada-Mu kebaikan malam hari ini dan kebaikan sesudahnya. Aku berlindung kepada-Mu dari kejahatan malam hari ini dan kejahatan sesudahnya. Ya Rabb, aku berlindung kepada-Mu dari kemalasan dan kejelekan di hari tua. Ya Rabb ku Aku berlindung kepada-Mu dari siksaan di Neraka dan kubur.\"",
+                    "notes": ""
+                },
+                {
+                    "id": 5,
+                    "category": "petang",
+                    "title": "Dzikir Petang 5 (Sayyidul Istigfar)",
+                    "readCount": "(Dibaca 1x)",
+                    "arabic": "اَللَّهُمَّ أَنْتَ رَبِّيْ لاَ إِلَـهَ إِلاَّ أَنْتَ، خَلَقْتَنِيْ وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوْذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوْءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوْءُ بِذَنْبِيْ فَاغْفِرْ لِيْ فَإِنَّهُ لاَ يَغْفِرُ الذُّنُوْبَ إِلاَّ أَنْتَ",
+                    "transliteration": "Allahumma anta robbii laa ilaha illa anta, kholaqtanii wa anaa 'abduka, wa anaa 'ala 'ahdika, wawa'dika mastatho'tu. A'uudzubika min syarri maa shona'tu, abuu u laka bini'matika 'alayya, wa abuu u bidzanbi faghfirlii, fainnahu laa yaghfirudz dzunuuba illa anta",
+                    "translation": "\"Ya Allah Engkau adalah Rabb ku, tidak ada Ilah yang berhak disembah kecuali Engkau, Engkaulah yang menciptakanku. Aku adalah hamba-Mu. Aku akan setia pada perjanjianku dengan-Mu semampuku. Aku berlindung kepada-Mu dari kejelekan yang aku perbuat. Aku mengakui nikmat-Mu kepadaku dan aku mengakui memikul dosaku. Karena itu, ampunilah aku, sesungguhnya tiada yang mengampuni dosa kecuali Engkau.\" (1)\nCatatan : jika yang membaca dzikir adalah wanita maka lafal عَبْدُكَ lebih baik diganti dengan أَمَتُكَ (amatuka), namun jika tidak diganti juga tidak mengapa (2)",
+                    "notes": "(1) HR al-Bukhari no.6306\nKeutamaannya : Dzikir ini dinamakan oleh Nabi dengan \"Sayyidul Istighfar\" yaitu pemimpin doa istighfar, karena sayyid maknannya adalah yang mengguli lainnya. Maka dzikir ini mengungguli lafal-lafal dzikir istghfar yang lainnya, jadi dzikir inilah yang terbaik. Hal ini karena kandungannya dibuka dengan pujian terhadap Allah, pengakuan sebagai sorang hamba, pengakuan dosa dan ketidak mampuan, dan ditutup dengan pengakuan bahwa tidak ada yang bisa mengampuni kecuali Allah. Dzikir ini menggabungkan antara penyebutan sifat-sifat Allah dengan sifat-sifat tertinggi dengan pengakuan terhadap kondisi hamba yang terendah dan terhina (Hasyiat As-Sindi 'ala sunan An-Nasaai 8/280)\nBarangsiapa yang membaca dzikir in di siang hari dalam kondisi yakin lalu meninggal sebelum sore hari maka ia termasuk penduduk surga.\nKandungannya :\n(Aku akan setia pada perjanjianku dengan-Mu semampuku) yaitu janjiku untuk beriman kepadaMu, untuk taat dalam menjalankan segala perintahMu dan menjauhi laranganMu, dengan semaksimal kemampuanku\n(Aku berlindung kepada-Mu dari kejelekan yang aku perbuat) yaitu aku berlindung dari akibat maksiat yang aku lakukan, aku mengetahui bahwa maksiat pasti mendatangkan akibat buruk di dunia maupun di akhirat, namun aku berlindung kepadaMu dari akibat buruk tersebut\n(Aku mengakui nikmat-Mu kepadaku) yaitu aku mengakui bahwa seluruh kenikmatan dan seluruh kelebihan yang aku miliki berasal dariMu, aku tidak ujub dengan nikmat tersebut, semua kenikmatan tersebut adalah murni dariMu\n(dan aku mengakui memikul dosaku). Diantara dosaku adalah aku tidak mampu untuk mensyukuri seluruh nikmat tersebut karena begitu banyaknya. (Umdatul Qoori 22/279). Al-Khotthobi berkata :\nبَاءَ فُلاَنٌ بِذَنْبِهِ إِذَا احْتَمَلَهُ كُرْهاً لاَ يَسْتَطِيْعُ دَفْعَهُ عَنْ نَفْسِهِ\n\"Orang Arab berkata : \"Si fulan mengakui memikul dosanya\" yaitu jika ia memikulnya dalam kondisi ia membencinya, hanya saja ia tidak mampu untuk menolak hal tersebut dari dirinya\" (Ma'aalim As-Sunan 4/145). Ini menjelaskan betapa banyak dosa yang kita lakukan dalam kondisi kita sadar bahwa itu merupakan dosa, dan kita benci terjerumus dalam dosa tersebut, akan tetapi kita tidak mampu untuk melepaskan diri dari dosa tersebut.\n(Karena itu, ampunilah aku) yaitu ampuni seluruh dosaku dengan rahmatMu yang luas, rahmatMu kepadaku yang melebihi kasih sayang ibuku kepadaku. Dosa sebesar apapun, sebanyak apapun, meskipun dilakukan berulang-ulang, maka tidak ada yang sulit untuk Engkau ampuni jika telah bertaubat, karena Engkau adalah Maha Pengampun lagi Maha Penyayang.\n(2) Meskipun dengan lafal yang pertama pun tidak mengapa, sehingga lelaki maupun wanita lafalnya sama. Akan tetapi yang lebih baik adalah dengan mengganti lafalnya tersebut.\nAdapun jika lafalnya tetap maka lafal عَبْدٌ bisa digunakan untuk lelaki maupun wanita sebagaimana lafal الزَّوْجُ, yang bisa untuk suami maupun istri. Akan tetapi yang terbaik adalah dirubah. (Lihat penjelasan Ibnu Taimiyyah di Majmuu' al-Fataawaa 22/488)"
+                }
+            ],
+            "lastUpdated": "2026-08-03T13:31:37.089Z"
+        };
+
+        /**
+         * Dzikir Pagi & Petang Component
+         * Morning & Evening Adhkar with button navigation
+         */
+        const DzikirPagiPetangComponent = {
+            dzikirPagi: [],
+            dzikirPetang: [],
+            currentCategory: null, // 'pagi' or 'petang'
+            currentIndex: 0,
+
+            /**
+             * Parse dzikir data from text content
+             */
+            parseDzikirData(text, category) {
+                const items = [];
+                const lines = text.split('\n');
+                let currentItem = null;
+                let currentSection = null;
+                let contentBuffer = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+
+                    // Detect new dzikir item (starts with "Dzikir")
+                    if (line.match(/^Dzikir\s+(Pagi|Petang)\s+\d+/i)) {
+                        // Save previous item
+                        if (currentItem) {
+                            this.finalizeItem(currentItem, contentBuffer);
+                            items.push(currentItem);
+                        }
+
+                        // Start new item
+                        currentItem = {
+                            id: items.length + 1,
+                            category: category,
+                            title: line,
+                            readCount: null,
+                            arabic: '',
+                            transliteration: '',
+                            translation: '',
+                            notes: ''
+                        };
+                        contentBuffer = [];
+                        currentSection = null;
+                    }
+                    // Detect read count (in parentheses)
+                    else if (line.match(/^\(Dibaca\s+\d+x\)/i) && currentItem) {
+                        currentItem.readCount = line;
+                    }
+                    // Detect "Artinya" section
+                    else if (line.toLowerCase().startsWith('artinya') && currentItem) {
+                        if (currentSection === 'arabic') {
+                            currentItem.arabic = contentBuffer.join('\n').trim();
+                        } else if (currentSection === 'transliteration') {
+                            currentItem.transliteration = contentBuffer.join('\n').trim();
+                        }
+                        contentBuffer = [line.replace(/^Artinya\s*:?\s*/i, '')];
+                        currentSection = 'translation';
+                    }
+                    // Detect "Catatan Kaki" section
+                    else if (line.match(/^##?\s*Catatan\s*Kaki/i) && currentItem) {
+                        if (currentSection === 'translation') {
+                            currentItem.translation = contentBuffer.join('\n').trim();
+                        }
+                        contentBuffer = [];
+                        currentSection = 'notes';
+                    }
+                    // Regular content
+                    else {
+                        if (currentItem && line) {
+                            contentBuffer.push(line);
+                        }
+                    }
+                }
+
+                // Save last item
+                if (currentItem) {
+                    this.finalizeItem(currentItem, contentBuffer);
+                    items.push(currentItem);
+                }
+
+                return items;
+            },
+
+            /**
+             * Finalize item parsing
+             */
+            finalizeItem(item, buffer) {
+                const content = buffer.join('\n').trim();
+
+                if (!item.translation) {
+                    item.translation = content;
+                } else if (!item.notes) {
+                    item.notes = content;
+                }
+            },
+
+            /**
+             * Load dzikir data
+             */
+            loadData() {
+                try {
+                    // Load from embedded JSON data (no more CORS issues!)
+                    this.dzikirPagi = DZIKIR_DATA.pagi;
+                    this.dzikirPetang = DZIKIR_DATA.petang;
+
+                    console.log(`Loaded ${this.dzikirPagi.length} dzikir pagi`);
+                    console.log(`Loaded ${this.dzikirPetang.length} dzikir petang`);
+                } catch (error) {
+                    console.error('Error loading dzikir data:', error);
+                    UI.toast('Gagal memuat data dzikir');
+                }
+            },
+
+            /**
+             * Render category list page
+             */
+            renderCategories() {
+                const container = document.getElementById('dzikirCategoryList');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="p-4 space-y-3">
+                        <!-- Dzikir Pagi Card -->
+                        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition cursor-pointer"
+                             onclick="DzikirPagiPetangComponent.openCategory('pagi')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                                    <i class="fas fa-sun text-white text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-amber-900">Dzikir Pagi</h3>
+                                    <p class="text-amber-700 text-sm mt-1">${this.dzikirPagi.length} bacaan dzikir pagi</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-full">
+                                            <i class="fas fa-clock mr-1"></i>Setelah Subuh
+                                        </span>
+                                        <span class="text-xs text-amber-600">
+                                            <i class="fas fa-book-open mr-1"></i>Swipe untuk baca
+                                        </span>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-amber-400 text-xl"></i>
+                            </div>
+                        </div>
+
+                        <!-- Dzikir Petang Card -->
+                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition cursor-pointer"
+                             onclick="DzikirPagiPetangComponent.openCategory('petang')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                                    <i class="fas fa-moon text-white text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-indigo-900">Dzikir Petang</h3>
+                                    <p class="text-indigo-700 text-sm mt-1">${this.dzikirPetang.length} bacaan dzikir petang</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full">
+                                            <i class="fas fa-clock mr-1"></i>Setelah Ashar
+                                        </span>
+                                        <span class="text-xs text-indigo-600">
+                                            <i class="fas fa-book-open mr-1"></i>Swipe untuk baca
+                                        </span>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-indigo-400 text-xl"></i>
+                            </div>
+                        </div>
+
+                        <!-- Info Card -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mt-4">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-info-circle text-green-600 text-lg mt-0.5"></i>
+                                <div>
+                                    <h4 class="font-semibold text-green-900">Cara Membaca</h4>
+                                    <p class="text-sm text-green-700 mt-1">
+                                        Geser ke kiri untuk dzikir selanjutnya, geser ke kanan untuk kembali.
+                                        Baca dengan khusyuk dan penuh pemahaman.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Open category
+             */
+            openCategory(category) {
+                this.currentCategory = category;
+                this.currentIndex = 0;
+                app.navigateTo('dzikirDetail', { category, title: category === 'pagi' ? 'Dzikir Pagi' : 'Dzikir Petang' });
+            },
+
+            /**
+             * Render dzikir detail with swipe functionality
+             */
+            renderDetail(category, index = 0) {
+                this.currentCategory = category;
+                this.currentIndex = index;
+
+                const items = category === 'pagi' ? this.dzikirPagi : this.dzikirPetang;
+                const item = items[index];
+
+                const container = document.getElementById('dzikirDetailContainer');
+                const progressContainer = document.getElementById('dzikirProgress');
+                if (!container || !progressContainer) return;
+
+                // Render progress bar
+                const progressPercent = ((index + 1) / items.length) * 100;
+                progressContainer.innerHTML = `
+                    <div class="px-4 py-3 bg-white border-b">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium ${category === 'pagi' ? 'text-amber-700' : 'text-indigo-700'}">
+                                ${index + 1} dari ${items.length}
+                            </span>
+                            <span class="text-xs text-gray-500">${Math.round(progressPercent)}% selesai</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-300 ${category === 'pagi' ? 'bg-amber-500' : 'bg-indigo-500'}"
+                                 style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Render dzikir content
+                const cardClass = category === 'pagi'
+                    ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200'
+                    : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200';
+
+                const iconBg = category === 'pagi'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                    : 'bg-gradient-to-br from-indigo-400 to-purple-500';
+
+                const iconClass = category === 'pagi' ? 'fa-sun' : 'fa-moon';
+
+                container.innerHTML = `
+                    <div class="dzikir-card ${cardClass} border-2 rounded-2xl shadow-lg m-4 overflow-hidden"
+                         id="dzikirCard">
+                        <!-- Card Header -->
+                        <div class="${iconBg} text-white p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                        <span class="font-arabic text-lg font-bold">${index + 1}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-lg">${item.title}</h3>
+                                        ${item.readCount ? `<p class="text-white/90 text-sm">${item.readCount}</p>` : ''}
+                                    </div>
+                                </div>
+                                <i class="fas ${iconClass} text-white/30 text-5xl absolute right-4 top-1/2 -translate-y-1/2"></i>
+                            </div>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="p-5">
+                            <!-- Arabic Text -->
+                            ${item.arabic ? `
+                                <div class="bg-white rounded-xl p-5 mb-4 shadow-sm">
+                                    <p class="font-arabic text-2xl text-center leading-loose text-gray-800" style="line-height: 2.2;">
+                                        ${item.arabic}
+                                    </p>
+                                </div>
+                            ` : ''}
+
+                            <!-- Transliteration -->
+                            ${item.transliteration ? `
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-600 italic text-center leading-relaxed">
+                                        ${item.transliteration}
+                                    </p>
+                                </div>
+                            ` : ''}
+
+                            <!-- Translation -->
+                            <div class="bg-white/60 rounded-xl p-4 border border-white">
+                                <div class="flex items-start gap-2">
+                                    <i class="fas fa-language text-gray-500 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm text-gray-700 leading-relaxed">${item.translation}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            ${item.notes ? `
+                                <div class="mt-4 bg-white/40 rounded-xl p-4 border border-white/60">
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-info-circle text-gray-500 mt-0.5 flex-shrink-0"></i>
+                                        <div class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">${item.notes}</div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="px-4 pb-4">
+                            <div class="flex items-center justify-between gap-4">
+                                <button
+                                    id="prevDzikirBtn"
+                                    onclick="DzikirPagiPetangComponent.previousDzikir()"
+                                    class="flex-1 flex items-center justify-center gap-2 ${category === 'pagi' ? 'bg-amber-100 hover:bg-amber-200 text-amber-700' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'} py-3 px-4 rounded-xl font-semibold transition ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${index === 0 ? 'disabled' : ''}>
+                                    <i class="fas fa-chevron-right"></i>
+                                    <span>Sebelumnya</span>
+                                </button>
+                                <button
+                                    id="nextDzikirBtn"
+                                    onclick="DzikirPagiPetangComponent.nextDzikir()"
+                                    class="flex-1 flex items-center justify-center gap-2 ${category === 'pagi' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-indigo-500 hover:bg-indigo-600 text-white'} py-3 px-4 rounded-xl font-semibold transition ${index === items.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${index === items.length - 1 ? 'disabled' : ''}>
+                                    <span>Selanjutnya</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Navigation buttons are set up with inline onclick
+            },
+
+            /**
+             * Navigate to previous dzikir
+             */
+            previousDzikir() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.renderDetail(this.currentCategory, this.currentIndex);
+                }
+            },
+
+            /**
+             * Navigate to next dzikir
+             */
+            nextDzikir() {
+                const items = this.currentCategory === 'pagi' ? this.dzikirPagi : this.dzikirPetang;
+                if (this.currentIndex < items.length - 1) {
+                    this.currentIndex++;
+                    this.renderDetail(this.currentCategory, this.currentIndex);
+                }
+            },
+
+            /**
+             * Reset component state
+             */
+            reset() {
+                this.currentCategory = null;
+                this.currentIndex = 0;
+            }
+        };
+
         // Initialize app when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             app.init();
+
+            // Load dzikir data (no longer async, uses embedded JSON)
+            DzikirPagiPetangComponent.loadData();
 
             // Setup visibility change
             document.addEventListener('visibilitychange', () => {
