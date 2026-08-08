@@ -9385,6 +9385,61 @@
             }
         };
 
+        /**
+         * ============================================================
+         * ANDROID WEBVIEW BACK BUTTON HANDLER
+         * Fungsi untuk menghandle tombol back dari Android device
+         * ============================================================
+         */
+
+        /**
+         * Cek apakah aplikasi bisa kembali ke halaman sebelumnya
+         * Dipanggil dari Android Interface untuk update OnBackPressedCallback
+         */
+        function canGoBack() {
+            const hasHistory = app.pageHistory.length > 0;
+            console.log('canGoBack called:', hasHistory, 'history:', app.pageHistory);
+            return hasHistory;
+        }
+
+        /**
+         * Handle tombol back dari Android device
+         * Dipanggil ketika user menekan tombol back di HP
+         */
+        function handleAndroidBack() {
+            console.log('handleAndroidBack called');
+            console.log('Current page:', app.currentPage);
+            console.log('Page history:', app.pageHistory);
+
+            if (app.pageHistory.length > 0) {
+                // Panggil fungsi goBack() yang sudah ada
+                app.goBack();
+                return true; // Berhasil kembali
+            }
+
+            // Tidak ada history, return false
+            console.log('No history, should exit app');
+            return false;
+        }
+
+        /**
+         * Dapatkan informasi navigasi untuk debugging
+         */
+        function getNavigationInfo() {
+            return JSON.stringify({
+                currentPage: app.currentPage,
+                historyLength: app.pageHistory.length,
+                history: app.pageHistory
+            });
+        }
+
+        // Expose functions to window object for Android Interface
+        window.canGoBack = canGoBack;
+        window.handleAndroidBack = handleAndroidBack;
+        window.getNavigationInfo = getNavigationInfo;
+
+        console.log('✅ Android back button handler registered');
+
         // Initialize app when DOM is ready
         document.addEventListener('DOMContentLoaded', async () => {
             app.init();
