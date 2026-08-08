@@ -9042,6 +9042,8 @@
                 if (this.currentIndex > 0) {
                     this.currentIndex--;
                     this.renderDetail(this.currentCategory, this.currentIndex);
+                    // Scroll to top with animation
+                    this.scrollToTop();
                 }
             },
 
@@ -9053,7 +9055,32 @@
                 if (this.currentIndex < items.length - 1) {
                     this.currentIndex++;
                     this.renderDetail(this.currentCategory, this.currentIndex);
+                    // Scroll to top with animation
+                    this.scrollToTop();
                 }
+            },
+
+            /**
+             * Scroll to top with smooth animation
+             */
+            scrollToTop() {
+                // Use setTimeout to ensure DOM is updated after render
+                setTimeout(() => {
+                    // Scroll the main content container (which has overflow-y-auto)
+                    const mainContent = document.querySelector('main');
+                    if (mainContent) {
+                        mainContent.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    // Also try window scrollTo as fallback
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }, 50);
             },
 
             /**
