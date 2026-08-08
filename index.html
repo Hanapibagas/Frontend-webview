@@ -7997,8 +7997,22 @@
                 if (!this.currentSurah) return;
 
                 try {
+                    // Check if clicking the same ayah that's currently playing
+                    if (this.currentPlayingAyah === ayahNumber && this.isPlaying && this.audio) {
+                        // Pause the audio
+                        this.audio.pause();
+                        this.isPlaying = false;
+                        this.currentPlayingAyah = null;
+                        this.updatePlayButtonIcon();
+                        UI.toast('Audio dipause');
+                        return;
+                    }
+
                     // Stop current audio if playing
                     this.stopAudio();
+
+                    // Set current playing ayah
+                    this.currentPlayingAyah = ayahNumber;
 
                     // Fetch audio data from API first
                     UI.toast('Memuat audio...');
@@ -8022,6 +8036,7 @@
 
                     this.audio.onended = () => {
                         this.isPlaying = false;
+                        this.currentPlayingAyah = null;
                         this.updatePlayButtonIcon();
 
                         // Auto play next ayah
@@ -8034,6 +8049,7 @@
 
                     this.audio.onerror = () => {
                         this.isPlaying = false;
+                        this.currentPlayingAyah = null;
                         this.updatePlayButtonIcon();
                         UI.toast('Gagal memuat audio');
                     };
@@ -8047,6 +8063,7 @@
 
                 } catch (error) {
                     console.error('Error playing audio:', error);
+                    this.currentPlayingAyah = null;
                     UI.toast('Gagal memutar audio');
                 }
             },
@@ -8061,6 +8078,7 @@
                     this.audio = null;
                 }
                 this.isPlaying = false;
+                this.currentPlayingAyah = null;
                 this.updatePlayButtonIcon();
             },
 
@@ -8068,12 +8086,59 @@
              * Update play button icon
              */
             updatePlayButtonIcon() {
+                // Update floating play button for surah
                 const playAllBtn = document.getElementById('playAllBtn');
-                if (this.isPlaying) {
-                    playAllBtn.innerHTML = '<i class="fas fa-stop text-xl"></i>';
-                } else {
-                    playAllBtn.innerHTML = '<i class="fas fa-play text-xl"></i>';
+                if (playAllBtn) {
+                    if (this.isPlaying) {
+                        playAllBtn.innerHTML = '<i class="fas fa-stop text-xl"></i>';
+                    } else {
+                        playAllBtn.innerHTML = '<i class="fas fa-play text-xl"></i>';
+                    }
                 }
+
+                // Update floating play button for juz
+                const playJuzAllBtn = document.getElementById('playJuzAllBtn');
+                if (playJuzAllBtn) {
+                    if (this.isPlaying) {
+                        playJuzAllBtn.innerHTML = '<i class="fas fa-stop text-xl"></i>';
+                    } else {
+                        playJuzAllBtn.innerHTML = '<i class="fas fa-play text-xl"></i>';
+                    }
+                }
+
+                // Update individual ayah play buttons in surah detail
+                const surahVerseCards = document.querySelectorAll('#versesList .verse-card');
+                surahVerseCards.forEach(card => {
+                    const ayahNumber = parseInt(card.dataset.ayahNumber);
+                    const playBtn = card.querySelector('button[onclick*="playAyahAudio"]');
+                    if (playBtn) {
+                        const icon = playBtn.querySelector('i');
+                        if (icon) {
+                            if (this.currentPlayingAyah === ayahNumber && this.isPlaying) {
+                                icon.className = 'fas fa-pause text-sm';
+                            } else {
+                                icon.className = 'fas fa-play text-sm';
+                            }
+                        }
+                    }
+                });
+
+                // Update individual ayah play buttons in juz detail
+                const juzVerseCards = document.querySelectorAll('#juzVersesList .verse-card');
+                juzVerseCards.forEach(card => {
+                    const ayahNumber = parseInt(card.dataset.ayahNumber);
+                    const playBtn = card.querySelector('button[onclick*="playJuzAyahAudio"]');
+                    if (playBtn) {
+                        const icon = playBtn.querySelector('i');
+                        if (icon) {
+                            if (this.currentPlayingAyah === ayahNumber && this.isPlaying) {
+                                icon.className = 'fas fa-pause text-sm';
+                            } else {
+                                icon.className = 'fas fa-play text-sm';
+                            }
+                        }
+                    }
+                });
             },
 
             /**
@@ -8472,8 +8537,22 @@
                 if (!this.currentJuzData) return;
 
                 try {
+                    // Check if clicking the same ayah that's currently playing
+                    if (this.currentPlayingAyah === globalAyahIndex && this.isPlaying && this.audio) {
+                        // Pause the audio
+                        this.audio.pause();
+                        this.isPlaying = false;
+                        this.currentPlayingAyah = null;
+                        this.updatePlayButtonIcon();
+                        UI.toast('Audio dipause');
+                        return;
+                    }
+
                     this.stopAudio();
                     UI.toast('Memuat audio...');
+
+                    // Set current playing ayah
+                    this.currentPlayingAyah = globalAyahIndex;
 
                     // Fetch audio data for specific surah
                     const response = await fetch(`${QuranAPI.BASE_URL}/surah/${surahNumber}/editions/ar.alafasy`);
@@ -8494,11 +8573,13 @@
 
                     this.audio.onpause = () => {
                         this.isPlaying = false;
+                        this.currentPlayingAyah = null;
                         this.updatePlayButtonIcon();
                     };
 
                     this.audio.onended = () => {
                         this.isPlaying = false;
+                        this.currentPlayingAyah = null;
                         this.updatePlayButtonIcon();
 
                         // Auto-play next ayah
@@ -8511,6 +8592,7 @@
 
                     this.audio.onerror = () => {
                         this.isPlaying = false;
+                        this.currentPlayingAyah = null;
                         this.updatePlayButtonIcon();
                         UI.toast('Gagal memutar audio');
                     };
@@ -8521,6 +8603,7 @@
 
                 } catch (error) {
                     console.error('Error playing audio:', error);
+                    this.currentPlayingAyah = null;
                     UI.toast('Gagal memutar audio');
                 }
             },
@@ -8718,6 +8801,20 @@
                             QuranComponent.playAyahAudio(1);
                         } else {
                             UI.toast('Pilih surah terlebih dahulu');
+                        }
+                    });
+                }
+
+                // Setup play all button for juz
+                const playJuzAllBtn = document.getElementById('playJuzAllBtn');
+                if (playJuzAllBtn) {
+                    playJuzAllBtn.addEventListener('click', () => {
+                        if (QuranComponent.isPlaying) {
+                            QuranComponent.stopAudio();
+                        } else if (QuranComponent.currentJuzData) {
+                            QuranComponent.playJuzAyahAudio(1, QuranComponent.currentJuzData.ayahs[0].surah.number, QuranComponent.currentJuzData.ayahs[0].numberInSurah);
+                        } else {
+                            UI.toast('Pilih juz terlebih dahulu');
                         }
                     });
                 }
