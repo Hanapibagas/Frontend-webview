@@ -205,7 +205,7 @@
                             <p class="font-arabic text-xl leading-relaxed mb-3 text-right font-medium" id="dailyVerse">
                                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
                             </p>
-                            <p class="text-sm text-[#81C784] mb-2 font-medium quran-translation" id="dailyVerseTranslation">
+                            <p class="text-sm text-[#81C784] mb-2 font-medium" id="dailyVerseTranslation">
                                 Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang
                             </p>
                             <p class="text-xs text-[#81C784]" id="dailyVerseRef">(Al-Fatihah: 1)</p>
@@ -4673,7 +4673,7 @@
 
                         <!-- Translation -->
                         <div class="mb-3">
-                            <p class="text-sm text-[#333333] leading-relaxed quran-translation">
+                            <p class="text-sm text-[#333333] leading-relaxed">
                                 ${translationText}
                             </p>
                         </div>
@@ -5347,7 +5347,7 @@
                     ` : ''}
 
                     ${item.translation ? `
-                    <p class="text-sm text-[#333333] mb-3 quran-translation">
+                    <p class="text-sm text-[#333333] mb-3">
                         ${this.escapeHtml(item.translation)}
                     </p>
                     ` : ''}
@@ -5802,7 +5802,7 @@
                         ` : ''}
 
                         ${item.translation ? `
-                        <p class="text-sm text-[#333333] mb-3 leading-relaxed quran-translation">
+                        <p class="text-sm text-[#333333] mb-3 leading-relaxed">
                             ${this.escapeHtml(item.translation)}
                         </p>
                         ` : ''}
@@ -5891,7 +5891,7 @@
                     ` : ''}
 
                     ${item.translation ? `
-                    <p class="text-sm text-[#333333] mb-3 quran-translation">
+                    <p class="text-sm text-[#333333] mb-3">
                         ${this.escapeHtml(item.translation)}
                     </p>
                     ` : ''}
@@ -6865,7 +6865,7 @@
                     ` : ''}
 
                     ${item.translation ? `
-                    <p class="text-sm text-[#333333] mb-3 quran-translation">
+                    <p class="text-sm text-[#333333] mb-3">
                         ${this.escapeHtml(item.translation)}
                     </p>
                     ` : ''}
@@ -7251,7 +7251,7 @@
                     ` : ''}
 
                     ${item.translation ? `
-                    <p class="text-sm text-[#333333] mb-3 quran-translation">
+                    <p class="text-sm text-[#333333] mb-3">
                         ${this.escapeHtml(item.translation)}
                     </p>
                     ` : ''}
@@ -8601,7 +8601,7 @@
                                         </p>
 
                                         <!-- Translation -->
-                                        <p class="text-[#333333] text-sm leading-relaxed quran-translation">
+                                        <p class="text-[#333333] text-sm leading-relaxed">
                                             <span class="font-semibold text-[#2B2B2B]">${ayahNumber}. </span>
                                             ${ayah.translation || ''}
                                         </p>
@@ -8933,7 +8933,7 @@
                 const settingsBtn = document.getElementById('settingsBtn');
                 if (settingsBtn) {
                     settingsBtn.addEventListener('click', () => {
-                        this.navigateTo('settings');
+                        this.navigateTo('bookmarks');
                     });
                 }
             },
@@ -9293,9 +9293,9 @@
                         settingsBtn.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
                         break;
 
-                    case 'settings':
-                        headerTitle.textContent = 'Pengaturan';
-                        headerSubtitle.textContent = 'Atur ukuran font dan preferensi';
+                    case 'bookmarks':
+                        headerTitle.textContent = 'Bookmark';
+                        headerSubtitle.textContent = 'Ayat tersimpan';
                         headerSubtitle.classList.remove('hidden');
                         backBtn.classList.remove('hidden'); // Show back button for Android WebView
                         settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
@@ -9417,7 +9417,7 @@
                         // Already loaded on init
                         break;
 
-                    case 'settings':
+                    case 'bookmarks':
                         this.renderBookmarks();
                         break;
 
@@ -9968,7 +9968,7 @@
                                 <div class="flex items-start gap-2">
                                     <i class="fas fa-language text-[#0D3D1E] mt-0.5"></i>
                                     <div>
-                                        <p class="text-sm text-gray-700 leading-relaxed font-medium quran-translation">${item.translation}</p>
+                                        <p class="text-sm text-gray-700 leading-relaxed font-medium">${item.translation}</p>
                                     </div>
                                 </div>
                             </div>
@@ -10317,7 +10317,7 @@
                                 <div class="flex items-start gap-2">
                                     <i class="fas fa-language text-[#0D3D1E] mt-0.5"></i>
                                     <div>
-                                        <p class="text-sm text-gray-700 leading-relaxed font-medium quran-translation">${item.translation}</p>
+                                        <p class="text-sm text-gray-700 leading-relaxed font-medium">${item.translation}</p>
                                     </div>
                                 </div>
                             </div>
