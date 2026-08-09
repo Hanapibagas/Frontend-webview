@@ -113,22 +113,83 @@
             .surah-item {
                 padding: 0.75rem !important;
             }
-
-            .surah-item .flex {
-                gap: 0.5rem !important;
-            }
         }
 
-        /* Verse number badge */
-        .verse-badge {
-            width: 32px;
-            height: 32px;
+        /* Star-shaped number badge styling */
+        .star-badge {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        .star-badge-inner {
+            position: absolute;
+            inset: 0;
+            background: white;
+            border: 2px solid #1a4d3a;
+            border-radius: 8px;
+            transform: rotate(45deg);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            font-size: 0.75rem;
+        }
+
+        .star-badge-number {
             font-weight: 600;
+            color: #1a4d3a;
+            transform: rotate(-45deg);
+            font-size: 0.875rem;
+        }
+
+        /* Swipe animation */
+        @keyframes swipePulse {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1);
+            }
+        }
+
+        /* Page transition animations */
+        .page-transition {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+
+        .page-transition.slide-left {
+            animation: slideInLeft 0.3s ease-out;
+        }
+
+        .page-transition.slide-right {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 
@@ -282,29 +343,54 @@
 
                 <!-- Quran Page -->
                 <div id="quranPage" class="page hidden">
-                    <!-- Search Bar -->
-                    <div class="sticky top-0 bg-white border-b border-[#66BB6A] px-3 sm:px-4 py-2 sm:py-3 z-10">
-                        <div class="relative">
-                            <input type="text" id="searchSurah" placeholder="Cari surah..."
-                                class="w-full bg-[#F5F5F5] rounded-xl py-2.5 sm:py-3 px-3 sm:px-4 pl-10 sm:pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D3D1E] focus:bg-white transition">
-                            <i class="fas fa-search absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-[#333333] text-sm sm:text-base"></i>
+                    <!-- Dark Teal Header -->
+                    <div class="sticky top-0 bg-[#1a4d3a] px-4 py-3 z-10">
+                        <div class="flex items-center justify-between">
+                            <!-- App Logo and Title -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-[#D4AF37]">
+                                    <i class="fas fa-book-quran text-[#1a4d3a] text-lg"></i>
+                                </div>
+                                <h1 class="text-white text-lg font-bold">Baca Qur'an</h1>
+                            </div>
+                            <!-- Action Icons -->
+                            <div class="flex items-center gap-4">
+                                <button id="btnSettings" class="text-white">
+                                    <i class="fas fa-cog text-lg"></i>
+                                </button>
+                                <button id="btnSearchQuran" class="text-white">
+                                    <i class="fas fa-search text-lg"></i>
+                                </button>
+                                <button id="btnMenu" class="text-white">
+                                    <i class="fas fa-ellipsis-v text-lg"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Mode Toggle: Surah/Juz -->
-                    <div class="px-3 sm:px-4 py-2 bg-white">
-                        <div class="flex bg-[#F5F5F5] rounded-xl p-1">
-                            <button id="modeSurah" class="flex-1 py-2 rounded-lg text-sm font-medium transition bg-white text-[#0D3D1E] shadow-sm" onclick="QuranComponent.switchMode('surah')">
-                                <i class="fas fa-book-quran mr-1"></i> Surah
+                    <!-- Tab Navigation -->
+                    <div class="sticky top-[60px] bg-white border-b border-gray-200 z-10">
+                        <div class="flex">
+                            <button id="tabSurah" class="flex-1 py-3 text-center text-sm font-semibold text-[#1a4d3a] border-b-2 border-[#1a4d3a] transition" onclick="QuranComponent.switchMode('surah')">
+                                SURAH
                             </button>
-                            <button id="modeJuz" class="flex-1 py-2 rounded-lg text-sm font-medium transition text-[#333333]" onclick="QuranComponent.switchMode('juz')">
-                                <i class="fas fa-th-large mr-1"></i> Juz
+                            <button id="tabJuz" class="flex-1 py-3 text-center text-sm font-semibold text-gray-500 border-b-2 border-transparent transition hover:text-[#1a4d3a]" onclick="QuranComponent.switchMode('juz')">
+                                JUZ
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Search Bar (Hidden by default) -->
+                    <div id="searchBarContainer" class="hidden bg-white px-4 py-4 mt-2 border-b border-gray-200">
+                        <div class="relative">
+                            <input type="text" id="searchSurah" placeholder="Cari surah..."
+                                class="w-full bg-[#F5F5F5] rounded-xl py-3 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a4d3a] focus:bg-white transition">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                         </div>
                     </div>
 
                     <!-- Surah List -->
-                    <div id="surahList" class="p-3 sm:p-4 space-y-2">
+                    <div id="surahList" class="mt-4">
                         <!-- Loading State -->
                         <div id="surahListLoading" class="flex flex-col items-center justify-center py-20">
                             <div class="spinner text-primary-600 mb-4"></div>
@@ -319,16 +405,16 @@
                     </div>
 
                     <!-- Juz List -->
-                    <div id="juzList" class="p-3 sm:p-4 hidden">
+                    <div id="juzList" class="hidden mt-6">
                         <!-- Loading State -->
                         <div id="juzListLoading" class="flex flex-col items-center justify-center py-20">
                             <div class="spinner text-primary-600 mb-4"></div>
                             <p class="text-[#333333] text-sm">Memuat daftar juz...</p>
                         </div>
 
-                        <!-- Juz Grid -->
-                        <div id="juzGrid" class="grid grid-cols-5 gap-2">
-                            <!-- Juz cards will be rendered here -->
+                        <!-- Juz List Container -->
+                        <div id="juzGrid">
+                            <!-- Juz items will be rendered here -->
                         </div>
                     </div>
                 </div>
@@ -7881,6 +7967,29 @@
                 console.log('Initializing Quran component');
                 await this.loadSurahList();
                 this.setupSearch();
+                this.setupUI();
+            },
+
+            /**
+             * Setup UI event listeners
+             */
+            setupUI() {
+                // Settings button
+                const settingsBtn = document.getElementById('btnSettings');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => {
+                        app.navigateTo('settings');
+                    });
+                }
+
+                // Menu button (placeholder for future menu functionality)
+                const menuBtn = document.getElementById('btnMenu');
+                if (menuBtn) {
+                    menuBtn.addEventListener('click', () => {
+                        // TODO: Implement menu functionality
+                        console.log('Menu button clicked');
+                    });
+                }
             },
 
             /**
@@ -7919,41 +8028,46 @@
                 }
 
                 const html = surahs.map((surah, index) => {
-                    const surahType = surah.revelationType === 'Meccan' ? 'Makkiyah' : 'Madaniyah';
+                    const surahType = surah.revelationType === 'Meccan' ? 'MEKAH' : 'MADINAH';
                     const typeClass = surah.revelationType === 'Meccan'
-                        ? 'bg-[#81C784] text-primary-600'
-                        : 'bg-[#DCE5E1] text-primary-600';
+                        ? 'text-[#1a4d3a]'
+                        : 'text-[#1a4d3a]';
 
                     // Convert Arabic numerals to Arabic if needed
                     const arabicNumber = this.toArabicNumeral(surah.number);
 
                     return `
-                        <div class="surah-item bg-white border border-[#81C784] rounded-xl p-3 sm:p-4 hover:shadow-sm hover:border-[#66BB6A] transition cursor-pointer"
+                        <div class="surah-item bg-white border-b border-gray-100 px-4 py-3 hover:bg-gray-50 transition cursor-pointer"
                              onclick="QuranComponent.openSurah(${surah.number})"
                              data-surah-number="${surah.number}">
-                            <div class="flex items-center gap-2 sm:gap-4">
-                                <!-- Surah Number Badge -->
-                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-[#81C784] rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="font-arabic text-primary-600 text-base sm:text-lg font-bold">${arabicNumber}</span>
+                            <div class="flex items-center gap-3">
+                                <!-- Star-shaped Surah Number Badge -->
+                                <div class="star-badge flex-shrink-0">
+                                    <div class="star-badge-inner">
+                                        <span class="star-badge-number">${surah.number}</span>
+                                    </div>
                                 </div>
 
                                 <!-- Surah Info -->
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                                        <h3 class="font-semibold text-[#2B2B2B] text-sm sm:text-base truncate flex-1">${surah.englishName}</h3>
-                                        <span class="text-xs px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ${typeClass}">${surahType}</span>
+                                    <!-- Arabic Name -->
+                                    <div class="font-arabic text-lg text-[#1a4d3a] mb-1 leading-tight">${surah.name}</div>
+
+                                    <!-- English Name and Type -->
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-semibold text-[#2B2B2B] text-sm">${surah.englishName}</h3>
+                                        <span class="text-xs px-2 py-0.5 bg-gray-100 rounded-full ${typeClass}">${surahType}</span>
                                     </div>
-                                    <p class="text-xs sm:text-sm text-[#333333] truncate">${surah.englishNameTranslation} • ${surah.numberOfAyahs} Ayat</p>
+
+                                    <!-- Verse Count -->
+                                    <p class="text-xs text-gray-500">${surah.numberOfAyahs} Ayat</p>
                                 </div>
 
-                                <!-- Arabic Name -->
-                                <div class="text-right flex-shrink-0 hidden sm:block">
-                                    <p class="font-arabic text-xl text-[#2B2B2B] leading-tight">${surah.name}</p>
-                                </div>
-
-                                <!-- Arrow -->
-                                <div class="flex-shrink-0 text-[#333333] ml-1">
-                                    <i class="fas fa-chevron-left text-sm"></i>
+                                <!-- Download Icon -->
+                                <div class="flex-shrink-0 ml-2">
+                                    <div class="bg-[#f5f1e8] rounded-r-lg px-3 py-2 flex items-center justify-center">
+                                        <i class="fas fa-download text-[#1a4d3a] text-sm"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -7967,6 +8081,16 @@
              * Open surah detail
              */
             async openSurah(surahNumber) {
+                // Show display settings modal first
+                DisplaySettingsModal.open((selectedOption) => {
+                    this.loadSurahWithDisplay(surahNumber, selectedOption);
+                });
+            },
+
+            /**
+             * Load surah with selected display option
+             */
+            async loadSurahWithDisplay(surahNumber, displayOption) {
                 const container = document.getElementById('versesList');
                 UI.showLoading(container, 'Memuat ayat...');
 
@@ -7974,11 +8098,12 @@
                     const surah = await QuranAPI.getSurahWithTranslation(surahNumber);
                     this.currentSurah = surah;
                     this.currentAyahs = surah.ayahs;
+                    this.currentDisplayOption = displayOption;
 
                     // Save last read
                     Storage.setLastRead(surahNumber, 1);
 
-                    this.renderSurahDetail(surah);
+                    this.renderSurahDetail(surah, displayOption);
                     app.navigateTo('surahDetail');
                 } catch (error) {
                     console.error('Error loading surah:', error);
@@ -7997,7 +8122,7 @@
             /**
              * Render surah detail page
              */
-            renderSurahDetail(surah) {
+            renderSurahDetail(surah, displayOption = 'per-surah') {
                 // Update header
                 document.getElementById('headerTitle').textContent = 'Al-Quran';
                 document.getElementById('backBtn').classList.remove('hidden');
@@ -8022,14 +8147,24 @@
                     bismillahDiv.classList.remove('hidden');
                 }
 
-                // Render verses
-                this.renderVerses(surah);
+                // Render verses based on display option
+                if (displayOption === 'per-surah') {
+                    this.renderVersesPerSurah(surah);
+                } else if (displayOption === 'per-halaman') {
+                    this.renderVersesPerHalaman(surah);
+                } else {
+                    // Default to per-surah
+                    this.renderVersesPerSurah(surah);
+                }
+
+                // Setup swipe gestures
+                this.setupSwipeGestures(surah);
             },
 
             /**
-             * Render verses list
+             * Render verses per surah (detailed view with Arabic + translation)
              */
-            renderVerses(surah) {
+            renderVersesPerSurah(surah) {
                 const container = document.getElementById('versesList');
 
                 const html = surah.ayahs.map((ayah, index) => {
@@ -8044,9 +8179,11 @@
                              id="ayah-${ayahNumber}">
 
                             <div class="flex items-start gap-3">
-                                <!-- Verse Number Badge -->
-                                <div class="verse-badge bg-[#81C784] text-primary-600 flex-shrink-0 mt-1">
-                                    ${arabicNumber}
+                                <!-- Diamond-shaped Verse Number Badge -->
+                                <div class="w-8 h-8 relative flex-shrink-0 mt-1">
+                                    <div class="absolute inset-0 bg-[#f5f1e8] border-2 border-[#1a4d3a] rounded-lg transform rotate-45 flex items-center justify-center">
+                                        <span class="font-semibold text-[#1a4d3a] text-sm transform -rotate-45">${arabicNumber}</span>
+                                    </div>
                                 </div>
 
                                 <div class="flex-1">
@@ -8094,6 +8231,308 @@
 
                 // Check which ayahs are bookmarked
                 this.updateBookmarkIcons();
+            },
+
+            /**
+             * Render verses per halaman (traditional Quran page view)
+             */
+            renderVersesPerHalaman(surah) {
+                const container = document.getElementById('versesList');
+
+                // Initialize pagination state
+                this.paginationState = {
+                    currentPage: 1,
+                    ayahsPerPage: 15, // Adjustable based on preference
+                    totalAyahs: surah.ayahs.length,
+                    totalPages: Math.ceil(surah.ayahs.length / 15)
+                };
+
+                const html = `
+                    <!-- Page Navigation Header -->
+                    <div class="bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] text-white p-4 rounded-xl mb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg">Halaman ${this.paginationState.currentPage}</h3>
+                                <p class="text-sm opacity-90">${surah.englishName} - Juz ${this.calculateJuz(surah.number)}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="QuranComponent.previousPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button onclick="QuranComponent.nextPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Surah Title Box -->
+                    <div class="bg-[#f5f1e8] border-2 border-[#1a4d3a] rounded-lg p-4 mb-6 text-center">
+                        <p class="font-arabic text-3xl text-[#1a4d3a] font-bold">${surah.name}</p>
+                    </div>
+
+                    <!-- Metadata Labels -->
+                    <div class="flex justify-center gap-4 mb-6">
+                        <div class="bg-[#E8F5E9] px-4 py-2 rounded-full">
+                            <span class="text-sm font-semibold text-[#1a4d3a]">${surah.revelationType === 'Meccan' ? 'MEKAH' : 'MADINAH'}</span>
+                        </div>
+                        <div class="bg-[#E8F5E9] px-4 py-2 rounded-full">
+                            <span class="text-sm font-semibold text-[#1a4d3a]">${surah.numberOfAyahs} AYAT</span>
+                        </div>
+                    </div>
+
+                    <!-- Verses Container - Traditional Quran Page Layout -->
+                    <div id="perHalamanVerses" class="bg-[#F5F1E8] border-2 border-[#1a4d3a] rounded-lg p-6">
+                        ${this.renderHalamanVerses(surah)}
+                    </div>
+
+                    <!-- Page Navigation Footer -->
+                    <div class="mt-8 flex justify-center items-center gap-4">
+                        <button onclick="QuranComponent.previousPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left mr-2"></i> Sebelumnya
+                        </button>
+                        <span class="text-sm text-gray-600">Halaman ${this.paginationState.currentPage} dari ${this.paginationState.totalPages}</span>
+                        <button onclick="QuranComponent.nextPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === this.paginationState.totalPages ? 'disabled' : ''}>
+                            Selanjutnya <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                `;
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Render verses for current halaman page - Traditional Quran Layout
+             */
+            renderHalamanVerses(surah) {
+                if (!this.paginationState) return '';
+
+                const start = (this.paginationState.currentPage - 1) * this.paginationState.ayahsPerPage;
+                const end = Math.min(start + this.paginationState.ayahsPerPage, this.paginationState.totalAyahs);
+                const currentAyahs = surah.ayahs.slice(start, end);
+
+                const circularNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮'];
+
+                // Create continuous flowing text like traditional Quran pages
+                const versesText = currentAyahs.map((ayah, index) => {
+                    const globalIndex = start + index;
+                    const isFirstAyah = globalIndex === 0;
+                    const hasBismillah = isFirstAyah && surah.number !== 1 && surah.number !== 9;
+                    const circularNumber = circularNumbers[index] || (index + 1);
+
+                    return `
+                        <div class="mb-6" data-ayah-number="${globalIndex + 1}">
+                            <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
+                                <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
+                                ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                            </p>
+                        </div>
+                    `;
+                }).join('');
+
+                return versesText;
+            },
+
+            /**
+             * Calculate juz number based on surah number
+             */
+            calculateJuz(surahNumber) {
+                if (surahNumber <= 1) return 1;
+                if (surahNumber <= 2) return (surahNumber === 1) ? 1 : (surahNumber === 2) ? 1 : Math.ceil((surahNumber - 1) / 10);
+                // Simplified juz calculation
+                return Math.ceil((surahNumber - 1) / 10) || 1;
+            },
+
+            /**
+             * Setup swipe gestures for surah detail page
+             */
+            setupSwipeGestures(surah) {
+                const detailPage = document.getElementById('surahDetailPage');
+                if (!detailPage) return;
+
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let touchEndX = 0;
+                let touchEndY = 0;
+                let isSwiping = false;
+                let swipeStartTime = 0;
+
+                const minSwipeDistance = 50; // Minimum distance for swipe
+                const maxSwipeTime = 300; // Maximum time for swipe gesture
+
+                // Touch start
+                detailPage.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isSwiping = false;
+                    swipeStartTime = Date.now();
+                }, { passive: true });
+
+                // Touch move
+                detailPage.addEventListener('touchmove', (e) => {
+                    if (!isSwiping) {
+                        touchEndX = e.touches[0].clientX;
+                        touchEndY = e.touches[0].clientY;
+                        const deltaX = Math.abs(touchEndX - touchStartX);
+                        const deltaY = Math.abs(touchEndY - touchStartY);
+
+                        // Only track horizontal swipes (not vertical scrolling)
+                        if (deltaX > deltaY && deltaX > 10) {
+                            isSwiping = true;
+                        }
+                    }
+
+                    if (isSwiping) {
+                        e.preventDefault(); // Prevent scrolling during swipe
+                    }
+                }, { passive: false });
+
+                // Touch end
+                detailPage.addEventListener('touchend', (e) => {
+                    if (!isSwiping) return;
+
+                    const swipeTime = Date.now() - swipeStartTime;
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+
+                    // Check if horizontal swipe
+                    if (Math.abs(deltaX) > Math.abs(deltaY) &&
+                        Math.abs(deltaX) > minSwipeDistance &&
+                        swipeTime < maxSwipeTime) {
+
+                        // Left swipe (next)
+                        if (deltaX < 0) {
+                            this.handleSwipeLeft(surah);
+                        }
+                        // Right swipe (previous)
+                        else {
+                            this.handleSwipeRight(surah);
+                        }
+                    }
+
+                    isSwiping = false;
+                }, { passive: true });
+            },
+
+            /**
+             * Handle swipe left gesture (next page/action)
+             */
+            handleSwipeLeft(surah) {
+                // Provide visual feedback
+                this.showSwipeFeedback('left');
+
+                if (this.currentDisplayOption === 'per-halaman' && this.paginationState) {
+                    // In per-halaman mode, swipe left = next page
+                    if (this.paginationState.currentPage < this.paginationState.totalPages) {
+                        this.nextPage();
+                    } else {
+                        // Already on last page, show feedback
+                        UI.toast('Halaman terakhir');
+                    }
+                } else {
+                    // In per-surah mode, could scroll to next surah or show feedback
+                    UI.toast('Gunakan jari scroll untuk navigasi');
+                }
+            },
+
+            /**
+             * Handle swipe right gesture (previous page/action)
+             */
+            handleSwipeRight(surah) {
+                // Provide visual feedback
+                this.showSwipeFeedback('right');
+
+                if (this.currentDisplayOption === 'per-halaman' && this.paginationState) {
+                    // In per-halaman mode, swipe right = previous page
+                    if (this.paginationState.currentPage > 1) {
+                        this.previousPage();
+                    } else {
+                        // Already on first page, show feedback
+                        UI.toast('Halaman pertama');
+                    }
+                } else {
+                    // In per-surah mode, could go to previous surah or show feedback
+                    UI.toast('Gunakan jari scroll untuk navigasi');
+                }
+            },
+
+            /**
+             * Show visual feedback for swipe gesture
+             */
+            showSwipeFeedback(direction) {
+                const feedback = document.createElement('div');
+                feedback.className = 'swipe-feedback';
+
+                if (direction === 'left') {
+                    feedback.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    feedback.style.cssText = `
+                        position: fixed;
+                        right: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(26, 77, 58, 0.2);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #1a4d3a;
+                        z-index: 1000;
+                        animation: swipePulse 0.3s ease-out;
+                    `;
+                } else {
+                    feedback.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                    feedback.style.cssText = `
+                        position: fixed;
+                        left: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(26, 77, 58, 0.2);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #1a4d3a;
+                        z-index: 1000;
+                        animation: swipePulse 0.3s ease-out;
+                    `;
+                }
+
+                document.body.appendChild(feedback);
+
+                // Remove feedback after animation
+                setTimeout(() => {
+                    feedback.remove();
+                }, 300);
+            },
+
+            /**
+             * Next page for per-halaman mode
+             */
+            nextPage() {
+                if (!this.paginationState || this.paginationState.currentPage >= this.paginationState.totalPages) return;
+
+                this.paginationState.currentPage++;
+                this.renderVersesPerHalaman(this.currentSurah);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            /**
+             * Previous page for per-halaman mode
+             */
+            previousPage() {
+                if (!this.paginationState || this.paginationState.currentPage <= 1) return;
+
+                this.paginationState.currentPage--;
+                this.renderVersesPerHalaman(this.currentSurah);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             },
 
             /**
@@ -8339,7 +8778,17 @@
              */
             setupSearch() {
                 const searchInput = document.getElementById('searchSurah');
+                const searchBtn = document.getElementById('btnSearchQuran');
+                const searchBarContainer = document.getElementById('searchBarContainer');
                 let searchTimeout;
+
+                // Toggle search bar visibility
+                searchBtn.addEventListener('click', () => {
+                    searchBarContainer.classList.toggle('hidden');
+                    if (!searchBarContainer.classList.contains('hidden')) {
+                        searchInput.focus();
+                    }
+                });
 
                 searchInput.addEventListener('input', (e) => {
                     clearTimeout(searchTimeout);
@@ -8377,24 +8826,30 @@
                 this.currentMode = mode;
                 const surahList = document.getElementById('surahList');
                 const juzList = document.getElementById('juzList');
-                const modeSurahBtn = document.getElementById('modeSurah');
-                const modeJuzBtn = document.getElementById('modeJuz');
+                const tabSurah = document.getElementById('tabSurah');
+                const tabJuz = document.getElementById('tabJuz');
+
+                // Reset all tabs
+                [tabSurah, tabJuz].forEach(tab => {
+                    tab.classList.remove('text-[#1a4d3a]', 'border-[#1a4d3a]');
+                    tab.classList.add('text-gray-500', 'border-transparent');
+                });
+
+                // Hide all lists
+                surahList.classList.add('hidden');
+                juzList.classList.add('hidden');
 
                 if (mode === 'surah') {
+                    // Show surah list and activate tab
                     surahList.classList.remove('hidden');
-                    juzList.classList.add('hidden');
-                    modeSurahBtn.classList.add('bg-white', 'text-[#0D3D1E]', 'shadow-sm');
-                    modeSurahBtn.classList.remove('text-[#333333]');
-                    modeJuzBtn.classList.remove('bg-white', 'text-[#0D3D1E]', 'shadow-sm');
-                    modeJuzBtn.classList.add('text-[#333333]');
+                    tabSurah.classList.add('text-[#1a4d3a]', 'border-[#1a4d3a]');
+                    tabSurah.classList.remove('text-gray-500', 'border-transparent');
                     await this.loadSurahList();
-                } else {
-                    surahList.classList.add('hidden');
+                } else if (mode === 'juz') {
+                    // Show juz list and activate tab
                     juzList.classList.remove('hidden');
-                    modeJuzBtn.classList.add('bg-white', 'text-[#0D3D1E]', 'shadow-sm');
-                    modeJuzBtn.classList.remove('text-[#333333]');
-                    modeSurahBtn.classList.remove('bg-white', 'text-[#0D3D1E]', 'shadow-sm');
-                    modeSurahBtn.classList.add('text-[#333333]');
+                    tabJuz.classList.add('text-[#1a4d3a]', 'border-[#1a4d3a]');
+                    tabJuz.classList.remove('text-gray-500', 'border-transparent');
                     await this.loadJuzList();
                 }
             },
@@ -8422,22 +8877,68 @@
             renderJuzList() {
                 const container = document.getElementById('juzGrid');
 
+                // Juz start data (approximate starting surahs for each juz)
+                const juzStartData = [
+                    { surah: 'Al-Fatihah', ayat: 1 },
+                    { surah: 'Al-Baqarah', ayat: 142 },
+                    { surah: 'Al-Baqarah', ayat: 253 },
+                    { surah: 'Ali \'Imran', ayat: 93 },
+                    { surah: 'An-Nisa\'', ayat: 24 },
+                    { surah: 'An-Nisa\'', ayat: 148 },
+                    { surah: 'Al-Ma\'idah', ayat: 82 },
+                    { surah: 'Al-An\'am', ayat: 111 },
+                    { surah: 'Al-A\'raf', ayat: 88 },
+                    { surah: 'Al-Anfal', ayat: 41 },
+                    { surah: 'At-Tawbah', ayat: 93 },
+                    { surah: 'Hud', ayat: 6 },
+                    { surah: 'Yusuf', ayat: 53 },
+                    { surah: 'Al-Hijr', ayat: 1 },
+                    { surah: 'Al-Isra\'', ayat: 1 },
+                    { surah: 'Al-Kahf', ayat: 75 },
+                    { surah: 'Maryam', ayat: 59 },
+                    { surah: 'Ta-Ha', ayat: 1 },
+                    { surah: 'Al-Anbiya\'', ayat: 1 },
+                    { surah: 'Al-Hajj', ayat: 18 },
+                    { surah: 'Al-Mu\'minun', ayat: 1 },
+                    { surah: 'An-Nur', ayat: 35 },
+                    { surah: 'Ash-Shu\'ara\'', ayat: 1 },
+                    { surah: 'An-Naml', ayat: 56 },
+                    { surah: 'Al-Qasas', ayat: 78 },
+                    { surah: 'Al-Ankabut', ayat: 46 },
+                    { surah: 'Ar-Rum', ayat: 1 },
+                    { surah: 'Luqman', ayat: 1 },
+                    { surah: 'As-Sajdah', ayat: 1 },
+                    { surah: 'Al-Ahzab', ayat: 31 }
+                ];
+
                 const lastReadJuz = Storage.getLastReadJuz();
 
                 const html = Array.from({length: 30}, (_, i) => {
                     const juzNumber = i + 1;
                     const arabicNumber = this.toArabicNumeral(juzNumber);
                     const isCurrentJuz = lastReadJuz && lastReadJuz.juzNumber === juzNumber;
-
-                    const cardClass = isCurrentJuz
-                        ? 'bg-[#81C784] border-2 border-[#0D3D1E]'
-                        : 'bg-white border border-[#81C784]';
+                    const startData = juzStartData[i];
 
                     return `
-                        <div class="juz-card ${cardClass} rounded-xl p-3 text-center cursor-pointer hover:shadow-md transition"
+                        <div class="juz-item bg-white border-b border-gray-100 px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${isCurrentJuz ? 'bg-gray-50' : ''}"
                              onclick="QuranComponent.openJuz(${juzNumber})">
-                            <div class="font-arabic text-lg text-primary-600 mb-1">${arabicNumber}</div>
-                            <div class="text-sm font-semibold text-[#2B2B2B]">Juz ${juzNumber}</div>
+                            <div class="flex items-center gap-3">
+                                <!-- Star-shaped Juz Number Badge -->
+                                <div class="star-badge flex-shrink-0">
+                                    <div class="star-badge-inner">
+                                        <span class="star-badge-number">${juzNumber}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Juz Info -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Juz Title -->
+                                    <h3 class="font-bold text-[#2B2B2B] text-sm mb-1">Juz ${juzNumber}</h3>
+
+                                    <!-- Start Info -->
+                                    <p class="text-xs text-gray-500">Mulai dari: ${startData.surah} Ayat ${startData.ayat}</p>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -8449,6 +8950,16 @@
              * Open juz detail
              */
             async openJuz(juzNumber) {
+                // Show display settings modal first
+                DisplaySettingsModal.open((selectedOption) => {
+                    this.loadJuzWithDisplay(juzNumber, selectedOption);
+                });
+            },
+
+            /**
+             * Load juz with selected display option
+             */
+            async loadJuzWithDisplay(juzNumber, displayOption) {
                 const container = document.getElementById('juzVersesList');
                 UI.showLoading(container, 'Memuat ayat...');
 
@@ -8456,11 +8967,12 @@
                     const juzData = await QuranAPI.getJuzWithTranslation(juzNumber);
                     this.currentJuz = juzNumber;
                     this.currentJuzData = juzData;
+                    this.currentDisplayOption = displayOption;
 
                     // Save last read
                     Storage.setLastReadJuz(juzNumber, 1);
 
-                    this.renderJuzDetail(juzData);
+                    this.renderJuzDetail(juzData, displayOption);
                     app.navigateTo('juzDetail', {juzNumber: juzNumber});
                 } catch (error) {
                     console.error('Error loading juz:', error);
@@ -8479,7 +8991,7 @@
             /**
              * Render juz detail header and info
              */
-            renderJuzDetail(juzData) {
+            renderJuzDetail(juzData, displayOption = 'per-surah') {
                 // Update header
                 const headerTitle = document.getElementById('headerTitle');
                 if (headerTitle) headerTitle.textContent = 'Al-Quran';
@@ -8506,14 +9018,21 @@
                 document.getElementById('prevJuzBtn').style.visibility = juzData.number > 1 ? 'visible' : 'hidden';
                 document.getElementById('nextJuzBtn').style.visibility = juzData.number < 30 ? 'visible' : 'hidden';
 
-                // Render verses
-                this.renderJuzVerses(juzData);
+                // Render verses based on display option
+                if (displayOption === 'per-surah') {
+                    this.renderJuzVersesPerSurah(juzData);
+                } else if (displayOption === 'per-halaman') {
+                    this.renderJuzVersesPerHalaman(juzData);
+                } else {
+                    // Default to per-surah
+                    this.renderJuzVersesPerSurah(juzData);
+                }
             },
 
             /**
-             * Render juz verses grouped by surah
+             * Render juz verses per surah (detailed view with Arabic + translation)
              */
-            renderJuzVerses(juzData) {
+            renderJuzVersesPerSurah(juzData) {
                 const container = document.getElementById('juzVersesList');
 
                 // Group ayahs by surah
@@ -8567,8 +9086,11 @@
                                  id="ayah-${ayahNumber}">
 
                                 <div class="flex items-start gap-3">
-                                    <div class="verse-badge bg-[#81C784] text-primary-600 flex-shrink-0 mt-1">
-                                        ${arabicNumber}
+                                    <!-- Diamond-shaped Verse Number Badge -->
+                                    <div class="w-8 h-8 relative flex-shrink-0 mt-1">
+                                        <div class="absolute inset-0 bg-[#f5f1e8] border-2 border-[#1a4d3a] rounded-lg transform rotate-45 flex items-center justify-center">
+                                            <span class="font-semibold text-[#1a4d3a] text-sm transform -rotate-45">${arabicNumber}</span>
+                                        </div>
                                     </div>
                                     <div class="flex-1">
                                         <!-- Actions Toolbar -->
@@ -8616,6 +9138,138 @@
 
                 // Update bookmark icons
                 this.updateJuzBookmarkIcons();
+            },
+
+            /**
+             * Render juz verses per halaman (traditional Quran page view)
+             */
+            renderJuzVersesPerHalaman(juzData) {
+                const container = document.getElementById('juzVersesList');
+
+                // Flatten all ayahs from juz
+                const allAyahs = juzData.ayahs;
+
+                // Initialize pagination state
+                this.paginationState = {
+                    currentPage: 1,
+                    ayahsPerPage: 15,
+                    totalAyahs: allAyahs.length,
+                    totalPages: Math.ceil(allAyahs.length / 15),
+                    juzNumber: juzData.number
+                };
+
+                const html = `
+                    <!-- Page Navigation Header -->
+                    <div class="bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] text-white p-4 rounded-xl mb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg">Halaman ${this.paginationState.currentPage}</h3>
+                                <p class="text-sm opacity-90">Juz ${juzData.number}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="QuranComponent.previousJuzPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button onclick="QuranComponent.nextJuzPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Juz Info Box -->
+                    <div class="bg-[#f5f1e8] border-2 border-[#1a4d3a] rounded-lg p-4 mb-6">
+                        <div class="text-center">
+                            <p class="font-arabic text-2xl text-[#1a4d3a] font-bold mb-2">Juz ${juzData.number}</p>
+                            <div class="flex justify-center gap-4">
+                                <div class="bg-[#E8F5E9] px-3 py-1 rounded-full">
+                                    <span class="text-xs font-semibold text-[#1a4d3a]">${allAyahs.length} AYAT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verses Container - Traditional Quran Page Layout -->
+                    <div id="perHalamanJuzVerses" class="bg-[#F5F1E8] border-2 border-[#1a4d3a] rounded-lg p-6">
+                        ${this.renderHalamanJuzVerses(allAyahs)}
+                    </div>
+
+                    <!-- Page Navigation Footer -->
+                    <div class="mt-8 flex justify-center items-center gap-4">
+                        <button onclick="QuranComponent.previousJuzPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left mr-2"></i> Sebelumnya
+                        </button>
+                        <span class="text-sm text-gray-600">Halaman ${this.paginationState.currentPage} dari ${this.paginationState.totalPages}</span>
+                        <button onclick="QuranComponent.nextJuzPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === this.paginationState.totalPages ? 'disabled' : ''}>
+                            Selanjutnya <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                `;
+
+                container.innerHTML = html;
+            },
+
+            /**
+             * Render verses for current halaman juz page - Traditional Quran Layout
+             */
+            renderHalamanJuzVerses(allAyahs) {
+                if (!this.paginationState) return '';
+
+                const start = (this.paginationState.currentPage - 1) * this.paginationState.ayahsPerPage;
+                const end = Math.min(start + this.paginationState.ayahsPerPage, this.paginationState.totalAyahs);
+                const currentAyahs = allAyahs.slice(start, end);
+
+                const circularNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮'];
+
+                // Create continuous flowing text like traditional Quran pages
+                const versesText = currentAyahs.map((ayah, index) => {
+                    const globalIndex = start + index;
+                    const isFirstAyahInSurah = ayah.numberInSurah === 1;
+                    const hasBismillah = isFirstAyahInSurah && ayah.surah.number !== 1 && ayah.surah.number !== 9;
+                    const circularNumber = circularNumbers[index] || (index + 1);
+
+                    return `
+                        <div class="mb-6" data-ayah-number="${globalIndex + 1}">
+                            <!-- Small surah indicator -->
+                            <div class="text-xs text-gray-500 mb-2 text-center">
+                                ${ayah.surah.englishName} • Ayat ${ayah.numberInSurah}
+                            </div>
+
+                            <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
+                                <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
+                                ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                            </p>
+                        </div>
+                    `;
+                }).join('');
+
+                return versesText;
+            },
+
+            /**
+             * Next page for per-halaman juz mode
+             */
+            nextJuzPage() {
+                if (!this.paginationState || this.paginationState.currentPage >= this.paginationState.totalPages) return;
+
+                this.paginationState.currentPage++;
+                this.renderJuzVersesPerHalaman(this.currentJuzData);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            /**
+             * Previous page for per-halaman juz mode
+             */
+            previousJuzPage() {
+                if (!this.paginationState || this.paginationState.currentPage <= 1) return;
+
+                this.paginationState.currentPage--;
+                this.renderJuzVersesPerHalaman(this.currentJuzData);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             },
 
             /**
@@ -10462,6 +11116,166 @@
             window.addEventListener('beforeunload', () => {
                 app.handleBeforeUnload();
             });
+        });
+    </script>
+
+    <!-- Display Settings Modal -->
+    <div id="displaySettingsModal" class="hidden">
+        <!-- Modal Backdrop -->
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity" onclick="DisplaySettingsModal.close()"></div>
+
+        <!-- Modal Content -->
+        <div class="modal-content fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto transform transition-all">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">Tampilan</h3>
+                    <button onclick="DisplaySettingsModal.close()" class="text-gray-500 hover:text-gray-700 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body - Radio Options -->
+                <div class="p-4 space-y-4">
+                    <!-- Option 1: Per Surah -->
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="radio" name="displayOption" value="per-surah" class="sr-only peer" checked>
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full peer-checked:border-[#1a4d3a] peer-checked:bg-[#1a4d3a] transition">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition">Per Surah</span>
+                            <p class="text-xs text-gray-500 mt-0.5">Tampilan lengkap dengan Arab, Latin, dan terjemahan</p>
+                        </div>
+                    </label>
+
+                    <!-- Option 2: Per Halaman -->
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="radio" name="displayOption" value="per-halaman" class="sr-only peer">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full peer-checked:border-[#1a4d3a] peer-checked:bg-[#1a4d3a] transition">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition">Per Halaman</span>
+                            <p class="text-xs text-gray-500 mt-0.5">Tampilan tradisional seperti mushaf Al-Quran</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Modal Footer - Save Button -->
+                <div class="p-4 border-t border-gray-200">
+                    <button onclick="DisplaySettingsModal.save()" class="w-full bg-[#1a4d3a] text-white py-3 rounded-xl font-semibold hover:bg-[#145d3a] transition">
+                        Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Display Settings Modal Component
+         */
+        const DisplaySettingsModal = {
+            isOpen: false,
+            currentSelection: 'per-surah',
+            onConfirm: null,
+
+            /**
+             * Open the modal
+             */
+            open(onConfirm) {
+                this.onConfirm = onConfirm;
+                this.isOpen = true;
+                const modal = document.getElementById('displaySettingsModal');
+                modal.classList.remove('hidden');
+
+                // Add animation class
+                setTimeout(() => {
+                    modal.querySelector('.modal-backdrop').classList.add('opacity-100');
+                    modal.querySelector('.modal-content > div').classList.add('scale-100', 'opacity-100');
+                }, 10);
+            },
+
+            /**
+             * Close the modal
+             */
+            close() {
+                this.isOpen = false;
+                const modal = document.getElementById('displaySettingsModal');
+
+                // Remove animation class
+                modal.querySelector('.modal-backdrop').classList.remove('opacity-100');
+                modal.querySelector('.modal-content > div').classList.remove('scale-100', 'opacity-100');
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            },
+
+            /**
+             * Save selection
+             */
+            save() {
+                const selectedOption = document.querySelector('input[name="displayOption"]:checked').value;
+                this.currentSelection = selectedOption;
+
+                if (this.onConfirm) {
+                    this.onConfirm(selectedOption);
+                }
+
+                this.close();
+            },
+
+            /**
+             * Get current selection
+             */
+            getSelection() {
+                return this.currentSelection;
+            }
+        };
+
+        // Initialize modal styling
+        document.addEventListener('DOMContentLoaded', () => {
+            const style = document.createElement('style');
+            style.textContent = `
+                .modal-backdrop {
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+
+                .modal-content > div {
+                    transform: scale(0.95);
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                }
+
+                .modal-backdrop.opacity-100 {
+                    opacity: 1;
+                }
+
+                .modal-content > div.scale-100 {
+                    transform: scale(1);
+                }
+
+                .modal-content > div.opacity-100 {
+                    opacity: 1;
+                }
+
+                /* Custom radio button styling */
+                input[name="displayOption"]:checked + div > div > div {
+                    opacity: 1;
+                }
+            `;
+            document.head.appendChild(style);
         });
     </script>
 </body>
