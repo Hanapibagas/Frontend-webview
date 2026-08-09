@@ -1773,16 +1773,8 @@
              */
             async getSurahWithTranslation(surahNumber) {
                 try {
-                    // Check cache first
-                    const cached = Storage.getCachedSurahDetail(surahNumber);
-                    const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days (Quran data rarely changes)
-
-                    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-                        console.log(`✅ Using cached surah ${surahNumber} detail`);
-                        return cached.data;
-                    }
-
-                    console.log(`📡 Fetching surah ${surahNumber} detail from API...`);
+                    // TEMPORARILY BYPASS CACHE - Force refresh to ensure transliteration is loaded
+                    console.log(`📡 Fetching surah ${surahNumber} detail from API (NO CACHE - force refresh)...`);
 
                     // Fetch Arabic, Indonesian translation, and transliteration in parallel
                     const [arabicData, translationData, transliterationData] = await Promise.all([
@@ -1803,8 +1795,11 @@
                             transliteration: transliterations[index]?.text || ''
                         }));
 
+                        // Save to cache for future
                         Storage.setCachedSurahDetail(surahNumber, surah);
+
                         console.log(`✅ Surah ${surahNumber} detail loaded successfully`);
+                        console.log(`📊 Transliteration sample: "${surah.ayahs[0]?.transliteration?.substring(0, 60)}..."`);
                         return surah;
                     }
 
@@ -1816,6 +1811,7 @@
                     const cached = Storage.getCachedSurahDetail(surahNumber);
                     if (cached) {
                         console.warn(`⚠️ Using expired cache for surah ${surahNumber}`);
+                        console.warn(`⚠️ Cache may not have transliteration!`);
                         return cached.data;
                     }
 
@@ -8099,32 +8095,50 @@
              */
             checkAndClearCache() {
                 try {
-                    const storedVersion = localStorage.getItem('quran_cache_version');
+                    console.log('🧹 Starting aggressive cache clear for new features...');
+
+                    // Get stored version or default to '1.0' (before transliteration)
+                    const storedVersion = localStorage.getItem('quran_cache_version') || '1.0';
                     const currentVersion = this.CACHE_VERSION;
 
                     console.log(`🔍 Cache version check - Stored: ${storedVersion}, Current: ${currentVersion}`);
 
-                    // If version doesn't match or doesn't exist, clear all cache
-                    if (storedVersion !== currentVersion) {
-                        console.log('🧹 Cache version mismatch - clearing all cache...');
+                    // ALWAYS clear if current version is higher (new features added)
+                    const shouldClear = storedVersion !== currentVersion || storedVersion === '1.0';
 
-                        // Clear all Quran-related cache
+                    if (shouldClear) {
+                        console.log('🧹 Clearing ALL Quran-related cache...');
+
+                        // Clear ALL localStorage keys related to Quran
                         const keysToRemove = [];
                         for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
-                            if (key && (key.startsWith('cache_') || key.startsWith('quran_'))) {
+                            if (key) {
+                                // Remove ALL cache-related keys
                                 keysToRemove.push(key);
                             }
                         }
 
-                        // Remove all cached keys
+                        // Remove all keys
+                        let clearedCount = 0;
                         keysToRemove.forEach(key => {
-                            localStorage.removeItem(key);
+                            try {
+                                localStorage.removeItem(key);
+                                clearedCount++;
+                            } catch (e) {
+                                console.warn(`Failed to remove key: ${key}`);
+                            }
                         });
 
-                        // Update version
+                        // Set new version
                         localStorage.setItem('quran_cache_version', currentVersion);
-                        console.log(`✅ Cleared ${keysToRemove.length} cached items and updated version to ${currentVersion}`);
+
+                        console.log(`✅ Cleared ${clearedCount} items and updated version to ${currentVersion}`);
+
+                        // Show toast to user
+                        setTimeout(() => {
+                            UI.toast('App berhasil diupdate dengan fitur terbaru!');
+                        }, 1000);
                     } else {
                         console.log('✅ Cache version matches - no clearing needed');
                     }
@@ -8135,36 +8149,49 @@
 
             /**
              * Manual cache clear function (can be called from settings/console)
+             * This is AGGRESSIVE and will clear ALL localStorage
              */
             clearAllCache() {
                 try {
-                    console.log('🧹 Manually clearing all cache...');
+                    console.log('🧹 Manually clearing ALL cache (aggressive mode)...');
 
-                    const keysToRemove = [];
+                    UI.toast('Membersihkan cache...');
+
+                    // Clear EVERYTHING in localStorage
+                    const allKeys = [];
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
-                        if (key && (key.startsWith('cache_') || key.startsWith('quran_'))) {
-                            keysToRemove.push(key);
+                        if (key) {
+                            allKeys.push(key);
                         }
                     }
 
-                    keysToRemove.forEach(key => {
-                        localStorage.removeItem(key);
+                    // Remove all keys
+                    let clearedCount = 0;
+                    allKeys.forEach(key => {
+                        try {
+                            localStorage.removeItem(key);
+                            clearedCount++;
+                        } catch (e) {
+                            console.warn(`Failed to remove key: ${key}`);
+                        }
                     });
 
-                    // Reset version
+                    // Reset cache version
                     localStorage.setItem('quran_cache_version', this.CACHE_VERSION);
 
-                    console.log(`✅ Manually cleared ${keysToRemove.length} cached items`);
-                    UI.toast('Cache berhasil dibersihkan');
+                    console.log(`✅ Manually cleared ${clearedCount} items from localStorage`);
+
+                    // Show success message
+                    UI.toast('Cache berhasil dibersihkan! Memuat ulang...');
 
                     // Reload page after short delay
                     setTimeout(() => {
                         window.location.reload();
-                    }, 1000);
+                    }, 1500);
                 } catch (error) {
                     console.error('❌ Error clearing cache:', error);
-                    UI.toast('Gagal membersihkan cache');
+                    UI.toast('Gagal membersihkan cache. Coba refresh halaman.');
                 }
             },
 
