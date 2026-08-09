@@ -71,13 +71,134 @@
             scrollbar-width: none;
         }
 
-        /* Page transitions - removed for cleaner feel */
+        /* Page Transition Animations */
         .page {
             display: block;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page.animating {
+            pointer-events: none;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         .page.hidden {
             display: none;
+        }
+
+        /* Smooth transition for content during animation */
+        .page.animating * {
+            will-change: transform, opacity;
+        }
+
+        /* Swipe hint overlay during gesture */
+        .swipe-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        .swipe-overlay.active {
+            display: block;
+        }
+
+        /* Basic slide animations with smooth multi-step transitions */
+        @keyframes slideOutLeftBasic {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            30% {
+                opacity: 0.75;
+            }
+            60% {
+                transform: translateX(-10%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(-15%);
+                opacity: 0.2;
+            }
+        }
+
+        @keyframes slideInRightBasic {
+            0% {
+                transform: translateX(15%);
+                opacity: 0.2;
+            }
+            40% {
+                transform: translateX(8%);
+                opacity: 0.6;
+            }
+            70% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRightBasic {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            30% {
+                opacity: 0.75;
+            }
+            60% {
+                transform: translateX(10%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(15%);
+                opacity: 0.2;
+            }
+        }
+
+        @keyframes slideInLeftBasic {
+            0% {
+                transform: translateX(-15%);
+                opacity: 0.2;
+            }
+            40% {
+                transform: translateX(-8%);
+                opacity: 0.6;
+            }
+            70% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Animation classes with optimized easing and timing */
+        .slide-out-left-basic {
+            animation: slideOutLeftBasic 0.25s ease-out forwards;
+        }
+
+        .slide-in-right-basic {
+            animation: slideInRightBasic 0.3s ease-out forwards;
+        }
+
+        .slide-out-right-basic {
+            animation: slideOutRightBasic 0.25s ease-out forwards;
+        }
+
+        .slide-in-left-basic {
+            animation: slideInLeftBasic 0.3s ease-out forwards;
         }
 
         /* Loading spinner - keep for loading states */
@@ -163,33 +284,11 @@
         }
 
         .page-transition.slide-left {
-            animation: slideInLeft 0.3s ease-out;
+            animation: slideInLeftBasic 0.3s ease-out;
         }
 
         .page-transition.slide-right {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        @keyframes slideInLeft {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            animation: slideInRightBasic 0.3s ease-out;
         }
     </style>
 
@@ -7959,6 +8058,7 @@
             currentMode: 'surah',  // 'surah' or 'juz'
             currentJuz: null,
             currentJuzData: null,
+            currentDisplayOption: 'per-surah',  // default display option
 
             /**
              * Initialize the Quran component
@@ -8079,8 +8179,16 @@
 
             /**
              * Open surah detail
+             * @param {number} surahNumber - Surah number to open
+             * @param {boolean} bypassModal - If true, skip display settings modal and use current display option
              */
-            async openSurah(surahNumber) {
+            async openSurah(surahNumber, bypassModal = false) {
+                // If bypassModal is true, use current display option without showing modal
+                if (bypassModal && this.currentDisplayOption) {
+                    this.loadSurahWithDisplay(surahNumber, this.currentDisplayOption);
+                    return;
+                }
+
                 // Show display settings modal first
                 DisplaySettingsModal.open((selectedOption) => {
                     this.loadSurahWithDisplay(surahNumber, selectedOption);
@@ -8344,12 +8452,13 @@
             },
 
             /**
-             * Setup swipe gestures for surah detail page
+             * Setup swipe gestures for surah detail page (Touch + Mouse support)
              */
             setupSwipeGestures(surah) {
                 const detailPage = document.getElementById('surahDetailPage');
                 if (!detailPage) return;
 
+                // Touch event variables
                 let touchStartX = 0;
                 let touchStartY = 0;
                 let touchEndX = 0;
@@ -8357,8 +8466,17 @@
                 let isSwiping = false;
                 let swipeStartTime = 0;
 
+                // Mouse event variables
+                let mouseStartX = 0;
+                let mouseDown = false;
+                let mouseDragDistance = 0;
+
                 const minSwipeDistance = 50; // Minimum distance for swipe
                 const maxSwipeTime = 300; // Maximum time for swipe gesture
+
+                // ============================
+                // TOUCH EVENTS (Mobile/Tablet)
+                // ============================
 
                 // Touch start
                 detailPage.addEventListener('touchstart', (e) => {
@@ -8408,6 +8526,112 @@
 
                     isSwiping = false;
                 }, { passive: true });
+
+                // ============================
+                // MOUSE EVENTS (Desktop Testing)
+                // ============================
+
+                // Mouse down (start drag)
+                detailPage.addEventListener('mousedown', (e) => {
+                    mouseStartX = e.clientX;
+                    mouseDown = true;
+                    mouseDragDistance = 0;
+                });
+
+                // Mouse move (track drag distance)
+                detailPage.addEventListener('mousemove', (e) => {
+                    if (!mouseDown) return;
+
+                    const currentX = e.clientX;
+                    const deltaX = currentX - mouseStartX;
+                    mouseDragDistance = Math.abs(deltaX);
+
+                    // Show visual feedback for drag
+                    if (mouseDragDistance > 20) {
+                        e.preventDefault();
+                        const feedback = document.querySelector('.mouse-drag-feedback');
+                        if (feedback) feedback.remove();
+
+                        const newFeedback = document.createElement('div');
+                        newFeedback.className = 'mouse-drag-feedback';
+
+                        if (deltaX < 0) {
+                            // Dragging left - show next page hint
+                            newFeedback.innerHTML = '<i class="fas fa-chevron-right"></i> Next';
+                            newFeedback.style.cssText = `
+                                position: fixed;
+                                right: 20px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                padding: 12px 20px;
+                                background: rgba(26, 77, 58, 0.9);
+                                border-radius: 50px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                color: white;
+                                z-index: 1000;
+                                font-size: 14px;
+                                font-weight: 500;
+                            `;
+                        } else {
+                            // Dragging right - show previous page hint
+                            newFeedback.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
+                            newFeedback.style.cssText = `
+                                position: fixed;
+                                left: 20px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                padding: 12px 20px;
+                                background: rgba(26, 77, 58, 0.9);
+                                border-radius: 50px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                color: white;
+                                z-index: 1000;
+                                font-size: 14px;
+                                font-weight: 500;
+                            `;
+                        }
+
+                        document.body.appendChild(newFeedback);
+                    }
+                });
+
+                // Mouse up (end drag)
+                detailPage.addEventListener('mouseup', (e) => {
+                    if (!mouseDown) return;
+
+                    const mouseDragDistanceAbs = Math.abs(e.clientX - mouseStartX);
+
+                    mouseDown = false;
+
+                    // Remove feedback
+                    const feedback = document.querySelector('.mouse-drag-feedback');
+                    if (feedback) feedback.remove();
+
+                    // Check if drag distance is sufficient
+                    if (mouseDragDistanceAbs > minSwipeDistance && mouseDragDistanceAbs < 200) {
+                        // Left drag (next)
+                        if (e.clientX < mouseStartX) {
+                            this.handleSwipeLeft(surah);
+                        }
+                        // Right drag (previous)
+                        else {
+                            this.handleSwipeRight(surah);
+                        }
+                    }
+
+                    mouseDragDistance = 0;
+                });
+
+                // Prevent text selection during drag
+                detailPage.addEventListener('selectstart', (e) => {
+                    if (mouseDown) {
+                        e.preventDefault();
+                    }
+                });
             },
 
             /**
@@ -8417,17 +8641,17 @@
                 // Provide visual feedback
                 this.showSwipeFeedback('left');
 
-                if (this.currentDisplayOption === 'per-halaman' && this.paginationState) {
-                    // In per-halaman mode, swipe left = next page
-                    if (this.paginationState.currentPage < this.paginationState.totalPages) {
-                        this.nextPage();
-                    } else {
-                        // Already on last page, show feedback
-                        UI.toast('Halaman terakhir');
-                    }
+                // Use currentSurah to get the most up-to-date surah info
+                const currentSurah = this.currentSurah || surah;
+                const nextSurahNumber = currentSurah.number + 1;
+
+                // Navigate to next surah
+                if (nextSurahNumber <= 114) {
+                    // Animate page transition
+                    this.animatePageTransition('next', nextSurahNumber);
                 } else {
-                    // In per-surah mode, could scroll to next surah or show feedback
-                    UI.toast('Gunakan jari scroll untuk navigasi');
+                    // Already on last surah, show feedback
+                    UI.toast('Ini adalah surah terakhir (An-Nas)');
                 }
             },
 
@@ -8438,18 +8662,73 @@
                 // Provide visual feedback
                 this.showSwipeFeedback('right');
 
-                if (this.currentDisplayOption === 'per-halaman' && this.paginationState) {
-                    // In per-halaman mode, swipe right = previous page
-                    if (this.paginationState.currentPage > 1) {
-                        this.previousPage();
-                    } else {
-                        // Already on first page, show feedback
-                        UI.toast('Halaman pertama');
-                    }
+                // Use currentSurah to get the most up-to-date surah info
+                const currentSurah = this.currentSurah || surah;
+                const prevSurahNumber = currentSurah.number - 1;
+
+                // Navigate to previous surah
+                if (prevSurahNumber >= 1) {
+                    // Animate page transition
+                    this.animatePageTransition('prev', prevSurahNumber);
                 } else {
-                    // In per-surah mode, could go to previous surah or show feedback
-                    UI.toast('Gunakan jari scroll untuk navigasi');
+                    // Already on first surah, show feedback
+                    UI.toast('Ini adalah surah pertama (Al-Fatihah)');
                 }
+            },
+
+            /**
+             * Animate page transition with basic slide effect
+             * @param {string} direction - 'next' or 'prev'
+             * @param {number} targetSurahNumber - Target surah number to load
+             */
+            animatePageTransition(direction, targetSurahNumber) {
+                const detailPage = document.getElementById('surahDetailPage');
+                if (!detailPage) return;
+
+                // Show toast notification
+                UI.toast(`Memuat Surah ${targetSurahNumber}...`);
+
+                // Add animating class to prevent interactions during transition
+                detailPage.classList.add('animating');
+
+                // Prevent any existing animations
+                detailPage.classList.remove('slide-out-left-basic', 'slide-out-right-basic',
+                    'slide-in-right-basic', 'slide-in-left-basic');
+
+                // Force reflow to ensure clean state
+                void detailPage.offsetWidth;
+
+                // Start exit animation immediately
+                if (direction === 'next') {
+                    detailPage.classList.add('slide-out-left-basic');
+                } else {
+                    detailPage.classList.add('slide-out-right-basic');
+                }
+
+                // Load new surah data early (without waiting for exit to complete)
+                this.openSurah(targetSurahNumber, true);
+
+                // Start entrance animation BEFORE exit completes for seamless overlap
+                setTimeout(() => {
+                    // Remove exit animation mid-way
+                    detailPage.classList.remove('slide-out-left-basic', 'slide-out-right-basic');
+
+                    // Force reflow for instant transition
+                    void detailPage.offsetWidth;
+
+                    // Start entrance animation immediately (no gap)
+                    if (direction === 'next') {
+                        detailPage.classList.add('slide-in-right-basic');
+                    } else {
+                        detailPage.classList.add('slide-in-left-basic');
+                    }
+
+                    // Clean up entrance animation and animating state after completion
+                    setTimeout(() => {
+                        detailPage.classList.remove('slide-in-right-basic', 'slide-in-left-basic');
+                        detailPage.classList.remove('animating');
+                    }, 300);
+                }, 150); // Start entrance at 60% of exit (150ms of 250ms)
             },
 
             /**
