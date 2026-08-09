@@ -674,6 +674,33 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Cache Management Section -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-[#81C784] mt-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-database text-[#0D3D1E]"></i>
+                                    <h3 class="font-semibold text-[#2B2B2B]">Manajemen Cache</h3>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Versi Cache</p>
+                                        <p class="text-xs text-[#666666] mt-1">Current: <span id="cacheVersion">Loading...</span></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Bersihkan Cache</p>
+                                        <p class="text-xs text-[#666666] mt-1">Hapus cache untuk mendapatkan update terbaru</p>
+                                    </div>
+                                    <button onclick="QuranComponent.clearAllCache()" class="px-4 py-2 bg-[#0D3D1E] text-white rounded-lg hover:bg-[#145d3a] transition text-sm font-medium">
+                                        <i class="fas fa-trash-alt mr-1"></i> Bersihkan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -8050,15 +8077,95 @@
             currentJuz: null,
             currentJuzData: null,
             currentDisplayOption: 'per-surah',  // default display option
+            CACHE_VERSION: '2.0', // Increment this to force cache refresh
 
             /**
              * Initialize the Quran component
              */
             async init() {
                 console.log('Initializing Quran component');
+
+                // Auto clear cache if version mismatch
+                this.checkAndClearCache();
+
                 await this.loadSurahList();
                 this.setupSearch();
                 this.setupUI();
+            },
+
+            /**
+             * Check and clear cache if version mismatch
+             * This ensures users get the latest features without manual cache clearing
+             */
+            checkAndClearCache() {
+                try {
+                    const storedVersion = localStorage.getItem('quran_cache_version');
+                    const currentVersion = this.CACHE_VERSION;
+
+                    console.log(`🔍 Cache version check - Stored: ${storedVersion}, Current: ${currentVersion}`);
+
+                    // If version doesn't match or doesn't exist, clear all cache
+                    if (storedVersion !== currentVersion) {
+                        console.log('🧹 Cache version mismatch - clearing all cache...');
+
+                        // Clear all Quran-related cache
+                        const keysToRemove = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && (key.startsWith('cache_') || key.startsWith('quran_'))) {
+                                keysToRemove.push(key);
+                            }
+                        }
+
+                        // Remove all cached keys
+                        keysToRemove.forEach(key => {
+                            localStorage.removeItem(key);
+                        });
+
+                        // Update version
+                        localStorage.setItem('quran_cache_version', currentVersion);
+                        console.log(`✅ Cleared ${keysToRemove.length} cached items and updated version to ${currentVersion}`);
+                    } else {
+                        console.log('✅ Cache version matches - no clearing needed');
+                    }
+                } catch (error) {
+                    console.error('❌ Error checking cache version:', error);
+                }
+            },
+
+            /**
+             * Manual cache clear function (can be called from settings/console)
+             */
+            clearAllCache() {
+                try {
+                    console.log('🧹 Manually clearing all cache...');
+
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (key.startsWith('cache_') || key.startsWith('quran_'))) {
+                            keysToRemove.push(key);
+                        }
+                    }
+
+                    keysToRemove.forEach(key => {
+                        localStorage.removeItem(key);
+                    });
+
+                    // Reset version
+                    localStorage.setItem('quran_cache_version', this.CACHE_VERSION);
+
+                    console.log(`✅ Manually cleared ${keysToRemove.length} cached items`);
+                    UI.toast('Cache berhasil dibersihkan');
+
+                    // Reload page after short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } catch (error) {
+                    console.error('❌ Error clearing cache:', error);
+                    UI.toast('Gagal membersihkan cache');
+                }
             },
 
             /**
@@ -10352,6 +10459,14 @@
 
                     case 'surahDetail':
                         QuranComponent.updateBookmarkIcons();
+                        break;
+
+                    case 'settings':
+                        // Update cache version display
+                        const cacheVersionEl = document.getElementById('cacheVersion');
+                        if (cacheVersionEl) {
+                            cacheVersionEl.textContent = QuranComponent.CACHE_VERSION;
+                        }
                         break;
                 }
             },
