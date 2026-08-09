@@ -547,12 +547,6 @@
                             <p class="text-[#333333] text-sm">Memuat ayat...</p>
                         </div>
                     </div>
-
-                    <!-- Floating Play Button -->
-                    <button id="playAllBtn"
-                        class="fixed bottom-32 right-4 w-14 h-14 bg-[#0D3D1E] text-white rounded-full shadow-md flex items-center justify-center hover:bg-[#0D3D1E] transition z-20">
-                        <i class="fas fa-play text-xl"></i>
-                    </button>
                 </div>
 
                 <!-- Juz Detail Page -->
@@ -591,12 +585,6 @@
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
-
-                    <!-- Floating Play Button -->
-                    <button id="playJuzAllBtn"
-                        class="fixed bottom-32 right-4 w-14 h-14 bg-[#0D3D1E] text-white rounded-full shadow-md flex items-center justify-center hover:bg-[#0D3D1E] transition z-20">
-                        <i class="fas fa-play text-xl"></i>
-                    </button>
                 </div>
 
                 <!-- Settings Page -->
@@ -1752,9 +1740,9 @@
             },
 
             /**
-             * Get surah with Indonesian translation
+             * Get surah with Indonesian translation and transliteration
              * @param {number} surahNumber - Surah number (1-114)
-             * @returns {Promise<Object>} Surah object with translated verses
+             * @returns {Promise<Object>} Surah object with translated verses and transliteration
              */
             async getSurahWithTranslation(surahNumber) {
                 try {
@@ -1769,20 +1757,23 @@
 
                     console.log(`📡 Fetching surah ${surahNumber} detail from API...`);
 
-                    // Fetch both Arabic and Indonesian translation in parallel
-                    const [arabicData, translationData] = await Promise.all([
+                    // Fetch Arabic, Indonesian translation, and transliteration in parallel
+                    const [arabicData, translationData, transliterationData] = await Promise.all([
                         this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}`),
-                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/id.indonesian`)
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/id.indonesian`),
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/en.transliteration`)
                     ]);
 
-                    if (arabicData.code === 200 && translationData.code === 200) {
-                        // Merge Arabic text with translation
+                    if (arabicData.code === 200 && translationData.code === 200 && transliterationData.code === 200) {
+                        // Merge Arabic text with translation and transliteration
                         const surah = arabicData.data;
                         const translations = translationData.data.ayahs;
+                        const transliterations = transliterationData.data.ayahs;
 
                         surah.ayahs = surah.ayahs.map((ayah, index) => ({
                             ...ayah,
-                            translation: translations[index]?.text || ''
+                            translation: translations[index]?.text || '',
+                            transliteration: transliterations[index]?.text || ''
                         }));
 
                         Storage.setCachedSurahDetail(surahNumber, surah);
@@ -8324,6 +8315,11 @@
                                         ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
                                     </p>
 
+                                    <!-- Transliteration (Latin) -->
+                                    <p class="text-[#666666] text-sm leading-relaxed mb-2 italic">
+                                        ${ayah.transliteration || ''}
+                                    </p>
+
                                     <!-- Translation -->
                                     <p class="text-[#333333] text-sm leading-relaxed quran-translation">
                                         <span class="font-semibold text-[#2B2B2B]">${ayahNumber}. </span>
@@ -8906,26 +8902,6 @@
              * Update play button icon
              */
             updatePlayButtonIcon() {
-                // Update floating play button for surah
-                const playAllBtn = document.getElementById('playAllBtn');
-                if (playAllBtn) {
-                    if (this.isPlaying) {
-                        playAllBtn.innerHTML = '<i class="fas fa-stop text-xl"></i>';
-                    } else {
-                        playAllBtn.innerHTML = '<i class="fas fa-play text-xl"></i>';
-                    }
-                }
-
-                // Update floating play button for juz
-                const playJuzAllBtn = document.getElementById('playJuzAllBtn');
-                if (playJuzAllBtn) {
-                    if (this.isPlaying) {
-                        playJuzAllBtn.innerHTML = '<i class="fas fa-stop text-xl"></i>';
-                    } else {
-                        playJuzAllBtn.innerHTML = '<i class="fas fa-play text-xl"></i>';
-                    }
-                }
-
                 // Update individual ayah play buttons in surah detail
                 const surahVerseCards = document.querySelectorAll('#versesList .verse-card');
                 surahVerseCards.forEach(card => {
@@ -9397,6 +9373,11 @@
                                             ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
                                         </p>
 
+                                        <!-- Transliteration (Latin) -->
+                                        <p class="text-[#666666] text-sm leading-relaxed mb-2 italic">
+                                            ${ayah.transliteration || ''}
+                                        </p>
+
                                         <!-- Translation -->
                                         <p class="text-[#333333] text-sm leading-relaxed">
                                             <span class="font-semibold text-[#2B2B2B]">${ayahNumber}. </span>
@@ -9829,34 +9810,6 @@
                         }
                     });
                 });
-
-                // Setup play all button
-                const playAllBtn = document.getElementById('playAllBtn');
-                if (playAllBtn) {
-                    playAllBtn.addEventListener('click', () => {
-                        if (QuranComponent.isPlaying) {
-                            QuranComponent.stopAudio();
-                        } else if (QuranComponent.currentSurah) {
-                            QuranComponent.playAyahAudio(1);
-                        } else {
-                            UI.toast('Pilih surah terlebih dahulu');
-                        }
-                    });
-                }
-
-                // Setup play all button for juz
-                const playJuzAllBtn = document.getElementById('playJuzAllBtn');
-                if (playJuzAllBtn) {
-                    playJuzAllBtn.addEventListener('click', () => {
-                        if (QuranComponent.isPlaying) {
-                            QuranComponent.stopAudio();
-                        } else if (QuranComponent.currentJuzData) {
-                            QuranComponent.playJuzAyahAudio(1, QuranComponent.currentJuzData.ayahs[0].surah.number, QuranComponent.currentJuzData.ayahs[0].numberInSurah);
-                        } else {
-                            UI.toast('Pilih juz terlebih dahulu');
-                        }
-                    });
-                }
 
                 // Setup settings button (bookmarks for now)
                 const settingsBtn = document.getElementById('settingsBtn');
