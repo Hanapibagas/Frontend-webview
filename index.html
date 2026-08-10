@@ -534,10 +534,7 @@
                                 <span><i class="fas fa-clock mr-1"></i> <span id="surahDuration">5</span> Menit</span>
                             </div>
                         </div>
-                        <!-- Bismillah -->
-                        <div id="bismillah" class="text-center pb-6">
-                            <p class="font-arabic text-2xl">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-                        </div>
+                        <!-- Bismillah removed - now filtered at API level -->
                     </div>
 
                     <!-- Verses List -->
@@ -1838,6 +1835,77 @@
             },
 
             /**
+             * Remove Bismillah from Arabic text if present
+             * @param {string} text - Arabic text that may contain Bismillah
+             * @returns {object} - Object with cleanedText and hasBismillah flag
+             */
+            removeBismillahFromText(text) {
+                if (!text) return { cleanedText: text, hasBismillah: false };
+
+                console.log('🔍 removeBismillahFromText called with:', text.substring(0, 80));
+
+                // Normalize Arabic text variations first
+                const normalizeArabicText = (str) => {
+                    return str
+                        // Normalize seen variations (سۡ vs سْ)
+                        .replace(/سۡ/g, 'سْ')
+                        // Remove kashida (tatweel)
+                        .replace(/ـ/g, '')
+                        // Normalize alif variations (superscript alif)
+                        .replace(/ٰ/g, 'ا')
+                        // Normalize RA variations
+                        .replace(/ۡ/g, 'ْ')
+                        // Normalize hamza variations (alif with hamza below)
+                        .replace(/ٱ/g, 'ا')
+                        // Normalize Allah: ٱللَّهِ -> اللهِ (remove double lam)
+                        .replace(/اللَّهِ/g, 'اللهِ')
+                        // Normalize Rahman: الرحمان -> الرحمن (with alif)
+                        .replace(/رَّحْمَانِ/g, 'رَّحْمَنِ')
+                        // Normalize Rahman variations (with superscript alif)
+                        .replace(/رَّحْمَـٰ/g, 'رَّحْمَا')
+                        .replace(/رَّحْمَٰ/g, 'ر-حما')
+                        // Normalize Persian ya (ی) to Arabic ya (ي)
+                        .replace(/ی/g, 'ي')
+                        // Normalize Rahim variations
+                        .replace(/رَّحِيِ/g, 'ر-حي')
+                        // Fix double ya
+                        .replace(/يي/g, 'ي');
+                };
+
+                const normalizedText = normalizeArabicText(text);
+                console.log('   Normalized text:', normalizedText.substring(0, 60));
+
+                // Bismillah detection patterns (after normalization)
+                // Simple approach: check if normalized starts with Bismillah pattern
+                const startsWithBismillah = normalizedText.startsWith('بِسْمِ');
+                let hasBismillah = false;
+                let cleanedText = text;
+
+                if (startsWithBismillah) {
+                    // Split into words and remove first 4 words (Bismillah)
+                    const words = text.trim().split(/\s+/);
+                    console.log('   Word count:', words.length);
+
+                    if (words.length >= 4) {
+                        hasBismillah = true;
+                        cleanedText = words.slice(4).join(' ').trim();
+
+                        console.log('✅ Bismillah detected! Removed first 4 words.');
+                        console.log('   Original length:', text.length, 'Cleaned length:', cleanedText.length);
+                        console.log('   Original first 60 chars:', text.substring(0, 60));
+                        console.log('   Cleaned first 60 chars:', cleanedText.substring(0, 60));
+                    } else {
+                        console.log('⚠️ Text has < 4 words, cannot remove Bismillah');
+                    }
+                } else {
+                    console.log('❌ No Bismillah detected (does not start with بِسْمِ)');
+                }
+
+
+                return { cleanedText, hasBismillah };
+            },
+
+            /**
              * Get list of all surahs
              * @returns {Promise<Array>} Array of surah objects
              */
@@ -1910,6 +1978,31 @@
                             translation: translations[index]?.text || '',
                             transliteration: transliterations[index]?.text || ''
                         }));
+
+                        // 🔧 Filter Bismillah from first ayah (except Surah 1)
+                        // Check if first ayah contains Bismillah and remove it
+                        if (surah.number !== 1 && surah.ayahs.length > 0) {
+                            const firstAyah = surah.ayahs[0];
+                            console.log(`🔍 Checking Surah ${surahNumber} first ayah for Bismillah:`, firstAyah.text.substring(0, 80));
+
+                            // Use the improved removeBismillahFromText function
+                            const bismillahResult = this.removeBismillahFromText(firstAyah.text);
+
+                            if (bismillahResult.hasBismillah) {
+                                console.log(`✅ Bismillah detected and removed from Surah ${surahNumber}`);
+                                console.log(`   Original length: ${firstAyah.text.length}`);
+                                console.log(`   Cleaned length: ${bismillahResult.cleanedText.length}`);
+
+                                surah.ayahs[0].text = bismillahResult.cleanedText;
+                                surah.ayahs[0].originalText = firstAyah.text;
+                                surah.hasBismillah = true;
+                            } else {
+                                console.log(`ℹ️ No Bismillah detected in Surah ${surahNumber} first ayah`);
+                                surah.hasBismillah = false;
+                            }
+                        } else {
+                            console.log(`⏭️ Skipping Bismillah check for Surah ${surahNumber} (number === 1 or no ayahs)`);
+                        }
 
                         // Save to cache for future
                         Storage.setCachedSurahDetail(surahNumber, surah);
@@ -2041,6 +2134,21 @@
                     } else {
                         console.log(`✅ All ${juzData.ayahs.length} ayahs have translations!`);
                     }
+
+                    // 🔧 Filter Bismillah from first ayah of each surah (except Surah 1)
+                    juzData.ayahs = juzData.ayahs.map(ayah => {
+                        // Check if this is the first ayah of a surah (except Surah 1)
+                        if (ayah.surah.number !== 1 && ayah.numberInSurah === 1) {
+                            const originalText = ayah.text; // Store original before modification
+                            const bismillahResult = this.removeBismillahFromText(ayah.text);
+                            if (bismillahResult.hasBismillah) {
+                                console.log(`🔍 Bismillah found in Juz ${juzNumber}, Surah ${ayah.surah.number} ayah 1, removing...`);
+                                ayah.text = bismillahResult.cleanedText;
+                                ayah.originalText = originalText; // Keep original for reference
+                            }
+                        }
+                        return ayah;
+                    });
 
                     // Cache the result
                     Storage.setCachedJuzDetail(juzNumber, juzData);
@@ -8193,7 +8301,7 @@
             currentJuz: null,
             currentJuzData: null,
             currentDisplayOption: 'per-surah',  // default display option
-            CACHE_VERSION: '2.0', // Increment this to force cache refresh
+            CACHE_VERSION: '2.1', // Increment this to force cache refresh (Bismillah filter fix)
 
             /**
              * Initialize the Quran component
@@ -8456,8 +8564,9 @@
                     // Save last read
                     Storage.setLastRead(surahNumber, 1);
 
-                    this.renderSurahDetail(surah, displayOption);
                     app.navigateTo('surahDetail');
+                    // Render AFTER navigation to ensure hide happens after page transition
+                    this.renderSurahDetail(surah, displayOption);
                 } catch (error) {
                     console.error('Error loading surah:', error);
                     let errorMsg = 'Gagal memuat surah';
@@ -8476,6 +8585,12 @@
              * Render surah detail page
              */
             renderSurahDetail(surah, displayOption = 'per-surah') {
+                console.log(`🎨🎨🎨 renderSurahDetail START - Surah ${surah.number}`);
+                console.log(`🎨🎨🎨 displayOption: ${displayOption}`);
+                console.log(`🎨🎨🎨 surah object:`, surah);
+                console.log(`🎨🎨🎨 surah.hasBismillah: ${surah.hasBismillah}`);
+                console.log(`🎨🎨🎨 surah.ayahs[0]:`, surah.ayahs[0]);
+
                 // Update header
                 document.getElementById('headerTitle').textContent = 'Al-Quran';
                 document.getElementById('backBtn').classList.remove('hidden');
@@ -8492,13 +8607,8 @@
                 const duration = Math.ceil(surah.numberOfAyahs * 10 / 60);
                 document.getElementById('surahDuration').textContent = duration;
 
-                // Hide Bismillah for Surah 1 and 9 (they have it in the text or don't have it)
-                const bismillahDiv = document.getElementById('bismillah');
-                if (surah.number === 1 || surah.number === 9) {
-                    bismillahDiv.classList.add('hidden');
-                } else {
-                    bismillahDiv.classList.remove('hidden');
-                }
+                // Note: Bismillah div has been permanently removed from HTML
+                // Bismillah is now filtered at API level for all surahs except Surah 1
 
                 // Render verses based on display option
                 if (displayOption === 'per-surah') {
@@ -8521,13 +8631,23 @@
              */
             renderVersesPerSurah(surah) {
                 const container = document.getElementById('versesList');
+                console.log(`🎨 renderVersesPerSurah called for Surah ${surah.number}`);
+                console.log(`   First ayah text: "${surah.ayahs[0]?.text?.substring(0, 60)}..."`);
+                console.log(`   Has Bismillah flag: ${surah.hasBismillah}`);
 
                 const html = surah.ayahs.map((ayah, index) => {
                     const ayahNumber = index + 1;
                     const arabicNumber = this.toArabicNumeral(ayahNumber);
 
-                    // Process ayah to remove Bismillah from first ayah (except Surah 1 & 9)
-                    const processedAyah = this.processAyahText(ayah, index, surah.number);
+                    // Bismillah has been removed at API level, use ayah directly
+                    const ayahText = ayah.text;
+
+                    // Debug first ayah
+                    if (index === 0) {
+                        console.log(`   🎯 Rendering ayah 1: "${ayahText.substring(0, 60)}..."`);
+                        console.log(`   🎯 Text length: ${ayahText.length}`);
+                        console.log(`   🎯 Starts with 'بِسْمِ'? ${ayahText.startsWith('بِسْمِ')}`);
+                    }
 
                     return `
                         <div class="verse-card bg-white rounded-xl p-4 shadow-sm border border-[#81C784] hover:shadow-sm transition"
@@ -8560,7 +8680,7 @@
                                                 title="Bagikan">
                                             <i class="fas fa-share-alt text-sm"></i>
                                         </button>
-                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(processedAyah.text)}')"
+                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayahText)}')"
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
                                                 title="Salin">
                                             <i class="fas fa-copy text-sm"></i>
@@ -8569,7 +8689,7 @@
 
                                     <!-- Arabic Text -->
                                     <p class="font-arabic text-2xl leading-loose text-right mb-3 text-[#2B2B2B]">
-                                        ${processedAyah.text}
+                                        ${ayahText}
                                     </p>
 
                                     <!-- Transliteration (Latin) -->
@@ -8679,14 +8799,14 @@
                     const globalIndex = start + index;
                     const circularNumber = circularNumbers[index] || (index + 1);
 
-                    // Process ayah to remove Bismillah from first ayah (except Surah 1 & 9)
-                    const processedAyah = this.processAyahText(ayah, globalIndex, surah.number);
+                    // Bismillah has been removed at API level, use ayah.text directly
+                    const ayahText = ayah.text;
 
                     return `
                         <div class="mb-6" data-ayah-number="${globalIndex + 1}">
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
-                                ${processedAyah.text}
+                                ${ayahText}
                             </p>
                         </div>
                     `;
@@ -9337,31 +9457,53 @@
             removeBismillah(text) {
                 if (!text) return { cleanedText: text, hasBismillah: false };
 
-                // Various Bismillah patterns to detect
-                const bismillahPatterns = [
-                    // Standard patterns with different variations
-                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَٰنِ?[ \t]*الرَّحِيمِ/,
-                    /بِسۡمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ/,
-                    /بِسْمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ/,
-                    /بِسْمِ?[ \t]*ٱللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ/,
-                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ/,
-                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَٰنِ?[ \t]*الرَّحِیمِ/,
-                    // With extra letters
-                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ[ \t]+/,
-                    /بِسۡمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ[ \t]+/,
-                ];
+                // Normalize Arabic text variations first
+                const normalizeArabicText = (str) => {
+                    return str
+                        // Normalize seen variations (سۡ vs سْ)
+                        .replace(/سۡ/g, 'سْ')
+                        // Remove kashida (tatweel)
+                        .replace(/ـ/g, '')
+                        // Normalize alif variations (superscript alif)
+                        .replace(/ٰ/g, 'ا')
+                        // Normalize RA variations
+                        .replace(/ۡ/g, 'ْ')
+                        // Normalize hamza variations (alif with hamza below)
+                        .replace(/ٱ/g, 'ا')
+                        // Normalize Allah: ٱللَّهِ -> اللهِ (remove double lam)
+                        .replace(/اللَّهِ/g, 'اللهِ')
+                        // Normalize Rahman: الرحمان -> الرحمن (with alif)
+                        .replace(/رَّحْمَانِ/g, 'رَّحْمَنِ')
+                        // Normalize Rahman variations (with superscript alif)
+                        .replace(/رَّحْمَـٰ/g, 'رَّحْمَا')
+                        .replace(/رَّحْمَٰ/g, 'ر-حما')
+                        // Normalize Persian ya (ی) to Arabic ya (ي)
+                        .replace(/ی/g, 'ي')
+                        // Normalize Rahim variations
+                        .replace(/رَّحِيِ/g, 'ر-حي')
+                        // Fix double ya
+                        .replace(/يي/g, 'ي');
+                };
 
+                const normalizedText = normalizeArabicText(text);
+
+                // Bismillah detection patterns (after normalization)
+                // Simple approach: check if normalized starts with Bismillah pattern
+                const startsWithBismillah = normalizedText.startsWith('بِسْمِ');
                 let hasBismillah = false;
                 let cleanedText = text;
 
-                // Try each pattern
-                for (const pattern of bismillahPatterns) {
-                    if (pattern.test(text)) {
+                if (startsWithBismillah) {
+                    // Split into words and remove first 4 words (Bismillah)
+                    const words = text.trim().split(/\s+/);
+                    console.log('   Word count:', words.length);
+
+                    if (words.length >= 4) {
                         hasBismillah = true;
-                        // Remove the Bismillah and any trailing spaces
-                        cleanedText = text.replace(pattern, '').trim();
+                        cleanedText = words.slice(4).join(' ').trim();
+
                         console.log('🔍 Bismillah detected and removed from:', text.substring(0, 30) + '...');
-                        break;
+                        console.log('   Original length:', text.length, 'Cleaned length:', cleanedText.length);
                     }
                 }
 
@@ -9377,7 +9519,7 @@
              */
             processAyahText(ayah, index, surahNumber) {
                 const isFirstAyah = index === 0;
-                const shouldRemoveBismillah = isFirstAyah && surahNumber !== 1 && surahNumber !== 9;
+                const shouldRemoveBismillah = isFirstAyah && surahNumber !== 1;
 
                 if (shouldRemoveBismillah) {
                     const result = this.removeBismillah(ayah.text);
@@ -9648,9 +9790,8 @@
                         const ayahNumber = globalAyahIndex;
                         const arabicNumber = this.toArabicNumeral(ayahNumber);
 
-                        // Process ayah to remove Bismillah from first ayah in surah (except Surah 1 & 9)
-                        const isFirstInSurah = index === 0;
-                        const processedAyah = this.processAyahText(ayah, isFirstInSurah ? 0 : -1, surah.number);
+                        // Bismillah has been removed at API level, use ayah.text directly
+                        const ayahText = ayah.text;
 
                         html += `
                             <div class="verse-card bg-white rounded-xl p-4 shadow-sm border border-[#81C784] hover:shadow-sm transition"
@@ -9694,7 +9835,7 @@
 
                                         <!-- Arabic Text -->
                                         <p class="font-arabic text-2xl leading-loose text-right mb-3 text-[#2B2B2B]">
-                                            ${processedAyah.text}
+                                            ${ayahText}
                                         </p>
 
                                         <!-- Transliteration (Latin) -->
@@ -9806,9 +9947,8 @@
                     const globalIndex = start + index;
                     const circularNumber = circularNumbers[index] || (index + 1);
 
-                    // Process ayah to remove Bismillah from first ayah in surah (except Surah 1 & 9)
-                    const isFirstInSurah = ayah.numberInSurah === 1;
-                    const processedAyah = this.processAyahText(ayah, isFirstInSurah ? 0 : -1, ayah.surah.number);
+                    // Bismillah has been removed at API level, use ayah.text directly
+                    const ayahText = ayah.text;
 
                     return `
                         <div class="mb-6" data-ayah-number="${globalIndex + 1}">
@@ -9819,7 +9959,7 @@
 
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
-                                ${processedAyah.text}
+                                ${ayahText}
                             </p>
                         </div>
                     `;
