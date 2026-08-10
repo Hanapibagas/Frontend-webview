@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- Font Awesome -->
@@ -26,11 +26,13 @@
         :root {
             --arabic-font-size: 1.5rem; /* text-2xl = 1.5rem */
             --translation-font-size: 0.875rem; /* text-sm = 0.875rem */
+            --arabic-font-family: 'Amiri', 'KFGQPC Uthmanic Script HAFS', serif; /* Default: Amiri (better harakat rendering) */
         }
 
         /* Apply dynamic font sizes */
         .font-arabic {
             font-size: var(--arabic-font-size) !important;
+            font-family: var(--arabic-font-family) !important;
         }
 
         .quran-translation {
@@ -57,7 +59,6 @@
         }
 
         .font-arabic {
-            font-family: 'KFGQPC Uthmanic Script HAFS', 'Amiri', serif;
             direction: rtl;
         }
 
@@ -655,6 +656,75 @@
                                 <p class="text-center text-[#333333]" id="translationPreview" style="font-size: 0.875rem;">
                                     Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Arabic Font Selection Settings -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-[#81C784] mb-4">
+                            <div class="flex items-center gap-2 mb-4">
+                                <i class="fas fa-font text-[#0D3D1E]"></i>
+                                <h3 class="font-semibold text-[#2B2B2B]">Jenis Font Arab</h3>
+                            </div>
+
+                            <div class="space-y-2">
+                                <p class="text-xs text-[#666666] mb-3">Pilih font untuk tampilan teks Arab:</p>
+
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Amiri (RECOMMENDED)</p>
+                                        <p class="text-xs text-[#666666] mt-1">Font Google yang optimal untuk harakat, tidak ada bulatan hitam</p>
+                                        <p class="font-arabic text-lg mt-2 text-right" style="font-family: 'Amiri', serif;">الرَّحْمَٰنِ الرَّحِيمِ</p>
+                                    </div>
+                                    <input type="radio" name="arabicFont" value="amiri" class="w-4 h-4 text-[#1a4d3a]">
+                                </label>
+
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">KFGQPC Uthmanic</p>
+                                        <p class="text-xs text-[#666666] mt-1">Font lokal standar, mungkin ada masalah rendering harakat</p>
+                                        <p class="font-arabic text-lg mt-2 text-right" style="font-family: 'KFGQPC Uthmanic Script HAFS', serif;">الرَّحْمَٰنِ الرَّحِيمِ</p>
+                                    </div>
+                                    <input type="radio" name="arabicFont" value="kfgqpc" class="w-4 h-4 text-[#1a4d3a]">
+                                </label>
+
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Scheherazade New</p>
+                                        <p class="text-xs text-[#666666] mt-1">Font Google alternatif untuk tampilan klasik</p>
+                                        <p class="font-arabic text-lg mt-2 text-right" style="font-family: 'Scheherazade New', serif;">الرَّحْمَٰنِ الرَّحِيمِ</p>
+                                    </div>
+                                    <input type="radio" name="arabicFont" value="scheherazade" class="w-4 h-4 text-[#1a4d3a]">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Quran Text Edition Settings -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-[#81C784] mb-4">
+                            <div class="flex items-center gap-2 mb-4">
+                                <i class="fas fa-book-quran text-[#0D3D1E]"></i>
+                                <h3 class="font-semibold text-[#2B2B2B]">Edisi Teks Quran</h3>
+                            </div>
+
+                            <div class="space-y-2">
+                                <p class="text-xs text-[#666666] mb-3">Pilih gaya penulisan teks Arab:</p>
+
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Tanpa Tanda Baca</p>
+                                        <p class="text-xs text-[#666666] mt-1">Teks bersih tanpa harakat (shadda, fatha, kasra)</p>
+                                        <p class="font-arabic text-sm mt-1 text-right">الرحمن الرحيم</p>
+                                    </div>
+                                    <input type="radio" name="quranEdition" value="quran-simple-clean" class="w-4 h-4 text-[#1a4d3a]">
+                                </label>
+
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-[#2B2B2B]">Dengan Tanda Baca</p>
+                                        <p class="text-xs text-[#666666] mt-1">Teks lengkap dengan harakat untuk pelafalan tepat</p>
+                                        <p class="font-arabic text-sm mt-1 text-right">الرَّحْمَٰنِ الرَّحِيمِ</p>
+                                    </div>
+                                    <input type="radio" name="quranEdition" value="quran-uthmani-quran-academy" class="w-4 h-4 text-[#1a4d3a]">
+                                </label>
                             </div>
                         </div>
 
@@ -1396,15 +1466,57 @@
             getFontSettings() {
                 return this.get(this.KEYS.SETTINGS, {
                     arabicFontSize: 3,
-                    translationFontSize: 3
+                    translationFontSize: 3,
+                    quranEdition: 'quran-simple-clean', // Default: tanpa shadda untuk UX lebih baik
+                    arabicFont: 'amiri' // Default: Amiri (optimal untuk harakat, tidak ada bulatan hitam)
                 });
             },
 
-            setFontSettings(arabicFontSize, translationFontSize) {
-                this.set(this.KEYS.SETTINGS, {
+            setFontSettings(arabicFontSize, translationFontSize, quranEdition = null, arabicFont = null) {
+                const currentSettings = this.getFontSettings();
+                const newSettings = {
                     arabicFontSize,
-                    translationFontSize
-                });
+                    translationFontSize,
+                    quranEdition: quranEdition || currentSettings.quranEdition,
+                    arabicFont: arabicFont || currentSettings.arabicFont
+                };
+                this.set(this.KEYS.SETTINGS, newSettings);
+            },
+
+            // Get Quran edition preference
+            getQuranEdition() {
+                const settings = this.getFontSettings();
+                return settings.quranEdition || 'quran-simple-clean';
+            },
+
+            // Set Quran edition preference
+            setQuranEdition(edition) {
+                const currentSettings = this.getFontSettings();
+                this.setFontSettings(
+                    currentSettings.arabicFontSize,
+                    currentSettings.translationFontSize,
+                    edition,
+                    currentSettings.arabicFont
+                );
+                console.log('✅ Quran edition changed to:', edition);
+            },
+
+            // Get Arabic font preference
+            getArabicFont() {
+                const settings = this.getFontSettings();
+                return settings.arabicFont || 'amiri';
+            },
+
+            // Set Arabic font preference
+            setArabicFont(font) {
+                const currentSettings = this.getFontSettings();
+                this.setFontSettings(
+                    currentSettings.arabicFontSize,
+                    currentSettings.translationFontSize,
+                    currentSettings.quranEdition,
+                    font
+                );
+                console.log('✅ Arabic font changed to:', font);
             }
         };
 
@@ -1776,9 +1888,13 @@
                     // TEMPORARILY BYPASS CACHE - Force refresh to ensure transliteration is loaded
                     console.log(`📡 Fetching surah ${surahNumber} detail from API (NO CACHE - force refresh)...`);
 
+                    // 🔧 UX IMPROVEMENT: Gunakan edition dari user preference
+                    // Opsi edition: 'quran-simple-clean' (tanpa harakat), 'quran-uthmani-quran-academy' (dengan harakat)
+                    const arabicEdition = Storage.getQuranEdition();
+
                     // Fetch Arabic, Indonesian translation, and transliteration in parallel
                     const [arabicData, translationData, transliterationData] = await Promise.all([
-                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}`),
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/${arabicEdition}`),
                         this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/id.indonesian`),
                         this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNumber}/en.transliteration`)
                     ]);
@@ -1860,8 +1976,11 @@
 
                     console.log(`📡 Fetching juz ${juzNumber} detail from API...`);
 
+                    // 🔧 UX IMPROVEMENT: Gunakan edition dari user preference
+                    const arabicEdition = Storage.getQuranEdition();
+
                     // Fetch juz data (contains ayahs from multiple surahs)
-                    const juzResponse = await this.fetchWithRetry(`${this.BASE_URL}/juz/${juzNumber}`);
+                    const juzResponse = await this.fetchWithRetry(`${this.BASE_URL}/juz/${juzNumber}/${arabicEdition}`);
 
                     if (juzResponse.code !== 200) {
                         throw new Error('Failed to fetch juz data');
@@ -6575,6 +6694,7 @@
                 return num.toString().split('').map(d => arabicNums[parseInt(d)]).join('');
             },
 
+
             /**
              * Copy Asmaul Husna to clipboard
              */
@@ -8383,15 +8503,17 @@
                 // Render verses based on display option
                 if (displayOption === 'per-surah') {
                     this.renderVersesPerSurah(surah);
+                    // Setup swipe gestures only for per-surah mode
+                    this.setupSwipeGestures(surah);
                 } else if (displayOption === 'per-halaman') {
                     this.renderVersesPerHalaman(surah);
+                    // Swipe gestures disabled for per-halaman mode
                 } else {
                     // Default to per-surah
                     this.renderVersesPerSurah(surah);
+                    // Setup swipe gestures only for per-surah mode
+                    this.setupSwipeGestures(surah);
                 }
-
-                // Setup swipe gestures
-                this.setupSwipeGestures(surah);
             },
 
             /**
@@ -8403,8 +8525,9 @@
                 const html = surah.ayahs.map((ayah, index) => {
                     const ayahNumber = index + 1;
                     const arabicNumber = this.toArabicNumeral(ayahNumber);
-                    const isFirstAyah = index === 0;
-                    const hasBismillah = isFirstAyah && surah.number !== 1 && surah.number !== 9;
+
+                    // Process ayah to remove Bismillah from first ayah (except Surah 1 & 9)
+                    const processedAyah = this.processAyahText(ayah, index, surah.number);
 
                     return `
                         <div class="verse-card bg-white rounded-xl p-4 shadow-sm border border-[#81C784] hover:shadow-sm transition"
@@ -8437,7 +8560,7 @@
                                                 title="Bagikan">
                                             <i class="fas fa-share-alt text-sm"></i>
                                         </button>
-                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayah.text)}')"
+                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(processedAyah.text)}')"
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
                                                 title="Salin">
                                             <i class="fas fa-copy text-sm"></i>
@@ -8446,7 +8569,7 @@
 
                                     <!-- Arabic Text -->
                                     <p class="font-arabic text-2xl leading-loose text-right mb-3 text-[#2B2B2B]">
-                                        ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                                        ${processedAyah.text}
                                     </p>
 
                                     <!-- Transliteration (Latin) -->
@@ -8554,15 +8677,16 @@
                 // Create continuous flowing text like traditional Quran pages
                 const versesText = currentAyahs.map((ayah, index) => {
                     const globalIndex = start + index;
-                    const isFirstAyah = globalIndex === 0;
-                    const hasBismillah = isFirstAyah && surah.number !== 1 && surah.number !== 9;
                     const circularNumber = circularNumbers[index] || (index + 1);
+
+                    // Process ayah to remove Bismillah from first ayah (except Surah 1 & 9)
+                    const processedAyah = this.processAyahText(ayah, globalIndex, surah.number);
 
                     return `
                         <div class="mb-6" data-ayah-number="${globalIndex + 1}">
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
-                                ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                                ${processedAyah.text}
                             </p>
                         </div>
                     `;
@@ -9205,6 +9329,70 @@
             },
 
             /**
+             * Remove Bismillah from text if present
+             * Detects various Bismillah patterns and removes them
+             * @param {string} text - Arabic text that may contain Bismillah
+             * @returns {object} - Object with cleanedText and hasBismillah flag
+             */
+            removeBismillah(text) {
+                if (!text) return { cleanedText: text, hasBismillah: false };
+
+                // Various Bismillah patterns to detect
+                const bismillahPatterns = [
+                    // Standard patterns with different variations
+                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَٰنِ?[ \t]*الرَّحِيمِ/,
+                    /بِسۡمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ/,
+                    /بِسْمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ/,
+                    /بِسْمِ?[ \t]*ٱللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ/,
+                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ/,
+                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَٰنِ?[ \t]*الرَّحِیمِ/,
+                    // With extra letters
+                    /بِسْمِ?[ \t]*اللَّهِ?[ \t]*الرَّحْمَنِ?[ \t]*الرَّحِيمِ[ \t]+/,
+                    /بِسۡمِ?[ \t]*ٱللَّهِ?[ \t]*ٱلرَّحۡمَـٰنِ?[ \t]*ٱلرَّحِیمِ[ \t]+/,
+                ];
+
+                let hasBismillah = false;
+                let cleanedText = text;
+
+                // Try each pattern
+                for (const pattern of bismillahPatterns) {
+                    if (pattern.test(text)) {
+                        hasBismillah = true;
+                        // Remove the Bismillah and any trailing spaces
+                        cleanedText = text.replace(pattern, '').trim();
+                        console.log('🔍 Bismillah detected and removed from:', text.substring(0, 30) + '...');
+                        break;
+                    }
+                }
+
+                return { cleanedText, hasBismillah };
+            },
+
+            /**
+             * Process ayah text to remove Bismillah from first ayah if present
+             * @param {object} ayah - Ayah object
+             * @param {number} index - Index of ayah in surah
+             * @param {number} surahNumber - Surah number
+             * @returns {object} - Processed ayah with text and bismillah info
+             */
+            processAyahText(ayah, index, surahNumber) {
+                const isFirstAyah = index === 0;
+                const shouldRemoveBismillah = isFirstAyah && surahNumber !== 1 && surahNumber !== 9;
+
+                if (shouldRemoveBismillah) {
+                    const result = this.removeBismillah(ayah.text);
+                    return {
+                        ...ayah,
+                        text: result.cleanedText,
+                        originalText: ayah.text,
+                        hasBismillah: result.hasBismillah
+                    };
+                }
+
+                return ayah;
+            },
+
+            /**
              * Switch between surah and juz mode
              */
             async switchMode(mode) {
@@ -9459,8 +9647,10 @@
                         globalAyahIndex++;
                         const ayahNumber = globalAyahIndex;
                         const arabicNumber = this.toArabicNumeral(ayahNumber);
+
+                        // Process ayah to remove Bismillah from first ayah in surah (except Surah 1 & 9)
                         const isFirstInSurah = index === 0;
-                        const hasBismillah = isFirstInSurah && surah.number !== 1 && surah.number !== 9;
+                        const processedAyah = this.processAyahText(ayah, isFirstInSurah ? 0 : -1, surah.number);
 
                         html += `
                             <div class="verse-card bg-white rounded-xl p-4 shadow-sm border border-[#81C784] hover:shadow-sm transition"
@@ -9504,7 +9694,7 @@
 
                                         <!-- Arabic Text -->
                                         <p class="font-arabic text-2xl leading-loose text-right mb-3 text-[#2B2B2B]">
-                                            ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                                            ${processedAyah.text}
                                         </p>
 
                                         <!-- Transliteration (Latin) -->
@@ -9614,9 +9804,11 @@
                 // Create continuous flowing text like traditional Quran pages
                 const versesText = currentAyahs.map((ayah, index) => {
                     const globalIndex = start + index;
-                    const isFirstAyahInSurah = ayah.numberInSurah === 1;
-                    const hasBismillah = isFirstAyahInSurah && ayah.surah.number !== 1 && ayah.surah.number !== 9;
                     const circularNumber = circularNumbers[index] || (index + 1);
+
+                    // Process ayah to remove Bismillah from first ayah in surah (except Surah 1 & 9)
+                    const isFirstInSurah = ayah.numberInSurah === 1;
+                    const processedAyah = this.processAyahText(ayah, isFirstInSurah ? 0 : -1, ayah.surah.number);
 
                     return `
                         <div class="mb-6" data-ayah-number="${globalIndex + 1}">
@@ -9627,7 +9819,7 @@
 
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
-                                ${hasBismillah ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ' : ''}${ayah.text}
+                                ${processedAyah.text}
                             </p>
                         </div>
                     `;
@@ -10045,6 +10237,13 @@
                     5: '1.25rem'    // text-xl
                 };
 
+                // Arabic font family mappings
+                const arabicFontFamilies = {
+                    'amiri': "'Amiri', 'KFGQPC Uthmanic Script HAFS', serif",
+                    'kfgqpc': "'KFGQPC Uthmanic Script HAFS', 'Amiri', serif",
+                    'scheherazade': "'Scheherazade New', 'Amiri', serif"
+                };
+
                 // Apply to CSS variables
                 document.documentElement.style.setProperty(
                     '--arabic-font-size',
@@ -10054,12 +10253,24 @@
                     '--translation-font-size',
                     translationFontSizes[settings.translationFontSize] || translationFontSizes[3]
                 );
+                document.documentElement.style.setProperty(
+                    '--arabic-font-family',
+                    arabicFontFamilies[settings.arabicFont] || arabicFontFamilies['amiri']
+                );
 
                 // Update slider values
                 const arabicSlider = document.getElementById('arabicFontSize');
                 const translationSlider = document.getElementById('translationFontSize');
                 if (arabicSlider) arabicSlider.value = settings.arabicFontSize;
                 if (translationSlider) translationSlider.value = settings.translationFontSize;
+
+                // Update radio button values
+                const arabicFontRadios = document.querySelectorAll('input[name="arabicFont"]');
+                if (arabicFontRadios.length > 0) {
+                    arabicFontRadios.forEach(radio => {
+                        radio.checked = (radio.value === settings.arabicFont);
+                    });
+                }
 
                 // Update preview text
                 this.updateFontPreview();
@@ -10130,6 +10341,88 @@
                         Storage.setFontSettings(arabicValue, value);
 
                         console.log('Translation font size changed to:', value);
+                    });
+                }
+
+                // Arabic font radio buttons
+                const arabicFontRadios = document.querySelectorAll('input[name="arabicFont"]');
+                if (arabicFontRadios.length > 0) {
+                    // Add change listeners
+                    arabicFontRadios.forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            const newFont = e.target.value;
+
+                            // Font family mappings
+                            const arabicFontFamilies = {
+                                'amiri': "'Amiri', 'KFGQPC Uthmanic Script HAFS', serif",
+                                'kfgqpc': "'KFGQPC Uthmanic Script HAFS', 'Amiri', serif",
+                                'scheherazade': "'Scheherazade New', 'Amiri', serif"
+                            };
+
+                            // Apply to CSS variable
+                            document.documentElement.style.setProperty(
+                                '--arabic-font-family',
+                                arabicFontFamilies[newFont]
+                            );
+
+                            // Save to storage
+                            Storage.setArabicFont(newFont);
+
+                            // Update preview
+                            this.updateFontPreview();
+
+                            // Show feedback
+                            const fontNames = {
+                                'amiri': 'Amiri (optimal untuk harakat)',
+                                'kfgqpc': 'KFGQPC Uthmanic',
+                                'scheherazade': 'Scheherazade New'
+                            };
+                            UI.toast(`Font Arab diubah ke ${fontNames[newFont]}`);
+
+                            console.log('✅ Arabic font changed to:', newFont);
+                        });
+                    });
+                }
+
+                // Quran edition radio buttons
+                const editionRadios = document.querySelectorAll('input[name="quranEdition"]');
+                if (editionRadios.length > 0) {
+                    // Load current setting
+                    const currentEdition = Storage.getQuranEdition();
+                    editionRadios.forEach(radio => {
+                        if (radio.value === currentEdition) {
+                            radio.checked = true;
+                        }
+                    });
+
+                    // Add change listeners
+                    editionRadios.forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            const newEdition = e.target.value;
+
+                            // Show confirmation dialog
+                            if (confirm(`Mengubah edisi Quran akan menghapus cache surah dan juz yang tersimpan. Lanjutkan?`)) {
+                                // Save new edition
+                                Storage.setQuranEdition(newEdition);
+
+                                // Clear cache to force reload with new edition
+                                Storage.clearAllSurahCache();
+                                Storage.clearAllJuzCache();
+
+                                // Show success message
+                                UI.toast(`Edisi Quran berhasil diubah! Cache telah dibersihkan.`);
+
+                                console.log('✅ Quran edition changed to:', newEdition);
+                                console.log('🗑️ Cache cleared for new edition');
+                            } else {
+                                // Revert selection
+                                e.target.checked = false;
+                                const previousRadio = document.querySelector(`input[name="quranEdition"][value="${currentEdition}"]`);
+                                if (previousRadio) previousRadio.checked = true;
+
+                                UI.toast('Perubahan dibatalkan');
+                            }
+                        });
                     });
                 }
             },
