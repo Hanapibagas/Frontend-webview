@@ -8586,7 +8586,9 @@
 
                                 <!-- Download Icon -->
                                 <div class="flex-shrink-0 ml-2">
-                                    <div class="bg-[#f5f1e8] rounded-r-lg px-3 py-2 flex items-center justify-center">
+                                    <div class="bg-[#f5f1e8] rounded-r-lg px-3 py-2 flex items-center justify-center cursor-pointer hover:bg-[#e8e4d9] transition"
+                                         onclick="event.stopPropagation(); QuranComponent.downloadSurah(${surah.number}, '${surah.name.replace(/'/g, "\\'")}', ${surah.numberOfAyahs})"
+                                         title="Download audio surah">
                                         <i class="fas fa-download text-[#1a4d3a] text-sm"></i>
                                     </div>
                                 </div>
@@ -10381,6 +10383,129 @@
                 this.currentJuzData = null;
                 this.currentMode = 'surah';
                 document.getElementById('searchSurah').value = '';
+            },
+
+            /**
+             * Download surah audio
+             * Downloads playlist file for a surah
+             */
+            async downloadSurah(surahNumber, surahName, totalAyahs) {
+                try {
+                    // Show loading toast
+                    UI.toast(`Memulai download ${surahName}...`);
+
+                    // Fetch audio data for the surah
+                    const response = await fetch(`${QuranAPI.BASE_URL}/surah/${surahNumber}/editions/ar.alafasy`);
+                    const data = await response.json();
+
+                    if (!data.data || !data.data[0] || !data.data[0].ayahs) {
+                        throw new Error('Gagal mengambil data audio');
+                    }
+
+                    const ayahs = data.data[0].ayahs;
+                    const audioUrls = ayahs.map(ayah => ayah.audio).filter(url => url);
+
+                    // Create a simple playlist file (M3U)
+                    const playlistName = `${surahNumber}_${surahName.replace(/[^a-zA-Z0-9]/g, '_')}.m3u`;
+                    // Display name without special characters removed
+                    const displayFileName = `${surahName}.m3u`;
+
+                    let playlistContent = '#EXTM3U\n';
+                    playlistContent += `#PLAYLIST: ${surahName} - Surah ${surahNumber}\n`;
+                    playlistContent += `# Total Ayat: ${audioUrls.length}\n\n`;
+
+                    audioUrls.forEach((url, index) => {
+                        playlistContent += `#EXTINF:-1,Ayat ${index + 1} - ${surahName}\n`;
+                        playlistContent += `${url}\n\n`;
+                    });
+
+                    // Download playlist file
+                    const blob = new Blob([playlistContent], { type: 'audio/x-mpegurl' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = playlistName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // Show success modal
+                    const modalHTML = `
+                        <div id="downloadModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+                                <div class="text-center">
+                                    <!-- Success Icon -->
+                                    <div class="w-16 h-16 bg-[#81C784] rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-check text-white text-2xl"></i>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h3 class="text-xl font-bold text-[#2B2B2B] mb-2">
+                                        Download Berhasil!
+                                    </h3>
+
+                                    <!-- Surah Info -->
+                                    <p class="text-[#333333] mb-4">
+                                        Playlist <span class="font-semibold text-[#1a4d3a]">${surahName}</span> telah didownload
+                                    </p>
+
+                                    <!-- File Info -->
+                                    <div class="bg-[#f5f1e8] rounded-lg p-4 mb-4 text-left">
+                                        <p class="text-sm text-[#333333] mb-2">
+                                            <i class="fas fa-file-audio text-[#1a4d3a] mr-2"></i>
+                                            <span class="font-semibold">${displayFileName}</span>
+                                        </p>
+                                        <p class="text-sm text-[#333333]">
+                                            <i class="fas fa-list-ol text-[#1a4d3a] mr-2"></i>
+                                            ${audioUrls.length} audio ayat
+                                        </p>
+                                    </div>
+
+                                    <!-- How to Use -->
+                                    <div class="text-left bg-gray-50 rounded-lg p-4 mb-6">
+                                        <p class="text-sm font-semibold text-[#2B2B2B] mb-2">
+                                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                            Cara Menggunakan:
+                                        </p>
+                                        <ol class="text-sm text-[#333333] space-y-1 list-decimal list-inside">
+                                            <li>Buka file playlist dengan VLC atau media player</li>
+                                            <li>Atau gunakan untuk download audio secara manual</li>
+                                        </ol>
+                                    </div>
+
+                                    <!-- Close Button -->
+                                    <button onclick="document.getElementById('downloadModal').remove()"
+                                            class="w-full bg-[#1a4d3a] text-white py-3 rounded-lg font-semibold hover:bg-[#145d3a] transition">
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add modal to body
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                    // Close modal on backdrop click
+                    setTimeout(() => {
+                        const modal = document.getElementById('downloadModal');
+                        if (modal) {
+                            modal.addEventListener('click', (e) => {
+                                if (e.target === modal) {
+                                    modal.remove();
+                                }
+                            });
+                        }
+                    }, 100);
+
+                    // Also show toast
+                    UI.toast(`✓ Playlist ${surahName} berhasil didownload!`);
+
+                } catch (error) {
+                    console.error('Download surah error:', error);
+                    UI.toast('Gagal mendownload audio. Coba lagi nanti.');
+                }
             }
         };
 
