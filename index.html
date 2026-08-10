@@ -455,14 +455,8 @@
                             </div>
                             <!-- Action Icons -->
                             <div class="flex items-center gap-4">
-                                <button id="btnSettings" class="text-white">
-                                    <i class="fas fa-cog text-lg"></i>
-                                </button>
                                 <button id="btnSearchQuran" class="text-white">
                                     <i class="fas fa-search text-lg"></i>
-                                </button>
-                                <button id="btnMenu" class="text-white">
-                                    <i class="fas fa-ellipsis-v text-lg"></i>
                                 </button>
                             </div>
                         </div>
@@ -1755,6 +1749,26 @@
             TIMEOUT: 30000, // 30 seconds
             MAX_RETRIES: 3,
 
+
+            // Helper functions for Bismillah filtering
+            hasHarakat(str) {
+                if (!str) return false;
+                const harakatPattern = /[\u064E-\u0655\u0670]/;
+                return harakatPattern.test(str);
+            },
+
+            removeHarakat(str) {
+                if (!str) return '';
+                return str
+                    .replace(/[\u064E-\u0655\u0670]/g, '')
+                    .replace(/[\u064B-\u064F]/g, '');
+            },
+
+            normalizeForComparison(str) {
+                // Cannot use this. here - will be overridden in removeBismillahFromText
+                return str; // Placeholder
+            },
+
             /**
              * Fetch with timeout, retry, and proper 429 handling
              */
@@ -1844,6 +1858,19 @@
 
                 console.log('🔍 removeBismillahFromText called with:', text.substring(0, 80));
 
+                // Local helper functions for this method
+                const removeHarakat = (str) => {
+                    if (!str) return '';
+                    return str
+                        .replace(/[\u064E-\u0655\u0670]/g, '')
+                        .replace(/[\u064B-\u064F]/g, '');
+                };
+
+                const normalizeForComparison = (str) => {
+                    const normalized = normalizeArabicText(str);
+                    return removeHarakat(normalized);
+                };
+
                 // Normalize Arabic text variations first
                 const normalizeArabicText = (str) => {
                     return str
@@ -1872,12 +1899,18 @@
                         .replace(/يي/g, 'ي');
                 };
 
-                const normalizedText = normalizeArabicText(text);
-                console.log('   Normalized text:', normalizedText.substring(0, 60));
 
-                // Bismillah detection patterns (after normalization)
-                // Simple approach: check if normalized starts with Bismillah pattern
-                const startsWithBismillah = normalizedText.startsWith('بِسْمِ');
+
+                const normalizedText = normalizeArabicText(text);
+                const normalizedForComparison = normalizeForComparison(text);
+                console.log('   Normalized text:', normalizedText.substring(0, 60));
+                console.log('   Has harakat:', this.hasHarakat(text) ? 'YES' : 'NO');
+
+                // Bismillah detection - handle both with and without harakat
+                const startsWithBismillah = normalizedText.startsWith('بِسْمِ') ||
+                                             normalizedText.startsWith('بسم') ||
+                                             normalizedForComparison.startsWith('بسم') ||
+                                             normalizedForComparison.startsWith('بسم الله');
                 let hasBismillah = false;
                 let cleanedText = text;
 
@@ -1898,7 +1931,7 @@
                         console.log('⚠️ Text has < 4 words, cannot remove Bismillah');
                     }
                 } else {
-                    console.log('❌ No Bismillah detected (does not start with بِسْمِ)');
+                    console.log('❌ No Bismillah detected');
                 }
 
 
@@ -8295,6 +8328,26 @@
         const QuranComponent = {
             currentSurah: null,
             currentAyahs: [],
+
+            // Helper functions for Bismillah filtering
+            hasHarakat(str) {
+                if (!str) return false;
+                const harakatPattern = /[\u064E-\u0655\u0670]/;
+                return harakatPattern.test(str);
+            },
+
+            removeHarakat(str) {
+                if (!str) return '';
+                return str
+                    .replace(/[\u064E-\u0655\u0670]/g, '')
+                    .replace(/[\u064B-\u064F]/g, '');
+            },
+
+            normalizeForComparison(str) {
+                // Cannot use this. here - will be overridden in removeBismillahFromText
+                return str; // Placeholder
+            },
+
             isPlaying: false,
             audio: null,
             currentMode: 'surah',  // 'surah' or 'juz'
@@ -8674,11 +8727,6 @@
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center bookmark-btn"
                                                 title="Bookmark">
                                             <i class="far fa-bookmark text-sm"></i>
-                                        </button>
-                                        <button onclick="QuranComponent.shareAyah(${surah.number}, ${ayahNumber})"
-                                                class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
-                                                title="Bagikan">
-                                            <i class="fas fa-share-alt text-sm"></i>
                                         </button>
                                         <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayahText)}')"
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
@@ -9457,6 +9505,19 @@
             removeBismillah(text) {
                 if (!text) return { cleanedText: text, hasBismillah: false };
 
+                // Local helper functions for this method
+                const removeHarakat = (str) => {
+                    if (!str) return '';
+                    return str
+                        .replace(/[\u064E-\u0655\u0670]/g, '')
+                        .replace(/[\u064B-\u064F]/g, '');
+                };
+
+                const normalizeForComparison = (str) => {
+                    const normalized = normalizeArabicText(str);
+                    return removeHarakat(normalized);
+                };
+
                 // Normalize Arabic text variations first
                 const normalizeArabicText = (str) => {
                     return str
@@ -9486,10 +9547,14 @@
                 };
 
                 const normalizedText = normalizeArabicText(text);
+                const normalizedForComparison = normalizeForComparison(text);
+                const hasHarakatText = hasHarakat(text);
 
-                // Bismillah detection patterns (after normalization)
-                // Simple approach: check if normalized starts with Bismillah pattern
-                const startsWithBismillah = normalizedText.startsWith('بِسْمِ');
+                // Bismillah detection - handle both with and without harakat
+                const startsWithBismillah = normalizedText.startsWith('بِسْمِ') ||
+                                             normalizedText.startsWith('بسم') ||
+                                             normalizedForComparison.startsWith('بسم') ||
+                                             normalizedForComparison.startsWith('بسم الله');
                 let hasBismillah = false;
                 let cleanedText = text;
 
@@ -9497,6 +9562,8 @@
                     // Split into words and remove first 4 words (Bismillah)
                     const words = text.trim().split(/\s+/);
                     console.log('   Word count:', words.length);
+                    if (hasHarakatText) console.log('   Text has harakat: YES');
+                    else console.log('   Text has harakat: NO (using alternative pattern)');
 
                     if (words.length >= 4) {
                         hasBismillah = true;
