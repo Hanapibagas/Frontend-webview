@@ -565,18 +565,6 @@
                             <p class="text-[#333333] text-sm">Memuat ayat...</p>
                         </div>
                     </div>
-
-                    <!-- Juz Navigation -->
-                    <div class="sticky bottom-24 bg-white border-t border-[#66BB6A] px-4 py-3 flex items-center justify-between">
-                        <button id="prevJuzBtn" class="flex items-center gap-2 text-[#0D3D1E] font-medium" onclick="QuranComponent.openPreviousJuz()">
-                            <i class="fas fa-chevron-left"></i>
-                            <span>Juz Sebelumnya</span>
-                        </button>
-                        <button id="nextJuzBtn" class="flex items-center gap-2 text-[#0D3D1E] font-medium" onclick="QuranComponent.openNextJuz()">
-                            <span>Juz Selanjutnya</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Settings Page -->
@@ -708,13 +696,16 @@
                                     <input type="radio" name="quranEdition" value="quran-simple-clean" class="w-4 h-4 text-[#1a4d3a]">
                                 </label>
 
-                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition">
+                                <label class="flex items-center justify-between p-3 bg-[#F5F5F5] rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition border-2 border-[#81C784]">
                                     <div class="flex-1">
-                                        <p class="font-medium text-[#2B2B2B]">Dengan Tanda Baca</p>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <p class="font-semibold text-[#1a4d3a]">Dengan Tanda Baca</p>
+                                            <span class="px-2 py-0.5 bg-[#81C784] text-white text-xs rounded-full font-medium">Default</span>
+                                        </div>
                                         <p class="text-xs text-[#666666] mt-1">Teks lengkap dengan harakat untuk pelafalan tepat</p>
                                         <p class="font-arabic text-sm mt-1 text-right">الرَّحْمَٰنِ الرَّحِيمِ</p>
                                     </div>
-                                    <input type="radio" name="quranEdition" value="quran-uthmani-quran-academy" class="w-4 h-4 text-[#1a4d3a]">
+                                    <input type="radio" name="quranEdition" value="quran-uthmani-quran-academy" class="w-4 h-4 text-[#1a4d3a]" checked>
                                 </label>
                             </div>
                         </div>
@@ -1458,7 +1449,7 @@
                 return this.get(this.KEYS.SETTINGS, {
                     arabicFontSize: 3,
                     translationFontSize: 3,
-                    quranEdition: 'quran-simple-clean', // Default: tanpa shadda untuk UX lebih baik
+                    quranEdition: 'quran-uthmani-quran-academy', // Default: dengan harakat untuk pelafalan tepat
                     arabicFont: 'amiri' // Default: Amiri (optimal untuk harakat, tidak ada bulatan hitam)
                 });
             },
@@ -1477,7 +1468,7 @@
             // Get Quran edition preference
             getQuranEdition() {
                 const settings = this.getFontSettings();
-                return settings.quranEdition || 'quran-simple-clean';
+                return settings.quranEdition || 'quran-uthmani-quran-academy';
             },
 
             // Set Quran edition preference
@@ -2120,12 +2111,19 @@
                     console.log(`📡 Juz ${juzNumber} contains ${uniqueSurahs.length} surahs:`, uniqueSurahs);
                     console.log(`📡 Fetching translations for each surah...`);
 
-                    // Fetch all surah translations in parallel
+                    // Fetch all surah translations and transliterations in parallel
                     const translationPromises = uniqueSurahs.map(surahNum =>
                         this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNum}/id.indonesian`)
                     );
 
-                    const translationsData = await Promise.all(translationPromises);
+                    const transliterationPromises = uniqueSurahs.map(surahNum =>
+                        this.fetchWithRetry(`${this.BASE_URL}/surah/${surahNum}/en.transliteration`)
+                    );
+
+                    const [translationsData, transliterationsData] = await Promise.all([
+                        Promise.all(translationPromises),
+                        Promise.all(transliterationPromises)
+                    ]);
 
                     // Create translation lookup map - menggunakan surah:numberInSurah sebagai key
                     const translationMap = {};
@@ -2142,11 +2140,27 @@
                     console.log(`📊 Translation map created with ${Object.keys(translationMap).length} entries`);
                     console.log(`📊 Sample keys:`, Object.keys(translationMap).slice(0, 10));
 
-                    // Merge Arabic text with translation
+                    // Create transliteration lookup map - menggunakan surah:numberInSurah sebagai key
+                    const transliterationMap = {};
+                    transliterationsData.forEach(data => {
+                        if (data.code === 200) {
+                            const surahNum = data.data.number;
+                            data.data.ayahs.forEach(ayah => {
+                                // Key format: "surahNumber:ayahNumberInSurah" contoh: "2:255" untuk Ayat Kursi
+                                transliterationMap[`${surahNum}:${ayah.numberInSurah}`] = ayah.text;
+                            });
+                        }
+                    });
+
+                    console.log(`📊 Transliteration map created with ${Object.keys(transliterationMap).length} entries`);
+                    console.log(`📊 Sample keys:`, Object.keys(transliterationMap).slice(0, 10));
+
+                    // Merge Arabic text with translation and transliteration
                     let missingCount = 0;
                     juzData.ayahs = juzData.ayahs.map(ayah => {
                         const key = `${ayah.surah.number}:${ayah.numberInSurah}`;
                         const translation = translationMap[key] || '';
+                        const transliteration = transliterationMap[key] || '';
 
                         if (!translation) {
                             missingCount++;
@@ -2158,7 +2172,8 @@
 
                         return {
                             ...ayah,
-                            translation: translation
+                            translation: translation,
+                            transliteration: transliteration
                         };
                     });
 
@@ -8354,7 +8369,7 @@
             currentJuz: null,
             currentJuzData: null,
             currentDisplayOption: 'per-surah',  // default display option
-            CACHE_VERSION: '2.1', // Increment this to force cache refresh (Bismillah filter fix)
+            CACHE_VERSION: '2.3', // Increment this to force cache refresh (Default Quran edition changed to with harakat)
 
             /**
              * Initialize the Quran component
@@ -9880,10 +9895,6 @@
                 document.getElementById('juzAyahCount').textContent = juzData.ayahs.length;
                 document.getElementById('juzSurahCount').textContent = uniqueSurahs.length;
 
-                // Update navigation buttons
-                document.getElementById('prevJuzBtn').style.visibility = juzData.number > 1 ? 'visible' : 'hidden';
-                document.getElementById('nextJuzBtn').style.visibility = juzData.number < 30 ? 'visible' : 'hidden';
-
                 // Render verses based on display option
                 if (displayOption === 'per-surah') {
                     this.renderJuzVersesPerSurah(juzData);
@@ -9972,11 +9983,6 @@
                                                     title="Bookmark">
                                                 <i class="far fa-bookmark text-sm"></i>
                                             </button>
-                                            <button onclick="QuranComponent.shareJuzAyah(${juzData.number}, ${surah.number}, ${ayah.numberInSurah})"
-                                                    class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
-                                                    title="Bagikan">
-                                                <i class="fas fa-share-alt text-sm"></i>
-                                            </button>
                                             <button onclick="QuranComponent.copyJuzAyah(${juzData.number}, ${surah.number}, ${ayah.numberInSurah})"
                                                     class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
                                                     title="Salin">
@@ -10006,6 +10012,20 @@
                     });
                 });
 
+                // Add Juz Navigation Footer
+                html += `
+                    <!-- Juz Navigation Footer -->
+                    <div class="mt-8 flex justify-center items-center gap-4">
+                        <button onclick="QuranComponent.openPreviousJuz()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.currentJuz === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.currentJuz === 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left mr-2"></i> Juz Sebelumnya
+                        </button>
+                        <span class="text-sm text-gray-600 font-semibold">Juz ${this.currentJuz} dari 30</span>
+                        <button onclick="QuranComponent.openNextJuz()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.currentJuz === 30 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.currentJuz === 30 ? 'disabled' : ''}>
+                            Juz Berikutnya <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                `;
+
                 container.innerHTML = html;
 
                 // Update bookmark icons
@@ -10021,28 +10041,39 @@
                 // Flatten all ayahs from juz
                 const allAyahs = juzData.ayahs;
 
-                // Initialize pagination state
-                this.paginationState = {
-                    currentPage: 1,
-                    ayahsPerPage: 15,
-                    totalAyahs: allAyahs.length,
-                    totalPages: Math.ceil(allAyahs.length / 15),
-                    juzNumber: juzData.number
-                };
+                // Initialize or update pagination state
+                const totalPages = Math.ceil(allAyahs.length / 15);
+
+                // Only reset to page 1 if switching to a different juz
+                if (!this.paginationState || this.paginationState.juzNumber !== juzData.number) {
+                    this.paginationState = {
+                        currentPage: 1,
+                        ayahsPerPage: 15,
+                        totalAyahs: allAyahs.length,
+                        totalPages: totalPages,
+                        juzNumber: juzData.number
+                    };
+                } else {
+                    // Update pagination state but keep current page
+                    this.paginationState.totalAyahs = allAyahs.length;
+                    this.paginationState.totalPages = totalPages;
+                    this.paginationState.juzNumber = juzData.number;
+                }
 
                 const html = `
-                    <!-- Page Navigation Header -->
+                    <!-- Juz Navigation Header - For navigating between Juz -->
                     <div class="bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] text-white p-4 rounded-xl mb-4">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-bold text-lg">Halaman ${this.paginationState.currentPage}</h3>
-                                <p class="text-sm opacity-90">Juz ${juzData.number}</p>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg">Juz ${juzData.number}</h3>
+                                <p class="text-sm opacity-90">Halaman ${this.paginationState.currentPage} dari ${this.paginationState.totalPages}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="QuranComponent.previousJuzPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            <div class="flex gap-2 items-center">
+                                <button onclick="QuranComponent.openPreviousJuz()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.currentJuz === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.currentJuz === 1 ? 'disabled' : ''} title="Juz Sebelumnya">
                                     <i class="fas fa-chevron-left"></i>
                                 </button>
-                                <button onclick="QuranComponent.nextJuzPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                                <span class="text-sm font-semibold px-2">${this.currentJuz}/30</span>
+                                <button onclick="QuranComponent.openNextJuz()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.currentJuz === 30 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.currentJuz === 30 ? 'disabled' : ''} title="Juz Berikutnya">
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
@@ -10146,20 +10177,22 @@
             },
 
             /**
-             * Open previous juz
+             * Open previous juz (without showing display settings modal)
              */
             openPreviousJuz() {
                 if (this.currentJuz && this.currentJuz > 1) {
-                    this.openJuz(this.currentJuz - 1);
+                    // Use current display option, don't show modal
+                    this.loadJuzWithDisplay(this.currentJuz - 1, this.currentDisplayOption || 'per-surah');
                 }
             },
 
             /**
-             * Open next juz
+             * Open next juz (without showing display settings modal)
              */
             openNextJuz() {
                 if (this.currentJuz && this.currentJuz < 30) {
-                    this.openJuz(this.currentJuz + 1);
+                    // Use current display option, don't show modal
+                    this.loadJuzWithDisplay(this.currentJuz + 1, this.currentDisplayOption || 'per-surah');
                 }
             },
 
