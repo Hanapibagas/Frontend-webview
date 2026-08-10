@@ -8763,38 +8763,106 @@
             },
 
             /**
+             * Generate page numbers for pagination
+             * Creates smart pagination with ellipsis for large page counts
+             */
+            generatePageNumbers() {
+                if (!this.paginationState) return '';
+
+                const { currentPage, totalPages } = this.paginationState;
+
+                // For small page counts, show all pages
+                if (totalPages <= 7) {
+                    let pages = '';
+                    for (let i = 1; i <= totalPages; i++) {
+                        if (i === currentPage) {
+                            pages += `<button class="w-10 h-10 rounded-lg bg-[#1a4d3a] text-white font-semibold text-sm shadow-md" disabled>${i}</button>`;
+                        } else {
+                            pages += `<button onclick="QuranComponent.goToPage(${i})" class="w-10 h-10 rounded-lg bg-white border-2 border-[#1a4d3a] text-[#1a4d3a] hover:bg-[#E8F5E9] transition font-semibold text-sm shadow-sm">${i}</button>`;
+                        }
+                    }
+                    return pages;
+                }
+
+                // For large page counts, use smart pagination with ellipsis
+                const pages = [];
+
+                // Always show first page
+                pages.push(`<button onclick="QuranComponent.goToPage(1)" class="w-10 h-10 rounded-lg bg-white border-2 border-[#1a4d3a] text-[#1a4d3a] hover:bg-[#E8F5E9] transition font-semibold text-sm shadow-sm" ${currentPage === 1 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>1</button>`);
+
+                // Add ellipsis if current page is far from first page
+                if (currentPage > 4) {
+                    pages.push(`<span class="text-gray-400 px-2">...</span>`);
+                }
+
+                // Show pages around current page
+                const startPage = Math.max(2, currentPage - 1);
+                const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    if (i === currentPage) {
+                        pages.push(`<button class="w-10 h-10 rounded-lg bg-[#1a4d3a] text-white font-semibold text-sm shadow-md" disabled>${i}</button>`);
+                    } else {
+                        pages.push(`<button onclick="QuranComponent.goToPage(${i})" class="w-10 h-10 rounded-lg bg-white border-2 border-[#1a4d3a] text-[#1a4d3a] hover:bg-[#E8F5E9] transition font-semibold text-sm shadow-sm">${i}</button>`);
+                    }
+                }
+
+                // Add ellipsis if current page is far from last page
+                if (currentPage < totalPages - 3) {
+                    pages.push(`<span class="text-gray-400 px-2">...</span>`);
+                }
+
+                // Always show last page
+                pages.push(`<button onclick="QuranComponent.goToPage(${totalPages})" class="w-10 h-10 rounded-lg bg-white border-2 border-[#1a4d3a] text-[#1a4d3a] hover:bg-[#E8F5E9] transition font-semibold text-sm shadow-sm" ${currentPage === totalPages ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>${totalPages}</button>`);
+
+                return pages.join('');
+            },
+
+            /**
+             * Go to specific page
+             */
+            goToPage(pageNumber) {
+                if (!this.paginationState || pageNumber < 1 || pageNumber > this.paginationState.totalPages) return;
+
+                this.paginationState.currentPage = pageNumber;
+                this.renderVersesPerHalaman(this.currentSurah);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            /**
              * Render verses per halaman (traditional Quran page view)
              */
             renderVersesPerHalaman(surah) {
                 const container = document.getElementById('versesList');
 
-                // Initialize pagination state
-                this.paginationState = {
-                    currentPage: 1,
-                    ayahsPerPage: 15, // Adjustable based on preference
-                    totalAyahs: surah.ayahs.length,
-                    totalPages: Math.ceil(surah.ayahs.length / 15)
-                };
+                // Initialize or update pagination state (preserve current page if surah hasn't changed)
+                const totalPages = Math.ceil(surah.ayahs.length / 15);
+
+                if (!this.paginationState || this.currentSurah?.number !== surah.number) {
+                    // New surah or first time - reset to page 1
+                    this.paginationState = {
+                        currentPage: 1,
+                        ayahsPerPage: 15,
+                        totalAyahs: surah.ayahs.length,
+                        totalPages: totalPages
+                    };
+                } else {
+                    // Same surah - update metadata but preserve currentPage
+                    this.paginationState.totalAyahs = surah.ayahs.length;
+                    this.paginationState.totalPages = totalPages;
+
+                    // Ensure currentPage is within valid range
+                    if (this.paginationState.currentPage > totalPages) {
+                        this.paginationState.currentPage = totalPages;
+                    }
+                }
+
+                // Show pagination only if surah has more than 20 ayahs
+                const showPagination = surah.ayahs.length > 20;
 
                 const html = `
-                    <!-- Page Navigation Header -->
-                    <div class="bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] text-white p-4 rounded-xl mb-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-bold text-lg">Halaman ${this.paginationState.currentPage}</h3>
-                                <p class="text-sm opacity-90">${surah.englishName} - Juz ${this.calculateJuz(surah.number)}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="QuranComponent.previousPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <button onclick="QuranComponent.nextPage()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Surah Title Box -->
                     <div class="bg-[#f5f1e8] border-2 border-[#1a4d3a] rounded-lg p-4 mb-6 text-center">
                         <p class="font-arabic text-3xl text-[#1a4d3a] font-bold">${surah.name}</p>
@@ -8808,23 +8876,39 @@
                         <div class="bg-[#E8F5E9] px-4 py-2 rounded-full">
                             <span class="text-sm font-semibold text-[#1a4d3a]">${surah.numberOfAyahs} AYAT</span>
                         </div>
+                        ${showPagination ? `
+                        <div class="bg-[#E8F5E9] px-4 py-2 rounded-full">
+                            <span class="text-sm font-semibold text-[#1a4d3a]">Hal. ${this.paginationState.currentPage}/${this.paginationState.totalPages}</span>
+                        </div>
+                        ` : ''}
                     </div>
 
                     <!-- Verses Container - Traditional Quran Page Layout -->
-                    <div id="perHalamanVerses" class="bg-[#F5F1E8] border-2 border-[#1a4d3a] rounded-lg p-6">
+                    <div id="perHalamanVerses" class="bg-[#F5F1E8] border-2 border-[#1a4d3a] rounded-lg p-6 mb-6">
                         ${this.renderHalamanVerses(surah)}
                     </div>
 
-                    <!-- Page Navigation Footer -->
-                    <div class="mt-8 flex justify-center items-center gap-4">
-                        <button onclick="QuranComponent.previousPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === 1 ? 'disabled' : ''}>
-                            <i class="fas fa-chevron-left mr-2"></i> Sebelumnya
+                    ${showPagination ? `
+                    <!-- Compact Pagination -->
+                    <div class="flex items-center justify-center gap-3">
+                        <button onclick="QuranComponent.previousPage()" class="w-12 h-12 rounded-full bg-[#1a4d3a] text-white hover:bg-[#145d3a] transition flex items-center justify-center shadow-md ${this.paginationState.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === 1 ? 'disabled' : ''} title="Halaman Sebelumnya">
+                            <i class="fas fa-chevron-left"></i>
                         </button>
-                        <span class="text-sm text-gray-600">Halaman ${this.paginationState.currentPage} dari ${this.paginationState.totalPages}</span>
-                        <button onclick="QuranComponent.nextPage()" class="px-6 py-3 bg-[#1a4d3a] text-white rounded-lg hover:bg-[#145d3a] transition ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === this.paginationState.totalPages ? 'disabled' : ''}>
-                            Selanjutnya <i class="fas fa-chevron-right ml-2"></i>
+
+                        <div class="flex items-center gap-1">
+                            ${this.generatePageNumbers()}
+                        </div>
+
+                        <button onclick="QuranComponent.nextPage()" class="w-12 h-12 rounded-full bg-[#1a4d3a] text-white hover:bg-[#145d3a] transition flex items-center justify-center shadow-md ${this.paginationState.currentPage === this.paginationState.totalPages ? 'opacity-50 cursor-not-allowed' : ''}" ${this.paginationState.currentPage === this.paginationState.totalPages ? 'disabled' : ''} title="Halaman Selanjutnya">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
+
+                    <!-- Page Info -->
+                    <div class="text-center mt-3">
+                        <p class="text-xs text-gray-500">Halaman ${this.paginationState.currentPage} dari ${this.paginationState.totalPages} • ${surah.englishName}</p>
+                    </div>
+                    ` : ''}
                 `;
 
                 container.innerHTML = html;
