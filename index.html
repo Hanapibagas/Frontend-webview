@@ -4749,8 +4749,8 @@
 
                 // Create modal HTML
                 const modalHTML = `
-                    <div id="qrisModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div id="qrisModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 donation-modal-backdrop">
+                        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto donation-modal-content">
                             <!-- Modal Header -->
                             <div class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] text-white p-5 rounded-t-2xl">
                                 <div class="flex items-center justify-between">
@@ -4761,7 +4761,7 @@
                                             <p class="font-semibold text-lg">QRIS</p>
                                         </div>
                                     </div>
-                                    <button onclick="DonationComponent.closeQRISModal()" class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+                                    <button onclick="DonationComponent.closeQRISModal(true)" class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -4786,18 +4786,13 @@
                                     <p class="text-center text-xs text-[#333333]">NMID: ${donation.qris.nmId}</p>
                                 </div>
 
-                                <!-- QRIS String -->
+                                <!-- Download QRIS Image -->
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-[#2B2B2B] mb-2">String QRIS</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" id="qrisString" readonly
-                                            value="${donation.qris.qrisString}"
-                                            class="flex-1 bg-[#F5F5F5] border border-[#66BB6A] rounded-lg px-3 py-2 text-xs text-[#333333] font-mono truncate">
-                                        <button onclick="DonationComponent.copyQRISString()"
-                                            class="bg-[#0D3D1E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#0D3D1E] transition">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                    </div>
+                                    <button onclick="DonationComponent.downloadQRISImage('${donation.qris.qrImageUrl}')"
+                                        class="w-full bg-[#0D3D1E] text-white py-3 px-4 rounded-lg font-medium hover:bg-[#1B5E20] transition flex items-center justify-center gap-2">
+                                        <i class="fas fa-download"></i>
+                                        Download QRIS Image
+                                    </button>
                                 </div>
 
                                 <!-- Bank Account Info -->
@@ -4847,7 +4842,16 @@
                 // Add modal to body
                 const modalContainer = document.createElement('div');
                 modalContainer.innerHTML = modalHTML;
-                document.body.appendChild(modalContainer.firstElementChild);
+                const modalElement = modalContainer.firstElementChild;
+
+                // Add backdrop click handler for closing
+                modalElement.addEventListener('click', (e) => {
+                    if (e.target === modalElement) {
+                        this.closeQRISModal(true);
+                    }
+                });
+
+                document.body.appendChild(modalElement);
 
                 // Store current donation data for copy functions
                 this.currentDonation = donation;
@@ -4856,37 +4860,97 @@
             /**
              * Close QRIS Modal
              */
-            closeQRISModal() {
+            closeQRISModal(withAnimation = false) {
                 const modal = document.getElementById('qrisModal');
-                if (modal) {
-                    modal.remove();
+                if (!modal) {
+                    this.currentDonation = null;
+                    return;
                 }
-                this.currentDonation = null;
+
+                if (withAnimation) {
+                    // Add closing class for animation
+                    modal.classList.add('donation-modal-closing');
+
+                    // Wait for animation to complete before removing
+                    setTimeout(() => {
+                        if (modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
+                        this.currentDonation = null;
+                    }, 200); // Match the animation duration
+                } else {
+                    // Remove immediately without animation
+                    modal.remove();
+                    this.currentDonation = null;
+                }
             },
 
             /**
-             * Copy QRIS String
+             * Download QRIS Image
              */
-            copyQRISString() {
-                if (!this.currentDonation) return;
+            async downloadQRISImage(imageUrl) {
+                try {
+                    // Fetch the image
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
 
-                navigator.clipboard.writeText(this.currentDonation.qris.qrisString).then(() => {
-                    UI.toast('String QRIS disalin ke clipboard');
-                }).catch(() => {
-                    UI.toast('Gagal menyalin string QRIS');
-                });
+                    // Create a blob URL
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    // Create a temporary link element
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = `QRIS-${this.currentDonation?.mosqueName || 'Donation'}.png`;
+
+                    // Trigger download
+                    document.body.appendChild(link);
+                    link.click();
+
+                    // Cleanup
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(blobUrl);
+
+                    UI.toast('QRIS image berhasil didownload');
+                } catch (error) {
+                    console.error('Failed to download QRIS image:', error);
+                    UI.toast('Gagal mendownload QRIS image');
+                }
             },
 
             /**
-             * Copy Bank Account
+             * Copy Bank Account (only account number)
              */
             copyBankAccount(bankName, accountNumber, accountName) {
-                const text = `${bankName}\n${accountNumber}\na.n ${accountName}`;
+                // Only copy the account number
+                const text = `${accountNumber}`;
 
                 navigator.clipboard.writeText(text).then(() => {
-                    UI.toast('Nomor rekening disalin ke clipboard');
+                    // Show toast notification
+                    UI.toast('✅ Nomor rekening berhasil disalin!');
+
+                    // Find and update the button temporarily
+                    const buttons = document.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        if (btn.innerHTML.includes('fas fa-copy') && btn.textContent.includes('Salin Nomor Rekening')) {
+                            // Store original content
+                            const originalHTML = btn.innerHTML;
+                            const originalClasses = btn.className;
+
+                            // Change to success state
+                            btn.innerHTML = '<i class="fas fa-check mr-2"></i> Berhasil Disalin!';
+                            btn.classList.remove('bg-[#0D3D1E]', 'hover:bg-[#1B5E20]');
+                            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                            // Restore original after 2 seconds
+                            setTimeout(() => {
+                                btn.innerHTML = originalHTML;
+                                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                                btn.classList.add('bg-[#0D3D1E]', 'hover:bg-[#1B5E20]');
+                            }, 2000);
+                        }
+                    });
                 }).catch(() => {
-                    UI.toast('Gagal menyalin nomor rekening');
+                    UI.toast('❌ Gagal menyalin nomor rekening');
                 });
             },
 
@@ -4897,15 +4961,16 @@
                 const donation = await DonationAPI.getDonationById(donationId);
                 if (!donation) return;
 
-                const shareText = `Info Sedekah - ${donation.mosqueName}\n\n` +
-                    `Alamat: ${donation.mosqueAddress}\n\n` +
-                    `QRIS NMID: ${donation.qris.nmId}\n` +
-                    `String QRIS: ${donation.qris.qrisString}\n\n` +
-                    `Rekening Bank:\n` +
-                    `${donation.bankAccount.bankName}\n` +
-                    `${donation.bankAccount.accountNumber}\n` +
-                    `a.n ${donation.bankAccount.accountName}\n\n` +
-                    `Jenis Sedekah: ${donation.donationTypes.join(', ')}`;
+                const shareText = `🕌 *Info Sedekah - ${donation.mosqueName}*\n\n` +
+                    `📍 Alamat:\n${donation.mosqueAddress}\n\n` +
+                    `💳 *Rekening Bank:*\n` +
+                    `Bank: ${donation.bankAccount.bankName}\n` +
+                    `No. Rek: ${donation.bankAccount.accountNumber}\n` +
+                    `a.n: ${donation.bankAccount.accountName}\n\n` +
+                    `🤲 Jenis Sedekah: ${donation.donationTypes.join(', ')}\n\n` +
+                    `📱 Donasi mudah dan aman. Download aplikasi kami di:\n` +
+                    `_https://play.google.com/store/apps/details?id=com.muslimapp.donation_\n\n` +
+                    `_Terima kasih atas donasi Anda. Semoga menjadi berkah_ 🤲🙏`;
 
                 if (navigator.share) {
                     navigator.share({
@@ -4917,9 +4982,9 @@
                 } else {
                     // Fallback: copy to clipboard
                     navigator.clipboard.writeText(shareText).then(() => {
-                        UI.toast('Info sedekah disalin ke clipboard');
+                        UI.toast('✅ Info sedekah disalin ke clipboard');
                     }).catch(() => {
-                        UI.toast('Gagal menyalin info sedekah');
+                        UI.toast('❌ Gagal menyalin info sedekah');
                     });
                 }
             },
@@ -14713,6 +14778,34 @@
 
                 .article-modal-closing .article-modal-content {
                     animation: slideUp 0.2s ease reverse forwards;
+                }
+
+                /* Donation modal animations */
+                @keyframes scaleIn {
+                    from {
+                        transform: scale(0.9);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+
+                .donation-modal-backdrop {
+                    animation: fadeIn 0.3s ease forwards;
+                }
+
+                .donation-modal-content {
+                    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .donation-modal-closing .donation-modal-backdrop {
+                    animation: fadeIn 0.2s ease reverse forwards;
+                }
+
+                .donation-modal-closing .donation-modal-content {
+                    animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) reverse forwards;
                 }
             `;
             document.head.appendChild(style);
