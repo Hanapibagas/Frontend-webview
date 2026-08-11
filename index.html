@@ -8950,9 +8950,10 @@
 
                     // Bismillah has been removed at API level, use ayah.text directly
                     const ayahText = ayah.text;
+                    const isLastVerse = index === currentAyahs.length - 1;
 
                     return `
-                        <div class="mb-6" data-ayah-number="${globalIndex + 1}">
+                        <div class="mb-6 ${!isLastVerse ? 'pb-6 border-b border-[#1a4d3a] border-opacity-30' : ''}" data-ayah-number="${globalIndex + 1}">
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
                                 ${ayahText}
@@ -10133,9 +10134,10 @@
 
                     // Bismillah has been removed at API level, use ayah.text directly
                     const ayahText = ayah.text;
+                    const isLastVerse = index === currentAyahs.length - 1;
 
                     return `
-                        <div class="mb-6" data-ayah-number="${globalIndex + 1}">
+                        <div class="mb-6 ${!isLastVerse ? 'pb-6 border-b border-[#1a4d3a] border-opacity-30' : ''}" data-ayah-number="${globalIndex + 1}">
                             <!-- Small surah indicator -->
                             <div class="text-xs text-gray-500 mb-2 text-center">
                                 ${ayah.surah.englishName} • Ayat ${ayah.numberInSurah}
