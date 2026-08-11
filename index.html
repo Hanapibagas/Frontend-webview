@@ -291,6 +291,50 @@
         .page-transition.slide-right {
             animation: slideInRightBasic 0.3s ease-out;
         }
+
+        /* Navigation Active State Styles */
+        .nav-btn {
+            position: relative;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #66BB6A, #1a4d3a);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(102, 187, 106, 0.15), rgba(26, 77, 58, 0.1));
+        }
+
+        .nav-btn.active::before {
+            width: 80%;
+        }
+
+        .nav-btn.active i,
+        .nav-btn.active span {
+            color: #1a4d3a;
+            font-weight: 600;
+        }
+
+        .nav-btn:not(.active) i,
+        .nav-btn:not(.active) span {
+            color: #999999;
+        }
+
+        .nav-btn:not(.active):hover i,
+        .nav-btn:not(.active):hover span {
+            color: #666666;
+        }
     </style>
 
     <script>
@@ -372,6 +416,38 @@
                             <p class="text-xs text-[#81C784]" id="dailyVerseRef">(Al-Fatihah: 1)</p>
                         </div>
 
+                        <!-- Continue Reading Carousel (hidden by default, shown when there's a bookmark) -->
+                        <div id="continueReadingBtn" class="hidden bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] rounded-2xl p-5 text-white mb-6 border-l-4 border-[#D4AF37] hover:shadow-lg transition">
+                            <!-- Carousel Header -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-bookmark text-[#D4AF37]"></i>
+                                    <span class="text-sm font-bold text-white">LANJUT BACA</span>
+                                    <span id="bookmarkCount" class="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="carouselPrevBtn" onclick="QuranComponent.prevBookmarkSlide()" class="w-8 h-8 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center" title="Sebelumnya">
+                                        <i class="fas fa-chevron-left text-sm"></i>
+                                    </button>
+                                    <button id="carouselNextBtn" onclick="QuranComponent.nextBookmarkSlide()" class="w-8 h-8 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center" title="Selanjutnya">
+                                        <i class="fas fa-chevron-right text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Carousel Container -->
+                            <div class="relative overflow-hidden">
+                                <div id="bookmarkCarousel" class="flex transition-transform duration-300 ease-in-out">
+                                    <!-- Bookmark items will be dynamically inserted here -->
+                                </div>
+
+                                <!-- Carousel Indicators -->
+                                <div id="carouselIndicators" class="flex justify-center gap-2 mt-4">
+                                    <!-- Indicators will be dynamically inserted here -->
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Quick Actions -->
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <button id="btnReadQuran"
@@ -451,7 +527,7 @@
                                 <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-[#D4AF37]">
                                     <i class="fas fa-book-quran text-[#1a4d3a] text-lg"></i>
                                 </div>
-                                <h1 class="text-white text-lg font-bold">Baca Qur'an</h1>
+                                <h1 id="quranHeaderTitle" class="text-white text-lg font-bold">Baca Surah</h1>
                             </div>
                             <!-- Action Icons -->
                             <div class="flex items-center gap-4">
@@ -546,9 +622,6 @@
                     <!-- Juz Info -->
                     <div id="juzInfo" class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] text-white">
                         <div class="p-6 text-center">
-                            <p class="text-sm opacity-90 mb-1">Juz</p>
-                            <h2 class="font-arabic text-4xl mb-2" id="juzNumberArabic">١</h2>
-                            <h3 class="text-xl font-bold mb-3" id="juzNumber">Juz 1</h3>
                             <p class="text-sm opacity-90" id="juzInfoText">Al-Fatihah - Al-Baqarah (1-141)</p>
                             <div class="flex items-center justify-center gap-6 mt-4 text-sm">
                                 <span><i class="fas fa-list-ol mr-1"></i> <span id="juzAyahCount">~</span> Ayat</span>
@@ -563,6 +636,25 @@
                         <div id="juzVersesLoading" class="flex flex-col items-center justify-center py-20">
                             <div class="spinner text-primary-600 mb-4"></div>
                             <p class="text-[#333333] text-sm">Memuat ayat...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saved Positions Page -->
+                <div id="savedPositionsPage" class="page hidden">
+                    <div class="p-4">
+                        <h2 class="font-bold text-lg mb-4">Posisi Tersimpan</h2>
+
+                        <!-- Empty State -->
+                        <div id="savedPositionsEmpty" class="flex flex-col items-center justify-center py-12 hidden">
+                            <i class="fas fa-bookmark text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 text-sm">Belum ada posisi yang tersimpan</p>
+                            <p class="text-gray-400 text-xs mt-2">Klik ikon bookmark untuk menyimpan posisi bacaan</p>
+                        </div>
+
+                        <!-- Saved Positions List -->
+                        <div id="savedPositionsList" class="space-y-4">
+                            <!-- Positions will be rendered here -->
                         </div>
                     </div>
                 </div>
@@ -707,23 +799,6 @@
                                     </div>
                                     <input type="radio" name="quranEdition" value="quran-uthmani-quran-academy" class="w-4 h-4 text-[#1a4d3a]" checked>
                                 </label>
-                            </div>
-                        </div>
-
-                        <!-- Bookmarks Section -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm border border-[#81C784]">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-bookmark text-[#0D3D1E]"></i>
-                                    <h3 class="font-semibold text-[#2B2B2B]">Bookmark</h3>
-                                </div>
-                            </div>
-                            <div id="bookmarksList" class="space-y-2">
-                                <div class="flex flex-col items-center justify-center py-10">
-                                    <i class="fas fa-bookmark text-4xl text-[#333333] mb-3"></i>
-                                    <p class="text-[#333333]">Belum ada bookmark</p>
-                                    <p class="text-[#333333] text-sm mt-1">Tap ikon bookmark saat membaca surah</p>
-                                </div>
                             </div>
                         </div>
 
@@ -1243,19 +1318,17 @@
             <div class="max-w-lg mx-auto px-1 sm:px-2">
                 <div class="flex items-center justify-around py-1 sm:py-2">
                     <button id="navHome"
-                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-primary-600" data-page="home">
+                        class="nav-btn flex flex-col items-center py-2 sm:py-2.5 px-3 sm:px-4 transition" data-page="home">
                         <i class="fas fa-home text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Beranda</span>
                     </button>
                     <button id="navQuran"
-                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-[#333333] hover:text-primary-600 transition"
-                        data-page="quran">
+                        class="nav-btn flex flex-col items-center py-2 sm:py-2.5 px-3 sm:px-4 transition" data-page="quran">
                         <i class="fas fa-book-quran text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Quran</span>
                     </button>
                     <button id="navSettings"
-                        class="nav-btn flex flex-col items-center py-1.5 sm:py-2 px-2 sm:px-3 text-[#333333] hover:text-primary-600 transition"
-                        data-page="settings">
+                        class="nav-btn flex flex-col items-center py-2 sm:py-2.5 px-3 sm:px-4 transition" data-page="settings">
                         <i class="fas fa-cog text-lg sm:text-xl mb-0.5 sm:mb-1"></i>
                         <span class="text-xs font-medium">Pengaturan</span>
                     </button>
@@ -8630,6 +8703,7 @@
                     this.currentSurah = surah;
                     this.currentAyahs = surah.ayahs;
                     this.currentDisplayOption = displayOption;
+                    this.currentMode = 'surah'; // Set mode to surah
 
                     // Save last read
                     Storage.setLastRead(surahNumber, 1);
@@ -8735,15 +8809,18 @@
                                 <div class="flex-1">
                                     <!-- Actions Toolbar -->
                                     <div class="flex items-center gap-2 mb-3">
+                                        <button onclick="QuranComponent.toggleBookmark('surah-per-surah', ${surah.number}, ${ayahNumber})"
+                                                class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 transition flex items-center justify-center bookmark-btn"
+                                                data-type="surah-per-surah"
+                                                data-surah="${surah.number}"
+                                                data-ayah="${ayahNumber}"
+                                                title="Tandai bacaan">
+                                            <i class="fas fa-bookmark text-sm"></i>
+                                        </button>
                                         <button onclick="QuranComponent.playAyahAudio(${ayahNumber})"
                                                 class="w-8 h-8 rounded-full bg-[#81C784] text-primary-600 hover:bg-[#66BB6A] transition flex items-center justify-center"
                                                 title="Putar audio">
                                             <i class="fas fa-play text-sm"></i>
-                                        </button>
-                                        <button onclick="QuranComponent.toggleBookmark(${surah.number}, ${ayahNumber}, this)"
-                                                class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center bookmark-btn"
-                                                title="Bookmark">
-                                            <i class="far fa-bookmark text-sm"></i>
                                         </button>
                                         <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayahText)}')"
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
@@ -8775,8 +8852,10 @@
 
                 container.innerHTML = html;
 
-                // Check which ayahs are bookmarked
-                this.updateBookmarkIcons();
+                // Update bookmark button states
+                if (typeof this.checkAndUpdateBookmarkButtons === 'function') {
+                    this.checkAndUpdateBookmarkButtons();
+                }
             },
 
             /**
@@ -8929,6 +9008,11 @@
                 `;
 
                 container.innerHTML = html;
+
+                // Update bookmark button states
+                if (typeof this.checkAndUpdateBookmarkButtons === 'function') {
+                    this.checkAndUpdateBookmarkButtons();
+                }
             },
 
             /**
@@ -8954,6 +9038,17 @@
 
                     return `
                         <div class="mb-6 ${!isLastVerse ? 'pb-6 border-b border-[#1a4d3a] border-opacity-30' : ''}" data-ayah-number="${globalIndex + 1}">
+                            <div class="flex justify-end mb-2">
+                                <button onclick="QuranComponent.toggleBookmark('surah-per-halaman', ${surah.number}, ${globalIndex + 1}, ${this.paginationState.currentPage})"
+                                        class="w-7 h-7 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 transition flex items-center justify-center bookmark-btn"
+                                        data-type="surah-per-halaman"
+                                        data-surah="${surah.number}"
+                                        data-ayah="${globalIndex + 1}"
+                                        data-page="${this.paginationState.currentPage}"
+                                        title="Tandai bacaan">
+                                    <i class="fas fa-bookmark text-xs"></i>
+                                </button>
+                            </div>
                             <p class="font-arabic text-2xl leading-loose text-right text-[#2B2B2B]">
                                 <span class="inline-block w-6 h-6 rounded-full bg-[#1a4d3a] text-white text-xs text-center leading-6 mr-2 align-middle">${circularNumber}</span>
                                 ${ayahText}
@@ -9466,63 +9561,6 @@
             },
 
             /**
-             * Toggle bookmark for ayah
-             */
-            toggleBookmark(surahNumber, ayahNumber, button) {
-                const bookmarks = Storage.getBookmarks();
-                const existingIndex = bookmarks.findIndex(
-                    b => b.surahNumber === surahNumber && b.ayahNumber === ayahNumber
-                );
-
-                if (existingIndex >= 0) {
-                    // Remove bookmark
-                    Storage.removeBookmark(surahNumber, ayahNumber);
-                    button.innerHTML = '<i class="far fa-bookmark text-sm"></i>';
-                    button.classList.remove('text-primary-600', 'bg-[#81C784]');
-                    button.classList.add('text-[#333333]', 'bg-[#F5F5F5]');
-                    UI.toast('Bookmark dihapus');
-                } else {
-                    // Add bookmark
-                    const bookmark = {
-                        surahNumber,
-                        ayahNumber,
-                        surahName: this.currentSurah?.englishName || 'Surah ' + surahNumber,
-                        surahNameArabic: this.currentSurah?.name || '',
-                        ayahText: this.currentAyahs[ayahNumber - 1]?.text || '',
-                        timestamp: Date.now()
-                    };
-                    Storage.addBookmark(bookmark);
-                    button.innerHTML = '<i class="fas fa-bookmark text-sm"></i>';
-                    button.classList.remove('text-[#333333]', 'bg-[#F5F5F5]');
-                    button.classList.add('text-primary-600', 'bg-[#81C784]');
-                    UI.toast('Bookmark ditambahkan');
-                }
-            },
-
-            /**
-             * Update bookmark icons on page load
-             */
-            updateBookmarkIcons() {
-                const bookmarks = Storage.getBookmarks();
-
-                if (!this.currentSurah) return;
-
-                bookmarks.forEach(bookmark => {
-                    if (bookmark.surahNumber === this.currentSurah.number) {
-                        const verseCard = document.querySelector(`[data-ayah-number="${bookmark.ayahNumber}"]`);
-                        if (verseCard) {
-                            const bookmarkBtn = verseCard.querySelector('.bookmark-btn');
-                            if (bookmarkBtn) {
-                                bookmarkBtn.innerHTML = '<i class="fas fa-bookmark text-sm"></i>';
-                                bookmarkBtn.classList.remove('text-[#333333]', 'bg-[#F5F5F5]');
-                                bookmarkBtn.classList.add('text-primary-600', 'bg-[#81C784]');
-                            }
-                        }
-                    }
-                });
-            },
-
-            /**
              * Copy ayah text to clipboard
              */
             async copyAyah(surahNumber, ayahNumber, text) {
@@ -9550,6 +9588,261 @@
                     text,
                     window.location.href
                 );
+            },
+
+            /**
+             * Save current reading position
+             * Saves the current reading state (surah/juz, page, display mode)
+             */
+            saveReadingPosition() {
+                console.log('=== saveReadingPosition() START ===');
+                console.log('this.currentSurah:', this.currentSurah);
+                console.log('this.currentJuz:', this.currentJuz);
+                console.log('this.currentMode:', this.currentMode);
+
+                // Check if user is currently reading a surah or juz
+                if (!this.currentSurah && !this.currentJuz) {
+                    console.log('❌ No surah or juz open - showing error toast');
+                    UI.toast('Buka surah atau juz terlebih dahulu untuk menyimpan posisi');
+                    return;
+                }
+
+                console.log('✓ Surah or juz found - creating readingPosition object');
+
+                const readingPosition = {
+                    timestamp: Date.now(),
+                    mode: this.currentMode || 'surah',
+                    displayOption: this.currentDisplayOption || 'per-surah',
+                    source: 'manual' // Mark that this came from manual save action
+                };
+
+                console.log('Initial readingPosition:', readingPosition);
+
+                // Get current page if in pagination mode
+                if (this.paginationState) {
+                    readingPosition.page = this.paginationState.currentPage;
+                    readingPosition.totalPages = this.paginationState.totalPages;
+                    console.log('Pagination state:', this.paginationState);
+                } else {
+                    console.log('No pagination state found');
+                }
+
+                // Save surah information if in surah mode
+                if (this.currentMode === 'surah' && this.currentSurah) {
+                    readingPosition.type = 'surah';
+                    readingPosition.surahNumber = this.currentSurah.number;
+                    readingPosition.surahName = this.currentSurah.englishName;
+                    readingPosition.surahNameArabic = this.currentSurah.name;
+                    console.log('✓ Surah info saved:', readingPosition);
+                }
+
+                // Save juz information if in juz mode
+                if (this.currentMode === 'juz' && this.currentJuz) {
+                    readingPosition.type = 'juz';
+                    readingPosition.juzNumber = this.currentJuz;
+                    console.log('✓ Juz info saved:', readingPosition);
+                }
+
+                // Validate that type was set
+                if (!readingPosition.type) {
+                    console.log('❌ Type not set - showing error toast');
+                    UI.toast('Gagal menyimpan posisi: tidak dapat mendeteksi jenis bacaan');
+                    return;
+                }
+
+                // Get existing reading positions
+                const positions = Storage.get('reading_positions', []);
+                console.log('Existing positions from storage:', positions);
+
+                // Remove old position of the same type, number, AND display option
+                // Keep different display options (per-surah vs per-halaman) as separate entries
+                const filteredPositions = positions.filter(pos => {
+                    if (readingPosition.type === 'surah') {
+                        // Remove only surah position with same display option
+                        return !(pos.type === 'surah' &&
+                                pos.surahNumber === readingPosition.surahNumber &&
+                                pos.displayOption === readingPosition.displayOption);
+                    } else if (readingPosition.type === 'juz') {
+                        // Remove only juz position with same display option
+                        return !(pos.type === 'juz' &&
+                                pos.juzNumber === readingPosition.juzNumber &&
+                                pos.displayOption === readingPosition.displayOption);
+                    }
+                    return true;
+                });
+
+                console.log('After filtering:', filteredPositions);
+
+                // Add new position at the beginning
+                filteredPositions.unshift(readingPosition);
+
+                // Keep only last 15 positions to accommodate both display options (per-surah & per-halaman)
+                const recentPositions = filteredPositions.slice(0, 15);
+                console.log('Final positions to save:', recentPositions);
+
+                // Save to storage
+                Storage.set('reading_positions', recentPositions);
+                console.log('✓ Saved to localStorage');
+
+                // Show toast message
+                let message = '';
+                if (readingPosition.type === 'surah') {
+                    const pageInfo = readingPosition.displayOption === 'per-halaman'
+                        ? `Halaman ${readingPosition.page}/${readingPosition.totalPages}`
+                        : 'Per Surah';
+                    message = `Posisi ${readingPosition.surahName} (${pageInfo}) tersimpan`;
+                } else if (readingPosition.type === 'juz') {
+                    const pageInfo = readingPosition.displayOption === 'per-halaman'
+                        ? `Halaman ${readingPosition.page}/${readingPosition.totalPages}`
+                        : 'Per Juz';
+                    message = `Posisi Juz ${readingPosition.juzNumber} (${pageInfo}) tersimpan`;
+                }
+
+                console.log('Showing toast:', message);
+                UI.toast(message);
+                console.log('=== saveReadingPosition() END ===');
+            },
+
+            /**
+             * Load and display saved reading positions
+             */
+            loadSavedPositions() {
+                const positions = Storage.get('reading_positions', []);
+                const listContainer = document.getElementById('savedPositionsList');
+                const emptyState = document.getElementById('savedPositionsEmpty');
+
+                // Show empty state if no positions
+                if (positions.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    listContainer.classList.add('hidden');
+                    return;
+                }
+
+                // Hide empty state and show list
+                emptyState.classList.add('hidden');
+                listContainer.classList.remove('hidden');
+
+                // Render each position
+                listContainer.innerHTML = positions.map((pos, index) => {
+                    const timeAgo = this.getTimeAgo(pos.timestamp);
+                    let title, subtitle, pageInfo, icon;
+
+                    if (pos.type === 'surah') {
+                        icon = 'fa-book-quran';
+                        title = pos.surahName || 'Surah ' + pos.surahNumber;
+                        subtitle = pos.surahNameArabic || '';
+                        pageInfo = pos.displayOption === 'per-halaman'
+                            ? `Halaman ${pos.page}/${pos.totalPages}`
+                            : 'Per Surah';
+                    } else if (pos.type === 'juz') {
+                        icon = 'fa-book';
+                        title = `Juz ${pos.juzNumber}`;
+                        subtitle = '';
+                        pageInfo = pos.displayOption === 'per-halaman'
+                            ? `Halaman ${pos.page}/${pos.totalPages}`
+                            : 'Per Juz';
+                    }
+
+                    return `
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-[#81C784] ${pos.source === 'bookmark' ? 'border-l-4 border-l-[#D4AF37]' : ''}">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 bg-[#0D3D1E] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas ${icon} text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0 p-3 space-y-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="font-semibold text-[#2B2B2B] text-sm truncate">${title}</h3>
+                                            ${pos.source === 'bookmark' ? '<span class="text-xs bg-[#D4AF37] text-white px-2 py-0.5 rounded-full">Bookmark</span>' : ''}
+                                        </div>
+                                        <span class="text-xs text-gray-400 flex-shrink-0">${timeAgo}</span>
+                                    </div>
+                                    ${subtitle ? `<p class="text-xs text-gray-600 font-arabic text-right">${subtitle}</p>` : ''}
+                                    <div class="flex items-center justify-between pt-2">
+                                        <span class="text-xs text-[#1a4d3a] font-medium">${pageInfo}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="QuranComponent.openSavedPosition(${index})"
+                                                class="text-xs bg-[#1a4d3a] text-white px-3 py-1 rounded-full hover:bg-[#145d3a] transition">
+                                                Buka
+                                            </button>
+                                            <button onclick="QuranComponent.deleteSavedPosition(${index})"
+                                                class="text-xs text-red-500 hover:text-red-600 transition">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            /**
+             * Open a saved reading position
+             */
+            async openSavedPosition(index) {
+                const positions = Storage.get('reading_positions', []);
+                const position = positions[index];
+
+                if (!position) {
+                    UI.toast('Posisi tidak ditemukan');
+                    return;
+                }
+
+                try {
+                    if (position.type === 'surah') {
+                        // Open surah with saved display option
+                        await this.openSurah(position.surahNumber, true);
+                        // Set to saved page if in per-halaman mode
+                        if (position.displayOption === 'per-halaman' && position.page) {
+                            this.paginationState.currentPage = position.page;
+                            this.renderSurahDetail(this.currentSurah, position.displayOption);
+                        }
+                        UI.toast(`Membuka ${position.surahName}`);
+                    } else if (position.type === 'juz') {
+                        // Open juz with saved display option
+                        await this.openJuz(position.juzNumber);
+                        // Set to saved page if in per-halaman mode
+                        if (position.displayOption === 'per-halaman' && position.page) {
+                            this.paginationState.currentPage = position.page;
+                            this.renderJuzDetail(this.currentJuzData, position.displayOption);
+                        }
+                        UI.toast(`Membuka Juz ${position.juzNumber}`);
+                    }
+                } catch (error) {
+                    console.error('Error opening saved position:', error);
+                    UI.toast('Gagal membuka posisi');
+                }
+            },
+
+            /**
+             * Delete a saved reading position
+             */
+            deleteSavedPosition(index) {
+                const positions = Storage.get('reading_positions', []);
+
+                if (index >= 0 && index < positions.length) {
+                    const deleted = positions.splice(index, 1)[0];
+                    Storage.set('reading_positions', positions);
+                    this.loadSavedPositions();
+                    UI.toast('Posisi dihapus');
+                }
+            },
+
+            /**
+             * Get time ago string from timestamp
+             */
+            getTimeAgo(timestamp) {
+                const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+                if (seconds < 60) return 'Baru saja';
+                if (seconds < 3600) return `${Math.floor(seconds / 60)} menit lalu`;
+                if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam lalu`;
+                if (seconds < 604800) return `${Math.floor(seconds / 86400)} hari lalu`;
+                if (seconds < 2592000) return `${Math.floor(seconds / 604800)} minggu lalu`;
+                if (seconds < 31536000) return `${Math.floor(seconds / 2592000)} bulan lalu`;
+                return `${Math.floor(seconds / 31536000)} tahun lalu`;
             },
 
             /**
@@ -9712,6 +10005,16 @@
                 const juzList = document.getElementById('juzList');
                 const tabSurah = document.getElementById('tabSurah');
                 const tabJuz = document.getElementById('tabJuz');
+                const headerTitle = document.getElementById('quranHeaderTitle');
+
+                // Update header title based on mode
+                if (headerTitle) {
+                    if (mode === 'surah') {
+                        headerTitle.textContent = 'Baca Surah';
+                    } else if (mode === 'juz') {
+                        headerTitle.textContent = 'Baca Juz';
+                    }
+                }
 
                 // Reset all tabs
                 [tabSurah, tabJuz].forEach(tab => {
@@ -9852,6 +10155,7 @@
                     this.currentJuz = juzNumber;
                     this.currentJuzData = juzData;
                     this.currentDisplayOption = displayOption;
+                    this.currentMode = 'juz'; // Set mode to juz
 
                     // Save last read
                     Storage.setLastReadJuz(juzNumber, 1);
@@ -9882,11 +10186,6 @@
 
                 const backBtn = document.getElementById('backBtn');
                 if (backBtn) backBtn.classList.remove('hidden');
-
-                // Update juz info
-                const arabicNumber = this.toArabicNumeral(juzData.number);
-                document.getElementById('juzNumberArabic').textContent = arabicNumber;
-                document.getElementById('juzNumber').textContent = `Juz ${juzData.number}`;
 
                 // Calculate surah range and ayah count
                 const uniqueSurahs = [...new Set(juzData.ayahs.map(a => a.surah.number))];
@@ -9976,15 +10275,20 @@
                                     <div class="flex-1">
                                         <!-- Actions Toolbar -->
                                         <div class="flex items-center gap-2 mb-3">
+                                            <button onclick="QuranComponent.toggleBookmark('juz-per-surah', ${juzData.number}, ${ayahNumber}, ${surah.number}, ${ayah.numberInSurah})"
+                                                    class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 transition flex items-center justify-center bookmark-btn"
+                                                    data-type="juz-per-surah"
+                                                    data-juz="${juzData.number}"
+                                                    data-surah="${surah.number}"
+                                                    data-surah-ayah="${ayah.numberInSurah}"
+                                                    data-global-ayah="${ayahNumber}"
+                                                    title="Tandai bacaan">
+                                                <i class="fas fa-bookmark text-sm"></i>
+                                            </button>
                                             <button onclick="QuranComponent.playJuzAyahAudio(${ayahNumber}, ${surah.number}, ${ayah.numberInSurah})"
                                                     class="w-8 h-8 rounded-full bg-[#81C784] text-primary-600 hover:bg-[#66BB6A] transition flex items-center justify-center"
                                                     title="Putar audio">
                                                 <i class="fas fa-play text-sm"></i>
-                                            </button>
-                                            <button onclick="QuranComponent.toggleJuzBookmark(${juzData.number}, ${surah.number}, ${ayah.numberInSurah}, this)"
-                                                    class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center bookmark-btn"
-                                                    title="Bookmark">
-                                                <i class="far fa-bookmark text-sm"></i>
                                             </button>
                                             <button onclick="QuranComponent.copyJuzAyah(${juzData.number}, ${surah.number}, ${ayah.numberInSurah})"
                                                     class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
@@ -10031,8 +10335,10 @@
 
                 container.innerHTML = html;
 
-                // Update bookmark icons
-                this.updateJuzBookmarkIcons();
+                // Update bookmark button states
+                if (typeof this.checkAndUpdateBookmarkButtons === 'function') {
+                    this.checkAndUpdateBookmarkButtons();
+                }
             },
 
             /**
@@ -10113,6 +10419,11 @@
                 `;
 
                 container.innerHTML = html;
+
+                // Update bookmark button states
+                if (typeof this.checkAndUpdateBookmarkButtons === 'function') {
+                    this.checkAndUpdateBookmarkButtons();
+                }
             },
 
             /**
@@ -10138,6 +10449,19 @@
 
                     return `
                         <div class="mb-6 ${!isLastVerse ? 'pb-6 border-b border-[#1a4d3a] border-opacity-30' : ''}" data-ayah-number="${globalIndex + 1}">
+                            <div class="flex justify-end mb-2">
+                                <button onclick="QuranComponent.toggleBookmark('juz-per-halaman', ${this.currentJuz}, ${globalIndex + 1}, ${ayah.surah.number}, ${ayah.numberInSurah}, ${this.paginationState.currentPage})"
+                                        class="w-7 h-7 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 transition flex items-center justify-center bookmark-btn"
+                                        data-type="juz-per-halaman"
+                                        data-juz="${this.currentJuz}"
+                                        data-surah="${ayah.surah.number}"
+                                        data-surah-ayah="${ayah.numberInSurah}"
+                                        data-global-ayah="${globalIndex + 1}"
+                                        data-page="${this.paginationState.currentPage}"
+                                        title="Tandai bacaan">
+                                    <i class="fas fa-bookmark text-xs"></i>
+                                </button>
+                            </div>
                             <!-- Small surah indicator -->
                             <div class="text-xs text-gray-500 mb-2 text-center">
                                 ${ayah.surah.englishName} • Ayat ${ayah.numberInSurah}
@@ -10276,63 +10600,6 @@
                     this.currentPlayingAyah = null;
                     UI.toast('Gagal memutar audio');
                 }
-            },
-
-            /**
-             * Toggle bookmark for juz ayah
-             */
-            toggleJuzBookmark(juzNumber, surahNumber, ayahNumber, btn) {
-                const bookmarks = Storage.getBookmarks();
-                const exists = bookmarks.some(b =>
-                    b.surahNumber === surahNumber && b.ayahNumber === ayahNumber
-                );
-
-                if (exists) {
-                    Storage.removeBookmark(surahNumber, ayahNumber);
-                    btn.innerHTML = '<i class="far fa-bookmark text-sm"></i>';
-                    UI.toast('Bookmark dihapus');
-                } else {
-                    Storage.addBookmark({
-                        surahNumber,
-                        ayahNumber,
-                        juzNumber,
-                        timestamp: Date.now()
-                    });
-                    btn.innerHTML = '<i class="fas fa-bookmark text-sm"></i>';
-                    btn.classList.remove('bg-[#F5F5F5]', 'text-[#333333]');
-                    btn.classList.add('bg-[#0D3D1E]', 'text-white');
-                    UI.toast('Bookmark ditambahkan');
-                }
-            },
-
-            /**
-             * Update bookmark icons for juz verses
-             */
-            updateJuzBookmarkIcons() {
-                const bookmarks = Storage.getBookmarks();
-                const verseCards = document.querySelectorAll('#juzVersesList .verse-card');
-
-                verseCards.forEach(card => {
-                    const surahNumber = parseInt(card.dataset.surahNumber);
-                    const ayahNumber = parseInt(card.dataset.surahAyahNumber);
-                    const btn = card.querySelector('.bookmark-btn');
-
-                    if (btn) {
-                        const isBookmarked = bookmarks.some(b =>
-                            b.surahNumber === surahNumber && b.ayahNumber === ayahNumber
-                        );
-
-                        if (isBookmarked) {
-                            btn.innerHTML = '<i class="fas fa-bookmark text-sm"></i>';
-                            btn.classList.remove('bg-[#F5F5F5]', 'text-[#333333]');
-                            btn.classList.add('bg-[#0D3D1E]', 'text-white');
-                        } else {
-                            btn.innerHTML = '<i class="far fa-bookmark text-sm"></i>';
-                            btn.classList.remove('bg-[#0D3D1E]', 'text-white');
-                            btn.classList.add('bg-[#F5F5F5]', 'text-[#333333]');
-                        }
-                    }
-                });
             },
 
             /**
@@ -10508,6 +10775,614 @@
                     console.error('Download surah error:', error);
                     UI.toast('Gagal mendownload audio. Coba lagi nanti.');
                 }
+            },
+
+            /**
+             * Reset component state
+             */
+            reset() {
+                this.stopAudio();
+                this.currentSurah = null;
+                this.currentAyahs = [];
+                this.currentJuz = null;
+                this.currentJuzData = null;
+                this.currentMode = 'surah';
+                document.getElementById('searchSurah').value = '';
+
+                // Cleanup carousel
+                this.stopAutoSlide();
+                this.carouselState = null;
+            },
+
+            /**
+             * Scroll to top with smooth animation
+             */
+            scrollToTop() {
+                // Use setTimeout to ensure DOM is updated after render
+                setTimeout(() => {
+                    // Scroll the main content container (which has overflow-y-auto)
+                    const mainContent = document.querySelector('main');
+                    if (mainContent) {
+                        mainContent.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    // Also try window scrollTo as fallback
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }, 50);
+            },
+
+            /**
+             * Reset component state
+             */
+            resetComponent() {
+                this.currentCategory = null;
+                this.currentIndex = 0;
+            },
+
+            /**
+             * ========================================
+             * BOOKMARK & READING PROGRESS SYSTEM
+             * ========================================
+             */
+
+            /**
+             * Get all bookmarks from localStorage
+             */
+            getBookmarks() {
+                try {
+                    const bookmarks = localStorage.getItem('quran-bookmarks');
+                    return bookmarks ? JSON.parse(bookmarks) : {};
+                } catch (e) {
+                    console.error('Error reading bookmarks:', e);
+                    return {};
+                }
+            },
+
+            /**
+             * Save bookmarks to localStorage
+             */
+            saveBookmarks(bookmarks) {
+                try {
+                    localStorage.setItem('quran-bookmarks', JSON.stringify(bookmarks));
+                } catch (e) {
+                    console.error('Error saving bookmarks:', e);
+                    UI.toast('Gagal menyimpan bookmark');
+                }
+            },
+
+            /**
+             * Toggle bookmark for a verse
+             * @param {string} type - Bookmark type: 'surah-per-surah', 'surah-per-halaman', 'juz-per-surah', 'juz-per-halaman'
+             * @param {number} primaryId - Surah number or Juz number
+             * @param {number} ayahNumber - Ayah number (global for surah, local for juz)
+             * @param {number} surahNumber - Surah number (for juz modes)
+             * @param {number} surahAyahNumber - Ayah number in surah (for juz modes)
+             * @param {number} pageNumber - Page number (for per-halaman modes)
+             */
+            toggleBookmark(type, primaryId, ayahNumber, surahNumber = null, surahAyahNumber = null, pageNumber = null) {
+                const bookmarks = this.getBookmarks();
+                const bookmarkKey = `${type}-${primaryId}-ayah-${ayahNumber}`;
+
+                // Check if bookmark exists
+                if (bookmarks[bookmarkKey]) {
+                    // Remove bookmark
+                    delete bookmarks[bookmarkKey];
+                    this.saveBookmarks(bookmarks);
+                    UI.toast('Bookmark dihapus');
+
+                    // Update button appearance
+                    this.updateBookmarkButton(bookmarkKey, false);
+                } else {
+                    // Create bookmark
+                    const bookmark = {
+                        type,
+                        primaryId,
+                        ayahNumber,
+                        timestamp: Date.now(),
+                        surahNumber: surahNumber || primaryId,
+                        surahAyahNumber: surahAyahNumber || ayahNumber,
+                        pageNumber: pageNumber || 1
+                    };
+
+                    bookmarks[bookmarkKey] = bookmark;
+                    this.saveBookmarks(bookmarks);
+                    UI.toast('Bacaan ditandai');
+
+                    // Update button appearance
+                    this.updateBookmarkButton(bookmarkKey, true);
+                }
+
+                // Update continue reading button if exists
+                this.updateContinueReadingButton();
+
+                // Stop auto-slide to prevent conflicts
+                this.stopAutoSlide();
+            },
+
+            /**
+             * Update bookmark button appearance
+             */
+            updateBookmarkButton(bookmarkKey, isBookmarked) {
+                const buttons = document.querySelectorAll(`.bookmark-btn`);
+                buttons.forEach(btn => {
+                    const type = btn.dataset.type;
+                    const surah = btn.dataset.surah || btn.dataset.juz;
+                    const ayah = btn.dataset.ayah || btn.dataset.globalAyah;
+
+                    if (type && surah && ayah) {
+                        const key = `${type}-${surah}-ayah-${ayah}`;
+                        if (key === bookmarkKey) {
+                            const icon = btn.querySelector('i');
+                            if (isBookmarked) {
+                                btn.classList.remove('bg-amber-100', 'text-amber-600');
+                                btn.classList.add('bg-amber-500', 'text-white');
+                                icon.classList.remove('fa-bookmark');
+                                icon.classList.add('fa-bookmark-filled');
+                            } else {
+                                btn.classList.remove('bg-amber-500', 'text-white');
+                                btn.classList.add('bg-amber-100', 'text-amber-600');
+                                icon.classList.remove('fa-bookmark-filled');
+                                icon.classList.add('fa-bookmark');
+                            }
+                        }
+                    }
+                });
+            },
+
+            /**
+             * Check if a specific verse is bookmarked and update UI
+             */
+            checkAndUpdateBookmarkButtons() {
+                const bookmarks = this.getBookmarks();
+                const buttons = document.querySelectorAll(`.bookmark-btn`);
+
+                buttons.forEach(btn => {
+                    const type = btn.dataset.type;
+                    const surah = btn.dataset.surah || btn.dataset.juz;
+                    const ayah = btn.dataset.ayah || btn.dataset.globalAyah;
+
+                    if (type && surah && ayah) {
+                        const key = `${type}-${surah}-ayah-${ayah}`;
+                        const isBookmarked = !!bookmarks[key];
+                        this.updateBookmarkButton(key, isBookmarked);
+                    }
+                });
+            },
+
+            /**
+             * Get the latest bookmark (last reading position)
+             */
+            getLatestBookmark() {
+                const bookmarks = this.getBookmarks();
+                let latest = null;
+                let latestTime = 0;
+
+                Object.values(bookmarks).forEach(bookmark => {
+                    if (bookmark.timestamp > latestTime) {
+                        latest = bookmark;
+                        latestTime = bookmark.timestamp;
+                    }
+                });
+
+                return latest;
+            },
+
+            /**
+             * Continue reading from the latest bookmark
+             */
+            continueReading() {
+                const bookmark = this.getLatestBookmark();
+
+                if (!bookmark) {
+                    UI.toast('Belum ada bacaan yang ditandai');
+                    return;
+                }
+
+                // Navigate to the bookmarked location
+                switch (bookmark.type) {
+                    case 'surah-per-surah':
+                        this.loadSurahWithDisplay(bookmark.primaryId, 'per-surah');
+                        setTimeout(() => {
+                            const ayahElement = document.getElementById(`ayah-${bookmark.ayahNumber}`);
+                            if (ayahElement) {
+                                ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                            }
+                        }, 500);
+                        break;
+
+                    case 'surah-per-halaman':
+                        this.loadSurahWithDisplay(bookmark.primaryId, 'per-halaman');
+                        setTimeout(() => {
+                            this.goToPage(bookmark.pageNumber);
+                            setTimeout(() => {
+                                const ayahElement = document.querySelector(`[data-ayah-number="${bookmark.ayahNumber}"]`);
+                                if (ayahElement) {
+                                    ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                    setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                                }
+                            }, 500);
+                        }, 500);
+                        break;
+
+                    case 'juz-per-surah':
+                        this.loadJuzWithDisplay(bookmark.primaryId, 'per-surah');
+                        setTimeout(() => {
+                            const ayahElement = document.getElementById(`ayah-${bookmark.ayahNumber}`);
+                            if (ayahElement) {
+                                ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                            }
+                        }, 500);
+                        break;
+
+                    case 'juz-per-halaman':
+                        this.loadJuzWithDisplay(bookmark.primaryId, 'per-halaman');
+                        setTimeout(() => {
+                            setTimeout(() => {
+                                const ayahElement = document.querySelector(`[data-ayah-number="${bookmark.ayahNumber}"]`);
+                                if (ayahElement) {
+                                    ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                    setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                                }
+                            }, 500);
+                        }, 500);
+                        break;
+                }
+
+                UI.toast('Lanjut ke bacaan terakhir');
+            },
+
+            /**
+             * Update the "Continue Reading" button on home page with carousel
+             */
+            updateContinueReadingButton() {
+                const bookmarks = this.getBookmarks();
+                const continueBtn = document.getElementById('continueReadingBtn');
+
+                if (!continueBtn) return;
+
+                // Get all bookmarks and sort by timestamp (newest first)
+                const bookmarkArray = Object.values(bookmarks).sort((a, b) => b.timestamp - a.timestamp);
+
+                if (bookmarkArray.length > 0) {
+                    continueBtn.classList.remove('hidden');
+
+                    // Update bookmark count
+                    const bookmarkCount = document.getElementById('bookmarkCount');
+                    if (bookmarkCount) {
+                        bookmarkCount.textContent = bookmarkArray.length;
+                    }
+
+                    // Initialize carousel state if not exists
+                    if (!this.carouselState) {
+                        this.carouselState = {
+                            currentSlide: 0,
+                            totalSlides: bookmarkArray.length
+                        };
+                    } else {
+                        this.carouselState.totalSlides = bookmarkArray.length;
+                        // Reset to first slide if we have more slides than before
+                        if (this.carouselState.currentSlide >= bookmarkArray.length) {
+                            this.carouselState.currentSlide = 0;
+                        }
+                    }
+
+                    // Render carousel items
+                    this.renderBookmarkCarousel(bookmarkArray);
+                    this.updateCarouselIndicators(bookmarkArray.length);
+                    this.updateCarouselNavigation();
+
+                    // Setup touch gestures for carousel
+                    this.setupCarouselGestures();
+                } else {
+                    continueBtn.classList.add('hidden');
+                    // Reset carousel state when no bookmarks
+                    this.carouselState = null;
+                }
+            },
+
+            /**
+             * Setup touch/swipe gestures for bookmark carousel
+             */
+            setupCarouselGestures() {
+                const carousel = document.getElementById('bookmarkCarousel');
+                if (!carousel) return;
+
+                let touchStartX = 0;
+                let touchEndX = 0;
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                const minSwipeDistance = 50;
+
+                carousel.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                carousel.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    touchEndY = e.changedTouches[0].screenY;
+
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+
+                    // Only process horizontal swipes
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                        if (deltaX > 0) {
+                            // Swipe right - previous slide
+                            this.prevBookmarkSlide();
+                        } else {
+                            // Swipe left - next slide
+                            this.nextBookmarkSlide();
+                        }
+                    }
+                }, { passive: true });
+
+                // Setup auto-slide
+                this.startAutoSlide();
+            },
+
+            /**
+             * Start auto-slide for carousel
+             */
+            startAutoSlide() {
+                // Clear any existing interval
+                if (this.autoSlideInterval) {
+                    clearInterval(this.autoSlideInterval);
+                }
+
+                // Only auto-slide if there are multiple bookmarks
+                if (!this.carouselState || this.carouselState.totalSlides <= 1) return;
+
+                // Auto-slide every 5 seconds
+                this.autoSlideInterval = setInterval(() => {
+                    const { currentSlide, totalSlides } = this.carouselState;
+
+                    // Go to next slide, or loop back to first
+                    const nextSlide = (currentSlide + 1) % totalSlides;
+                    this.goToBookmarkSlide(nextSlide);
+                }, 5000);
+            },
+
+            /**
+             * Stop auto-slide (called when user interacts with carousel)
+             */
+            stopAutoSlide() {
+                if (this.autoSlideInterval) {
+                    clearInterval(this.autoSlideInterval);
+                    this.autoSlideInterval = null;
+                }
+            },
+
+            /**
+             * Render bookmark carousel items
+             */
+            renderBookmarkCarousel(bookmarkArray) {
+                const carousel = document.getElementById('bookmarkCarousel');
+                if (!carousel) return;
+
+                carousel.innerHTML = bookmarkArray.map((bookmark, index) => {
+                    const timeSince = Math.floor((Date.now() - bookmark.timestamp) / (1000 * 60 * 60)); // hours
+
+                    let timeText = 'Baru saja';
+                    if (timeSince >= 1 && timeSince < 24) {
+                        timeText = `${timeSince} jam yang lalu`;
+                    } else if (timeSince >= 24) {
+                        const days = Math.floor(timeSince / 24);
+                        timeText = `${days} hari yang lalu`;
+                    }
+
+                    // Update text based on type
+                    let locationText = '';
+                    let iconClass = 'fa-book-quran';
+
+                    switch (bookmark.type) {
+                        case 'surah-per-surah':
+                        case 'surah-per-halaman':
+                            locationText = `Surah ${bookmark.surahNumber}: Ayat ${bookmark.surahAyahNumber}`;
+                            iconClass = 'fa-book-quran';
+                            break;
+                        case 'juz-per-surah':
+                        case 'juz-per-halaman':
+                            locationText = `Juz ${bookmark.primaryId}: ${bookmark.surahNumber}:${bookmark.surahAyahNumber}`;
+                            iconClass = 'fa-layer-group';
+                            break;
+                    }
+
+                    return `
+                        <div class="bookmark-slide w-full flex-shrink-0 px-2" data-index="${index}">
+                            <button onclick="QuranComponent.continueReadingToBookmark('${bookmark.type}', ${bookmark.primaryId}, ${bookmark.ayahNumber}, ${bookmark.surahNumber}, ${bookmark.surahAyahNumber}, ${bookmark.pageNumber})"
+                                    class="w-full text-left bg-white bg-opacity-10 hover:bg-opacity-20 rounded-xl p-4 transition">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas ${iconClass} text-[#D4AF37] text-sm"></i>
+                                            <span class="text-xs font-semibold text-white opacity-90">Bacaan Tersimpan ${index + 1}</span>
+                                        </div>
+                                        <p class="text-sm font-medium text-white mb-1">${locationText}</p>
+                                        <p class="text-xs opacity-75 text-white">${timeText}</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-white opacity-75"></i>
+                                </div>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Update carousel position
+                this.updateCarouselPosition();
+            },
+
+            /**
+             * Update carousel position based on current slide
+             */
+            updateCarouselPosition() {
+                const carousel = document.getElementById('bookmarkCarousel');
+                if (!carousel || !this.carouselState) return;
+
+                const slideWidth = 100; // 100% width per slide
+                const translateX = -(this.carouselState.currentSlide * slideWidth);
+                carousel.style.transform = `translateX(${translateX}%)`;
+            },
+
+            /**
+             * Update carousel indicators
+             */
+            updateCarouselIndicators(totalSlides) {
+                const indicators = document.getElementById('carouselIndicators');
+                if (!indicators || !this.carouselState) return;
+
+                indicators.innerHTML = Array.from({ length: totalSlides }, (_, index) => {
+                    const isActive = index === this.carouselState.currentSlide;
+                    return `
+                        <button onclick="QuranComponent.goToBookmarkSlide(${index})"
+                                class="w-2 h-2 rounded-full transition ${isActive ? 'bg-amber-500' : 'bg-white bg-opacity-40 hover:bg-opacity-60'}"
+                                aria-label="Go to slide ${index + 1}">
+                        </button>
+                    `;
+                }).join('');
+            },
+
+            /**
+             * Update carousel navigation buttons state
+             */
+            updateCarouselNavigation() {
+                const prevBtn = document.getElementById('carouselPrevBtn');
+                const nextBtn = document.getElementById('carouselNextBtn');
+
+                if (!prevBtn || !nextBtn || !this.carouselState) return;
+
+                const { currentSlide, totalSlides } = this.carouselState;
+
+                // Disable prev button on first slide
+                if (currentSlide === 0) {
+                    prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    prevBtn.disabled = true;
+                } else {
+                    prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    prevBtn.disabled = false;
+                }
+
+                // Disable next button on last slide
+                if (currentSlide === totalSlides - 1) {
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextBtn.disabled = true;
+                } else {
+                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    nextBtn.disabled = false;
+                }
+            },
+
+            /**
+             * Go to specific bookmark slide
+             */
+            goToBookmarkSlide(index) {
+                if (!this.carouselState || index < 0 || index >= this.carouselState.totalSlides) return;
+
+                this.carouselState.currentSlide = index;
+                this.updateCarouselPosition();
+                this.updateCarouselIndicators(this.carouselState.totalSlides);
+                this.updateCarouselNavigation();
+
+                // Restart auto-slide when user manually navigates
+                this.startAutoSlide();
+            },
+
+            /**
+             * Next bookmark slide
+             */
+            nextBookmarkSlide() {
+                if (!this.carouselState) return;
+                const nextSlide = this.carouselState.currentSlide + 1;
+                if (nextSlide < this.carouselState.totalSlides) {
+                    this.goToBookmarkSlide(nextSlide);
+                }
+            },
+
+            /**
+             * Previous bookmark slide
+             */
+            prevBookmarkSlide() {
+                if (!this.carouselState) return;
+                const prevSlide = this.carouselState.currentSlide - 1;
+                if (prevSlide >= 0) {
+                    this.goToBookmarkSlide(prevSlide);
+                }
+            },
+
+            /**
+             * Continue reading to a specific bookmark
+             */
+            continueReadingToBookmark(type, primaryId, ayahNumber, surahNumber, surahAyahNumber, pageNumber) {
+                // Navigate to the bookmarked location
+                switch (type) {
+                    case 'surah-per-surah':
+                        this.loadSurahWithDisplay(primaryId, 'per-surah');
+                        setTimeout(() => {
+                            const ayahElement = document.getElementById(`ayah-${ayahNumber}`);
+                            if (ayahElement) {
+                                ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                            }
+                        }, 500);
+                        break;
+
+                    case 'surah-per-halaman':
+                        this.loadSurahWithDisplay(primaryId, 'per-halaman');
+                        setTimeout(() => {
+                            this.goToPage(pageNumber);
+                            setTimeout(() => {
+                                const ayahElement = document.querySelector(`[data-ayah-number="${ayahNumber}"]`);
+                                if (ayahElement) {
+                                    ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                    setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                                }
+                            }, 500);
+                        }, 500);
+                        break;
+
+                    case 'juz-per-surah':
+                        this.loadJuzWithDisplay(primaryId, 'per-surah');
+                        setTimeout(() => {
+                            const ayahElement = document.getElementById(`ayah-${ayahNumber}`);
+                            if (ayahElement) {
+                                ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                            }
+                        }, 500);
+                        break;
+
+                    case 'juz-per-halaman':
+                        this.loadJuzWithDisplay(primaryId, 'per-halaman');
+                        setTimeout(() => {
+                            setTimeout(() => {
+                                const ayahElement = document.querySelector(`[data-ayah-number="${ayahNumber}"]`);
+                                if (ayahElement) {
+                                    ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    ayahElement.classList.add('ring-2', 'ring-amber-500');
+                                    setTimeout(() => ayahElement.classList.remove('ring-2', 'ring-amber-500'), 3000);
+                                }
+                            }, 500);
+                        }, 500);
+                        break;
+                }
+
+                UI.toast('Lanjut ke bacaan yang dipilih');
             }
         };
 
@@ -10533,6 +11408,9 @@
                 this.loadLastRead();
                 this.setupQuickActions();
                 this.setupSettingsListeners();
+
+                // Set initial navigation state
+                this.updateNavigationState('home');
 
                 // Initialize components sequentially with delays to prevent rate limiting
                 console.log('📦 Initializing components sequentially...');
@@ -10583,7 +11461,13 @@
                     btn.addEventListener('click', (e) => {
                         const page = btn.dataset.page;
                         if (page) {
-                            this.navigateTo(page);
+                            // Special handling for Quran navigation button
+                            if (page === 'quran' && (this.currentPage === 'surahDetail' || this.currentPage === 'juzDetail')) {
+                                // If currently in surah/juz detail, go back to quran list
+                                this.goBack();
+                            } else {
+                                this.navigateTo(page);
+                            }
                         }
                     });
                 });
@@ -11002,12 +11886,23 @@
                 navButtons.forEach(btn => {
                     const page = btn.dataset.page;
 
+                    // Determine if this button should be active
+                    let shouldBeActive = false;
+
                     if (page === activePage) {
-                        btn.classList.remove('text-[#333333]');
-                        btn.classList.add('text-primary-600');
+                        shouldBeActive = true;
+                    }
+                    // Special case: Quran navigation should be active for Quran-related pages
+                    else if (page === 'quran' && (activePage === 'surahDetail' || activePage === 'juzDetail')) {
+                        shouldBeActive = true;
+                    }
+
+                    if (shouldBeActive) {
+                        btn.classList.add('active');
+                        btn.classList.remove('text-[#333333]', 'text-primary-600');
                     } else {
-                        btn.classList.remove('text-primary-600');
-                        btn.classList.add('text-[#333333]');
+                        btn.classList.remove('active');
+                        btn.classList.remove('text-[#333333]', 'text-primary-600');
                     }
                 });
             },
@@ -11034,7 +11929,7 @@
                         break;
 
                     case 'quran':
-                        headerTitle.textContent = 'Daftar Surah';
+                        headerTitle.textContent = 'Baca Al-Quran';
                         headerSubtitle.textContent = '114 Surah Al-Quran';
                         headerSubtitle.classList.remove('hidden');
                         backBtn.classList.remove('hidden'); // Show back button for Android WebView
@@ -11060,6 +11955,14 @@
                         backBtn.classList.remove('hidden'); // Show back button for Android WebView
                         settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
                         this.renderBookmarks();
+                        break;
+
+                    case 'savedPositions':
+                        headerTitle.textContent = 'Posisi Tersimpan';
+                        headerSubtitle.textContent = 'Riwayat bacaan Anda';
+                        headerSubtitle.classList.remove('hidden');
+                        backBtn.classList.remove('hidden');
+                        settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
                         break;
 
                     case 'prayerTimes':
@@ -11181,6 +12084,10 @@
                         this.renderBookmarks();
                         break;
 
+                    case 'savedPositions':
+                        QuranComponent.loadSavedPositions();
+                        break;
+
                     case 'prayerTimes':
                         // Prayer times already loaded on init
                         break;
@@ -11226,10 +12133,6 @@
                         if (data.category) {
                             DoaHarianComponent.renderDetail(data.category, 0);
                         }
-                        break;
-
-                    case 'surahDetail':
-                        QuranComponent.updateBookmarkIcons();
                         break;
 
                     case 'settings':
@@ -12611,6 +13514,9 @@
 
             // Load doa harian data
             DoaHarianComponent.loadData();
+
+            // Initialize continue reading button
+            QuranComponent.updateContinueReadingButton();
 
             // Setup visibility change
             document.addEventListener('visibilitychange', () => {
