@@ -4236,9 +4236,13 @@
                     : '<div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700"><i class="fas fa-exclamation-triangle mr-1"></i> Berjalan di browser - notifikasi hanya muncul saat app dibuka</div>';
 
                 const html = `
-                    <div id="settingsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-2xl max-w-md w-full p-6">
-                            <h3 class="text-lg font-bold text-[#2B2B2B] mb-4">Pengaturan Jadwal Sholat</h3>
+                <!-- Settings Modal Jadwal Sholat -->
+                    <div id="settingsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target === this) PrayerTimesComponent.closeSettings()">
+                        <div class="bg-white rounded-2xl max-w-md w-full p-6 relative">
+                            <button onclick="PrayerTimesComponent.closeSettings()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <h3 class="text-lg font-bold text-[#2B2B2B] mb-4 pr-8">Pengaturan Jadwal Sholat</h3>
 
                             ${platformInfo}
 
@@ -4298,6 +4302,15 @@
 
                 // Add modal to body
                 document.body.insertAdjacentHTML('beforeend', html);
+
+                // Add ESC key listener to close modal
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeSettings();
+                        document.removeEventListener('keydown', handleEscape);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
             },
 
             /**
