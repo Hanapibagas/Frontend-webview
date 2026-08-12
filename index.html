@@ -11629,13 +11629,7 @@
                     });
                 });
 
-                // Setup settings button (bookmarks for now)
-                const settingsBtn = document.getElementById('settingsBtn');
-                if (settingsBtn) {
-                    settingsBtn.addEventListener('click', () => {
-                        this.navigateTo('bookmarks');
-                    });
-                }
+                // Note: settingsBtn in prayerTimesPage is handled by PrayerTimesComponent.setupEventListeners()
             },
 
             /**
