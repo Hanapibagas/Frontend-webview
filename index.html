@@ -3995,6 +3995,20 @@
                     audioControl.classList.add('bg-[#0D3D1E]', 'hover:bg-[#0D3D1E]');
                     audioControl.title = 'Putar Adzan';
                 }
+
+                // Update Test Audio button in settings modal
+                const testAudioBtn = document.getElementById('testAudioBtn');
+                if (testAudioBtn) {
+                    if (this.isPlayingAdzan) {
+                        testAudioBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Test';
+                        testAudioBtn.classList.remove('bg-[#81C784]', 'hover:bg-[#66BB6A]');
+                        testAudioBtn.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white');
+                    } else {
+                        testAudioBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Test Suara Adzan';
+                        testAudioBtn.classList.remove('bg-red-500', 'hover:bg-red-600', 'text-white');
+                        testAudioBtn.classList.add('bg-[#81C784]', 'hover:bg-[#66BB6A]');
+                    }
+                }
             },
 
             /**
@@ -4264,7 +4278,7 @@
                                 </div>
 
                                 <!-- Test Audio -->
-                                <button onclick="PrayerTimesComponent.testAdzan()" class="w-full p-4 bg-[#81C784] text-primary-600 rounded-xl hover:bg-[#66BB6A] transition font-semibold">
+                                <button id="testAudioBtn" onclick="PrayerTimesComponent.testAdzan()" class="w-full p-4 bg-[#81C784] text-primary-600 rounded-xl hover:bg-[#66BB6A] transition font-semibold">
                                     <i class="fas fa-play mr-2"></i> Test Suara Adzan
                                 </button>
                             </div>
@@ -4305,10 +4319,15 @@
             },
 
             /**
-             * Test adzan
+             * Test adzan - toggle play/stop
              */
             testAdzan() {
-                this.playAdzan({ name: 'Test' });
+                if (this.isPlayingAdzan) {
+                    this.stopAdzan();
+                    UI.toast('🔇 Test suara dihentikan');
+                } else {
+                    this.playAdzan({ name: 'Test' });
+                }
             },
 
             /**
@@ -4318,6 +4337,10 @@
                 const modal = document.getElementById('settingsModal');
                 if (modal) {
                     modal.remove();
+                }
+                // Stop audio if playing
+                if (this.isPlayingAdzan) {
+                    this.stopAdzan();
                 }
             },
 
