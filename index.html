@@ -3404,7 +3404,8 @@
                 // Settings button
                 const settingsBtn = document.querySelector('#prayerTimesPage #settingsBtn');
                 if (settingsBtn) {
-                    settingsBtn.addEventListener('click', () => {
+                    settingsBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         this.showSettings();
                     });
                 }
@@ -4239,7 +4240,7 @@
                 <!-- Settings Modal Jadwal Sholat -->
                     <div id="settingsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target === this) PrayerTimesComponent.closeSettings()">
                         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative">
-                            <button onclick="PrayerTimesComponent.closeSettings()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition">
+                            <button onclick="event.stopPropagation(); PrayerTimesComponent.closeSettings()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition">
                                 <i class="fas fa-times"></i>
                             </button>
                             <h3 class="text-lg font-bold text-[#2B2B2B] mb-4 pr-8">Pengaturan Jadwal Sholat</h3>
@@ -4282,12 +4283,12 @@
                                 </div>
 
                                 <!-- Test Audio -->
-                                <button id="testAudioBtn" onclick="PrayerTimesComponent.testAdzan()" class="w-full p-4 bg-[#81C784] text-primary-600 rounded-xl hover:bg-[#66BB6A] transition font-semibold">
+                                <button id="testAudioBtn" onclick="event.stopPropagation(); PrayerTimesComponent.testAdzan()" class="w-full p-4 bg-[#81C784] text-primary-600 rounded-xl hover:bg-[#66BB6A] transition font-semibold">
                                     <i class="fas fa-play mr-2"></i> Test Suara Adzan
                                 </button>
                             </div>
 
-                            <button onclick="PrayerTimesComponent.closeSettings()" class="w-full mt-4 py-3 bg-[#81C784] text-[#2B2B2B] rounded-xl hover:bg-[#81C784] transition font-semibold">
+                            <button onclick="event.stopPropagation(); PrayerTimesComponent.closeSettings()" class="w-full mt-4 py-3 bg-[#81C784] text-[#2B2B2B] rounded-xl hover:bg-[#81C784] transition font-semibold">
                                 Tutup
                             </button>
                         </div>
