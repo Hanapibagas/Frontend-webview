@@ -952,7 +952,7 @@
                         <div id="nearbyMosquesList" class="space-y-3">
                             <div class="flex flex-col items-center justify-center py-20">
                                 <i class="fas fa-mosque text-4xl text-[#333333] mb-3"></i>
-                                <p class="text-[#333333]">Tekan tombol refresh</p>
+                                <pgim class="text-[#333333]">Tekan tombol refresh</pgim>
                                 <p class="text-[#333333] text-sm mt-1">untuk menemukan masjid terdekat</p>
                             </div>
                         </div>
@@ -3204,12 +3204,13 @@
             isPlayingAdzan: false,
             isFlutterWebView: false, // Detect if running in Flutter WebView
 
-            // Adzan audio URLs
+            // Adzan audio files (local)
+            // Pastikan file audio ada di folder audio/adzan/
+            // Lihat README.md di folder audio untuk instruksi
             ADZAN_AUDIO: {
-                'Mishary Rashid': 'https://media.bluberry.dyndns.org/audio/Adhan/Mishary_Rashid_Al-Afasy_Adhan.mp3',
-                'Abdul Basit': 'https://media.bluberry.dyndns.org/audio/Adhan/Abdul_Basit_Adhan.mp3',
-                'Maher Al Mueaqly': 'https://media.bluberry.dyndns.org/audio/Adhan/Maher_Al-Muayqly_Adhan.mp3',
-                'Simple Beep': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'
+                'Mishary Rashid': 'audio/adzan/mishary_rashid_alafasy.mp3',
+                'Sheikh Ali Mullah': 'audio/adzan/sheikh_ali_mullah.mp3',
+                'Simple Beep': 'audio/adzan/simple_beep.mp3'
             },
 
             // Prayer names mapping
@@ -3882,8 +3883,36 @@
                     this.audio.onerror = (error) => {
                         console.error('Error playing adzan:', error);
                         this.isPlayingAdzan = false;
-                        UI.toast('❌ Gagal memutar adzan. URL audio tidak dapat diakses.');
-                        this.updateAudioControlUI();
+
+                        // Try fallback to Simple Beep if main audio fails
+                        if (this.selectedAdzan !== 'Simple Beep') {
+                            console.log('Trying fallback audio...');
+                            const fallbackUrl = this.ADZAN_AUDIO['Simple Beep'];
+                            this.audio = new Audio(fallbackUrl);
+                            this.audio.onplay = () => {
+                                console.log('Playing fallback beep');
+                                UI.toast('🔊 Memutar beep (fallback)');
+                                this.updateAudioControlUI();
+                            };
+                            this.audio.onended = () => {
+                                this.isPlayingAdzan = false;
+                                this.updateAudioControlUI();
+                            };
+                            this.audio.onerror = () => {
+                                this.isPlayingAdzan = false;
+                                UI.toast('❌ File audio tidak ditemukan. Cek folder audio/adzan/');
+                                this.updateAudioControlUI();
+                            };
+                            this.audio.play().catch(e => {
+                                console.error('Fallback also failed:', e);
+                                this.isPlayingAdzan = false;
+                                UI.toast('❌ Pastikan file audio ada di folder audio/adzan/');
+                                this.updateAudioControlUI();
+                            });
+                        } else {
+                            UI.toast('❌ File audio tidak ditemukan: audio/adzan/simple_beep.mp3');
+                            this.updateAudioControlUI();
+                        }
                     };
 
                     // Play audio
@@ -12252,6 +12281,13 @@
              */
             renderBookmarks() {
                 const container = document.getElementById('bookmarksList');
+
+                // Check if container exists
+                if (!container) {
+                    console.warn('Bookmarks container not found');
+                    return;
+                }
+
                 const bookmarks = Storage.getBookmarks();
 
                 if (bookmarks.length === 0) {
