@@ -8701,41 +8701,100 @@ ${arabicText}
                         return;
                     }
 
-                    // Parse date string - handle different formats
-                    const dateMatch = article.date.match(/(\d+)\s+(\w+)\s+(\d{4})/);
-                    if (!dateMatch) {
-                        console.error('Invalid date format:', article.date);
-                        UI.toast('Format tanggal tidak sesuai');
-                        return;
-                    }
-
-                    const [, day, monthName, year] = dateMatch;
-                    const month = months[monthName] || '01';
-
-                    // Parse time (e.g., "08:00" or "08:00 - 10:00")
-                    if (!article.time || typeof article.time !== 'string') {
-                        UI.toast('Format waktu tidak valid');
-                        return;
-                    }
-
+                    // Parse time first to get it ready
                     const timeParts = article.time.split(' - ');
                     const startTime = timeParts[0].trim();
                     const endTime = timeParts[1] ? timeParts[1].trim() : this.addHours(startTime, 2);
 
-                    // Parse time to hours and minutes
-                    const [startHour, startMin] = startTime.split(':').map(Number);
-                    const [endHour, endMin] = endTime.split(':').map(Number);
+                    // Parse start time (e.g., "19:00" -> {hour: 19, minute: 0})
+                    const startHourMin = this.parseTime(startTime);
+                    const endHourMin = this.parseTime(endTime);
 
-                    // Create Date objects
-                    const startDateObj = new Date(year, month - 1, day, startHour, startMin);
-                    const endDateObj = new Date(year, month - 1, day, endHour, endMin);
+                    if (!startHourMin || !endHourMin) {
+                        UI.toast('Format waktu tidak valid');
+                        return;
+                    }
+
+                    // Check if it's a recurring schedule (e.g., "Setiap Malam Jumat")
+                    let startDateObj, endDateObj, isRecurring = false;
+                    const recurringMatch = article.date.match(/setiap\s+(malam\s+)?(\w+)/i);
+
+                    if (recurringMatch) {
+                        // Handle recurring schedule
+                        isRecurring = true;
+                        const dayName = recurringMatch[2];
+                        const dayMap = {
+                            'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4,
+                            'jumat': 5, 'sabtu': 6, 'minggu': 0,
+                            'ahad': 0
+                        };
+
+                        const targetDay = dayMap[dayName.toLowerCase()];
+                        if (targetDay === undefined) {
+                            console.error('Invalid day name:', dayName);
+                            UI.toast('Format hari tidak sesuai');
+                            return;
+                        }
+
+                        // Get next occurrence of this day
+                        const today = new Date();
+                        const currentDay = today.getDay();
+                        const daysUntilTarget = (targetDay - currentDay + 7) % 7;
+
+                        // If today is the target day and it's already past the time, use next week
+                        let daysToAdd = daysUntilTarget;
+                        if (daysUntilTarget === 0 && today.getHours() >= startHourMin.hour) {
+                            daysToAdd = 7;
+                        } else if (daysUntilTarget === 0) {
+                            daysToAdd = 0;
+                        }
+
+                        startDateObj = new Date(today);
+                        startDateObj.setDate(today.getDate() + daysToAdd);
+                        startDateObj.setHours(startHourMin.hour, startHourMin.minute, 0, 0);
+
+                        endDateObj = new Date(startDateObj);
+                        endDateObj.setHours(endHourMin.hour, endHourMin.minute, 0, 0);
+                    } else {
+                        // Parse specific date string
+                        const dateMatch = article.date.match(/(\d+)\s+(\w+)\s+(\d{4})/);
+                        if (!dateMatch) {
+                            console.error('Invalid date format:', article.date);
+                            UI.toast('Format tanggal tidak sesuai');
+                            return;
+                        }
+
+                        const [, day, monthName, year] = dateMatch;
+                        const month = months[monthName] || '01';
+
+                        // Validate the parsed values
+                        const yearNum = parseInt(year);
+                        const monthNum = parseInt(month) - 1;
+                        const dayNum = parseInt(day);
+
+                        if (isNaN(yearNum) || isNaN(monthNum) || isNaN(dayNum)) {
+                            UI.toast('Format tanggal tidak valid');
+                            return;
+                        }
+
+                        // Create Date objects with validation
+                        startDateObj = new Date(yearNum, monthNum, dayNum, startHourMin.hour, startHourMin.minute);
+                        endDateObj = new Date(yearNum, monthNum, dayNum, endHourMin.hour, endHourMin.minute);
+
+                        // Check if dates are valid
+                        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+                            UI.toast('Tanggal atau waktu tidak valid');
+                            return;
+                        }
+                    }
 
                     // Create event details
                     const title = article.title || 'Majelis Taklim';
                     const speakerInfo = article.speaker ? `Pemateri: ${article.speaker}\n` : '';
                     const contactInfo = article.contact ? `Kontak: ${article.contact}\n` : '';
                     const descriptionInfo = article.description ? `${article.description}\n\n` : '';
-                    const details = `Majelis Taklim\n\n${speakerInfo}${contactInfo}${descriptionInfo}`;
+                    const scheduleInfo = isRecurring ? `Jadwal: ${article.date}\n` : '';
+                    const details = `Majelis Taklim\n\n${scheduleInfo}${speakerInfo}${contactInfo}${descriptionInfo}`;
 
                     // For ALL devices (iOS, Android, Desktop), download .ics file
                     // This is universal and will open with the default calendar app
@@ -8744,7 +8803,9 @@ ${arabicText}
                         startDateObj,
                         endDateObj,
                         article.location,
-                        details
+                        details,
+                        isRecurring,
+                        article.date
                     );
 
                     // Detect platform for appropriate message
@@ -8765,15 +8826,37 @@ ${arabicText}
             },
 
             /**
+             * Parse time string to hour and minute
+             */
+            parseTime(timeString) {
+                try {
+                    const parts = timeString.split(':');
+                    if (parts.length !== 2) return null;
+
+                    const hour = parseInt(parts[0]);
+                    const minute = parseInt(parts[1]);
+
+                    if (isNaN(hour) || isNaN(minute)) return null;
+                    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+
+                    return { hour, minute };
+                } catch (error) {
+                    console.error('Error parsing time:', error);
+                    return null;
+                }
+            },
+
+            /**
              * Download ICS file for calendar event (for iOS/Mac)
              */
-            downloadICSFile(title, startDate, endDate, location, description) {
+            downloadICSFile(title, startDate, endDate, location, description, isRecurring = false, recurrenceRule = null) {
                 // Format dates for ICS file
                 const formatDate = (date) => {
                     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
                 };
 
-                const icsContent = `BEGIN:VCALENDAR
+                // Build ICS content
+                let icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Majelis Taklim//EN
 CALSCALE:GREGORIAN
@@ -8785,8 +8868,27 @@ DTSTART:${formatDate(startDate)}
 DTEND:${formatDate(endDate)}
 SUMMARY:${title}
 DESCRIPTION:${description.replace(/\n/g, '\\n')}
-LOCATION:${location}
-END:VEVENT
+LOCATION:${location}`;
+
+                // Add recurring rule if this is a recurring event
+                if (isRecurring && recurrenceRule) {
+                    // Parse day name from recurrence rule (e.g., "Setiap Malam Jumat")
+                    const dayMatch = recurrenceRule.match(/setiap\s+(malam\s+)?(\w+)/i);
+                    if (dayMatch) {
+                        const dayName = dayMatch[2].toLowerCase();
+                        const dayMap = {
+                            'senin': 'MO', 'selasa': 'TU', 'rabu': 'WE',
+                            'kamis': 'TH', 'jumat': 'FR', 'sabtu': 'SA',
+                            'minggu': 'SU', 'ahad': 'SU'
+                        };
+                        const dayCode = dayMap[dayName];
+                        if (dayCode) {
+                            icsContent += `\nRRULE:FREQ=WEEKLY;BYDAY=${dayCode}`;
+                        }
+                    }
+                }
+
+                icsContent += `\nEND:VEVENT
 END:VCALENDAR`;
 
                 // Create blob and download
