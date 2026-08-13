@@ -3272,9 +3272,18 @@
             // Pastikan file audio ada di folder audio/adzan/
             // Lihat README.md di folder audio untuk instruksi
             ADZAN_AUDIO: {
-                'Mishary Rashid': 'audio/adzan/mishary_rashid_alafasy_adzan.mp3',
-                'Sheikh Ali Mullah': 'audio/adzan/sheikh_ali_mullah_adzun.mp3',
-                'Simple Beep': 'audio/adzan/simple_beep.mp3'
+                'Mishary Rashid': {
+                    regular: 'audio/adzan/mishary_rashid_alafasy_adzan.mp3',
+                    fajr: 'audio/adzan/mishary_rashid_alafasy_adzan_subuh.mp3'
+                },
+                'Sheikh Ali Mullah': {
+                    regular: 'audio/adzan/sheikh_ali_mullah_adzun.mp3',
+                    fajr: 'audio/adzan/sheikh_ali_mullah_adzun_subuh.mp3'
+                },
+                'Simple Beep': {
+                    regular: 'audio/adzan/simple_beep.mp3',
+                    fajr: 'audio/adzan/simple_beep.mp3'
+                }
             },
 
             // Prayer names mapping
@@ -3953,7 +3962,16 @@
                     return;
                 }
 
-                const audioUrl = this.ADZAN_AUDIO[this.selectedAdzan] || this.ADZAN_AUDIO['Mishary Rashid'];
+                // Get audio file based on prayer time and selected muadzin
+                const adzanAudio = this.ADZAN_AUDIO[this.selectedAdzan] || this.ADZAN_AUDIO['Mishary Rashid'];
+                let audioUrl;
+
+                // Use fajr audio for Fajr (Subuh), regular audio for other prayers
+                if (prayer.key === 'Fajr') {
+                    audioUrl = adzanAudio.fajr;
+                } else {
+                    audioUrl = adzanAudio.regular;
+                }
 
                 try {
                     // Stop any existing audio
@@ -3983,7 +4001,9 @@
                         // Try fallback to Simple Beep if main audio fails
                         if (this.selectedAdzan !== 'Simple Beep') {
                             console.log('Trying fallback audio...');
-                            const fallbackUrl = this.ADZAN_AUDIO['Simple Beep'];
+                            const fallbackAudio = this.ADZAN_AUDIO['Simple Beep'];
+                            const fallbackUrl = prayer.key === 'Fajr' ? fallbackAudio.fajr : fallbackAudio.regular;
+
                             this.audio = new Audio(fallbackUrl);
                             this.audio.onplay = () => {
                                 console.log('Playing fallback beep');
@@ -4441,7 +4461,8 @@
                     this.stopAdzan();
                     UI.toast('🔇 Test suara dihentikan');
                 } else {
-                    this.playAdzan({ name: 'Test' });
+                    // Test with Dhuhr (not Fajr) to use regular adzan audio
+                    this.playAdzan({ name: 'Test', key: 'Dhuhr' });
                 }
             },
 
@@ -4475,6 +4496,164 @@
 
                 // Stop adzan if playing
                 this.stopAdzan();
+            },
+
+            // ============================
+            // TEST HELPER FUNCTIONS
+            // ============================
+            // Fungsi-fungsi ini untuk testing logic adzan
+            // Gunakan fungsi-fungsi ini di console browser untuk mengetest
+
+            /**
+             * Test adzan audio selection logic
+             * @param {string} prayerKey - 'Fajr', 'Dhuhr', 'Asr', 'Maghrib', atau 'Isha'
+             * @param {string} muadzinName - 'Mishary Rashid', 'Sheikh Ali Mullah', atau 'Simple Beep'
+             * @returns {string} - Path file audio yang akan digunakan
+             */
+            testAudioSelection(prayerKey, muadzinName) {
+                const adzanAudio = this.ADZAN_AUDIO[muadzinName] || this.ADZAN_AUDIO['Mishary Rashid'];
+                let audioUrl;
+
+                if (prayerKey === 'Fajr') {
+                    audioUrl = adzanAudio.fajr;
+                } else {
+                    audioUrl = adzanAudio.regular;
+                }
+
+                console.log('╔══════════════════════════════════════════════════════════╗');
+                console.log('║           🧪 ADZAN AUDIO SELECTION TEST                  ║');
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ Prayer Time : ${prayerKey.padEnd(15)}                      ║`);
+                console.log(`║ Muadzin      : ${muadzinName.padEnd(15)}                      ║`);
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ Audio File   : ${audioUrl.padEnd(45)}     ║`);
+                console.log('╚══════════════════════════════════════════════════════════╝');
+
+                return audioUrl;
+            },
+
+            /**
+             * Test semua kombinasi audio selection
+             */
+            testAllAudioSelections() {
+                console.log('\n🧪 TESTING ALL AUDIO SELECTIONS...\n');
+
+                const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+                const muadzins = Object.keys(this.ADZAN_AUDIO);
+
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('                      AUDIO MATRIX TEST                          ');
+                console.log('═══════════════════════════════════════════════════════════════\n');
+
+                muadzins.forEach(muadzin => {
+                    console.log(`🎤 MUADZIN: ${muadzin}`);
+                    console.log('─'.repeat(70));
+
+                    prayers.forEach(prayer => {
+                        const audioUrl = this.testAudioSelection(prayer, muadzin);
+                        console.log(``);
+                    });
+                    console.log('');
+                });
+
+                console.log('═══════════════════════════════════════════════════════════════\n');
+            },
+
+            /**
+             * Mock prayer time untuk testing countdown
+             * @param {string} prayerKey - 'Fajr', 'Dhuhr', 'Asr', 'Maghrib', atau 'Isha'
+             * @param {number} offsetMinutes - Offset dalam menit dari sekarang (default: 5 menit)
+             * @example
+             * PrayerTimesComponent.mockPrayerTime('Fajr', 2); // Mock Fajr dalam 2 menit
+             * PrayerTimesComponent.mockPrayerTime('Dhuhr', 10); // Mock Dhuhr dalam 10 menit
+             */
+            mockPrayerTime(prayerKey, offsetMinutes = 5) {
+                const prayerNames = {
+                    'Fajr': { name: 'Subuh', arabicName: 'الفجر' },
+                    'Dhuhr': { name: 'Dzuhur', arabicName: 'الظهر' },
+                    'Asr': { name: 'Ashar', arabicName: 'العصر' },
+                    'Maghrib': { name: 'Maghrib', arabicName: 'المغرب' },
+                    'Isha': { name: 'Isya', arabicName: 'العشاء' }
+                };
+
+                const prayer = prayerNames[prayerKey];
+                if (!prayer) {
+                    console.error(`❌ Invalid prayer key: ${prayerKey}`);
+                    console.log('✅ Valid prayer keys: Fajr, Dhuhr, Asr, Maghrib, Isha');
+                    return;
+                }
+
+                // Mock current time to be before prayer time
+                const now = new Date();
+                const mockPrayerTime = new Date(now.getTime() + offsetMinutes * 60000);
+
+                // Mock prayer times data
+                this.prayerTimes = {
+                    'Fajr': '04:30',
+                    'Dhuhr': '12:00',
+                    'Asr': '15:15',
+                    'Maghrib': '18:00',
+                    'Isha': '19:00'
+                };
+
+                // Override the specific prayer time
+                const hours = mockPrayerTime.getHours().toString().padStart(2, '0');
+                const minutes = mockPrayerTime.getMinutes().toString().padStart(2, '0');
+                this.prayerTimes[prayerKey] = `${hours}:${minutes}`;
+
+                // Update countdown immediately
+                this.updateNextPrayer();
+
+                console.log('\n╔══════════════════════════════════════════════════════════╗');
+                console.log('║              ⏰ MOCK PRAYER TIME SET                         ║');
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ Prayer      : ${prayer.name} (${prayerKey})               ║`);
+                console.log(`║ Time        : ${this.prayerTimes[prayerKey]}                  ║`);
+                console.log(`║ In          : ${offsetMinutes} minutes                  ║`);
+                console.log('╚══════════════════════════════════════════════════════════╝\n');
+
+                return this.prayerTimes[prayerKey];
+            },
+
+            /**
+             * Reset mock prayer times ke default
+             */
+            resetMockPrayerTimes() {
+                this.prayerTimes = {
+                    'Fajr': '04:30',
+                    'Dhuhr': '12:00',
+                    'Asr': '15:15',
+                    'Maghrib': '18:00',
+                    'Isha': '19:00'
+                };
+                console.log('✅ Prayer times reset to default');
+                this.updateNextPrayer();
+            },
+
+            /**
+             * Test fungsi playAdzan tanpa memutar audio
+             * @param {string} prayerKey - 'Fajr', 'Dhuhr', 'Asr', 'Maghrib', atau 'Isha'
+             */
+            dryRunPlayAdzan(prayerKey) {
+                const adzanAudio = this.ADZAN_AUDIO[this.selectedAdzan] || this.ADZAN_AUDIO['Mishary Rashid'];
+                const audioUrl = prayerKey === 'Fajr' ? adzanAudio.fajr : adzanAudio.regular;
+
+                console.log('\n╔══════════════════════════════════════════════════════════╗');
+                console.log('║              🔊 DRY RUN: PLAY ADZAN                         ║');
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ Prayer Time : ${prayerKey}                                           ║`);
+                console.log(`║ Selected     : ${this.selectedAdzan.padEnd(20)}                   ║`);
+                console.log(`║ Audio File   : ${audioUrl.padEnd(45)}     ║`);
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ Will Use    : ${prayerKey === 'Fajr' ? 'FAJR AUDIO (subuh)' : 'REGULAR AUDIO'} ║`);
+                console.log('╚══════════════════════════════════════════════════════════╝\n');
+
+                return {
+                    prayerKey,
+                    selectedAdzan: this.selectedAdzan,
+                    audioUrl,
+                    audioType: prayerKey === 'Fajr' ? 'fajr' : 'regular'
+                };
             }
         };
 
