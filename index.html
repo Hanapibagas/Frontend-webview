@@ -228,19 +228,6 @@
             .bottom-nav {
                 padding-bottom: max(16px, env(safe-area-inset-bottom));
             }
-
-            #nextPrayerBanner {
-                bottom: 0;
-                padding-bottom: max(0px, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Next Prayer Banner positioning */
-        #nextPrayerBanner {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
         }
 
         /* Mobile responsive adjustments */
@@ -873,17 +860,8 @@
                             </button>
                         </div>
 
-                        <!-- Prayer Times List -->
-                        <div id="prayerTimesList" class="space-y-3">
-                            <!-- Loading State -->
-                            <div class="flex flex-col items-center justify-center py-20">
-                                <div class="spinner text-primary-600 mb-4"></div>
-                                <p class="text-[#333333] text-sm">Memuat jadwal sholat...</p>
-                            </div>
-                        </div>
-
                         <!-- Next Prayer Countdown -->
-                        <div id="nextPrayerBanner" class="bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] text-white shadow-2xl border-t border-b border-[#81C784]/30 hidden z-40 backdrop-blur-sm">
+                        <div id="nextPrayerBanner" class="bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] text-white shadow-xl rounded-2xl mb-4 overflow-hidden hidden">
                             <!-- Header with Location -->
                             <div class="flex items-center justify-between px-4 py-3 border-b border-[#81C784]/20">
                                 <div class="flex items-center gap-3">
@@ -946,6 +924,15 @@
                                     <i class="fas fa-info-circle mr-1"></i>
                                     Persiapkan diri untuk sholat tepat waktu
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Prayer Times List -->
+                        <div id="prayerTimesList" class="space-y-3">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat jadwal sholat...</p>
                             </div>
                         </div>
 
