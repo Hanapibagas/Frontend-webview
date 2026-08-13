@@ -9077,7 +9077,7 @@
                                                 title="Putar audio">
                                             <i class="fas fa-play text-sm"></i>
                                         </button>
-                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayahText)}')"
+                                        <button onclick="QuranComponent.copyAyah(${surah.number}, ${ayahNumber}, '${encodeURIComponent(ayahText)}', '${encodeURIComponent(ayah.transliteration || '')}', '${encodeURIComponent(ayah.translation || '')}')"
                                                 class="w-8 h-8 rounded-full bg-[#F5F5F5] text-[#333333] hover:bg-[#81C784] transition flex items-center justify-center"
                                                 title="Salin">
                                             <i class="fas fa-copy text-sm"></i>
@@ -9818,11 +9818,12 @@
             /**
              * Copy ayah text to clipboard
              */
-            async copyAyah(surahNumber, ayahNumber, text) {
+            async copyAyah(surahNumber, ayahNumber, text, transliteration, translation) {
                 const decodedText = decodeURIComponent(text);
-                const surah = this.currentSurah;
+                const decodedTransliteration = decodeURIComponent(transliteration);
+                const decodedTranslation = decodeURIComponent(translation);
 
-                const fullText = `${surah.name} [${surah.englishName}] (${surahNumber}:${ayahNumber})\n\n${decodedText}`;
+                const fullText = `${decodedText}\n\n_${decodedTransliteration}_\n\n*${decodedTranslation}*`;
 
                 await UI.copyToClipboard(fullText, 'Ayat berhasil disalin!');
             },
@@ -10887,10 +10888,17 @@
                 const card = document.querySelector(`[data-surah-number="${surahNumber}"][data-surah-ayah-number="${ayahNumber}"]`);
                 if (!card) return;
 
-                const arabicText = card.querySelector('.font-arabic').textContent;
-                const translation = card.querySelector('p:last-child').textContent;
+                const arabicText = card.querySelector('.font-arabic').textContent.trim();
 
-                const text = `${arabicText}\n\n${translation}`;
+                // Get transliteration text (second paragraph)
+                const paragraphs = card.querySelectorAll('p');
+                const transliteration = paragraphs[1].textContent.trim();
+
+                // Get translation text and remove the ayah number prefix (e.g., "1. ")
+                const translationText = card.querySelector('p:last-child').textContent.trim();
+                const translation = translationText.replace(/^\d+\.\s*/, '');
+
+                const text = `${arabicText}\n\n_${transliteration}_\n\n*${translation}*`;
 
                 navigator.clipboard.writeText(text);
                 UI.toast('Teks disalin ke clipboard');
