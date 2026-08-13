@@ -3198,11 +3198,12 @@
             prayerTimes: null,
             countdownInterval: null,
             nextPrayer: null,
+            lastNextPrayer: null, // Track last next prayer to detect changes
             notificationEnabled: false,
             audioEnabled: false,
             audio: null,
             isPlayingAdzan: false,
-            isFlutterWebView: false, // Detect if running in Flutter WebView
+            isNativeAndroid: false, // Detect if running in native Android WebView
 
             // Adzan audio files (local)
             // Pastikan file audio ada di folder audio/adzan/
@@ -3228,8 +3229,8 @@
             async init() {
                 console.log('Initializing Prayer Times component');
 
-                // Detect if running in Flutter WebView
-                this.detectFlutterWebView();
+                // Detect if running in native Android WebView
+                this.detectNativePlatform();
 
                 this.setupEventListeners();
                 this.loadPrayerSettings();
@@ -3237,28 +3238,28 @@
             },
 
             /**
-             * Detect if running in Flutter WebView
+             * Detect if running in native Android WebView or browser
              */
-            detectFlutterWebView() {
-                // Check if flutter_inappwebview is available
-                if (window.flutter_inappwebview) {
-                    this.isFlutterWebView = true;
-                    console.log('Running in Flutter WebView - notifications will be handled by Flutter');
+            detectNativePlatform() {
+                // Check if AndroidInterface is available (from Android WebView)
+                if (window.AndroidInterface) {
+                    this.isNativeAndroid = true;
+                    console.log('Running in Android WebView - notifications will be handled by native Android');
 
-                    // Register JavaScript handlers for Flutter
-                    this.registerFlutterHandlers();
+                    // Register JavaScript handlers for Android
+                    this.registerNativeHandlers();
                 } else {
-                    this.isFlutterWebView = false;
+                    this.isNativeAndroid = false;
                     console.log('Running in browser - using Web Notifications API');
                 }
             },
 
             /**
-             * Register JavaScript handlers for Flutter
+             * Register JavaScript handlers for Android native
              */
-            registerFlutterHandlers() {
-                // This allows Flutter to call JavaScript functions
-                console.log('Flutter handlers registered');
+            registerNativeHandlers() {
+                // This allows Android to call JavaScript functions if needed
+                console.log('Android WebView handlers registered');
             },
 
             /**
@@ -3292,11 +3293,11 @@
             },
 
             /**
-             * Schedule prayer notification in Flutter
+             * Schedule prayer notification in native Android
              */
-            async schedulePrayerNotificationFlutter(prayerKey) {
-                if (!this.isFlutterWebView) {
-                    console.log('Not in Flutter WebView, skipping native notification');
+            async schedulePrayerNotificationNative(prayerKey) {
+                if (!this.isNativeAndroid) {
+                    console.log('Not in Android WebView, skipping native notification');
                     return;
                 }
 
@@ -3309,7 +3310,7 @@
                         return;
                     }
 
-                    // Prepare data for Flutter
+                    // Prepare data for Android native
                     const prayerData = {
                         name: prayerInfo.name,
                         arabicName: prayerInfo.arabicName,
@@ -3319,11 +3320,18 @@
                         location: this.currentLocation?.city || 'Unknown'
                     };
 
-                    console.log('Scheduling notification in Flutter:', prayerData);
+                    console.log('Scheduling notification in Android native:', prayerData);
 
-                    // Call Flutter handler
-                    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                        await window.flutter_inappwebview.callHandler('schedulePrayer', prayerData);
+                    // Call Android Interface handler
+                    if (window.AndroidInterface && window.AndroidInterface.schedulePrayerNotification) {
+                        await window.AndroidInterface.schedulePrayerNotification(
+                            prayerData.key,
+                            prayerData.name,
+                            prayerData.arabicName,
+                            prayerData.time,
+                            prayerData.dateTime,
+                            prayerData.location
+                        );
 
                         // Store that this prayer has been scheduled
                         Storage.set(`scheduled_${prayerKey}_${this.getDateKey()}`, {
@@ -3333,10 +3341,10 @@
 
                         UI.toast(`Notifikasi ${prayerInfo.name} dijadwalkan`);
                     } else {
-                        console.error('Flutter WebView handler not available');
+                        console.error('Android Interface handler not available');
                     }
                 } catch (error) {
-                    console.error('Error scheduling Flutter notification:', error);
+                    console.error('Error scheduling Android notification:', error);
                     UI.toast('Gagal menjadwalkan notifikasi');
                 }
             },
@@ -3577,7 +3585,7 @@
                     // Only schedule if prayer time is in the future
                     const now = new Date();
                     if (prayerDateTime > now) {
-                        await this.schedulePrayerNotificationFlutter(prayerKey);
+                        await this.schedulePrayerNotificationNative(prayerKey);
                         scheduledCount++;
                     }
                 }
@@ -3765,6 +3773,14 @@
                         this.checkAndNotifyPrayer(nextPrayer);
                     }
                 }
+
+                // Update foreground service if next prayer changed
+                const previousNextPrayer = this.lastNextPrayer;
+                if (previousNextPrayer?.key !== nextPrayer.key) {
+                    this.lastNextPrayer = nextPrayer;
+                    // Update foreground service with new next prayer
+                    this.updateForegroundNotificationService();
+                }
             },
 
             /**
@@ -3797,10 +3813,10 @@
                     return;
                 }
 
-                // Use Flutter WebView notification if available
-                if (this.isFlutterWebView) {
-                    await this.schedulePrayerNotificationFlutter(prayer.key);
-                    UI.toast(`Waktu ${prayer.name} telah tiba! Notifikasi dikirim ke Flutter`);
+                // Use native Android notification if available
+                if (this.isNativeAndroid) {
+                    await this.schedulePrayerNotificationNative(prayer.key);
+                    UI.toast(`Waktu ${prayer.name} telah tiba! Notifikasi dikirim ke Android`);
                 } else {
                     // Fallback to Web Notifications API
                     await this.sendWebNotification(prayer);
@@ -4020,8 +4036,8 @@
                 const audioBanner = document.getElementById('audioBanner');
                 const bannerText = document.getElementById('notificationBannerText');
 
-                // If in Flutter WebView, notifications are handled by Flutter
-                if (this.isFlutterWebView) {
+                // If in native Android WebView, notifications are handled by native Android
+                if (this.isNativeAndroid) {
                     if (bannerText) {
                         bannerText.textContent = 'Dapatkan notifikasi saat waktu sholat tiba (notifikasi akan muncul meski app ditutup)';
                     }
@@ -4064,12 +4080,18 @@
              * Enable notifications
              */
             async enableNotifications() {
-                // If in Flutter WebView, just enable and save settings
-                if (this.isFlutterWebView) {
+                // If in native Android WebView, just enable and save settings
+                if (this.isNativeAndroid) {
                     this.notificationEnabled = true;
                     this.savePrayerSettings();
                     document.getElementById('notificationBanner').classList.add('hidden');
-                    UI.toast('Notifikasi diaktifkan (Flutter akan menghandle notifikasi)');
+                    UI.toast('Notifikasi diaktifkan');
+
+                    // Start foreground service for reliable notifications
+                    this.startForegroundNotificationService();
+
+                    // Schedule all prayer notifications
+                    await this.scheduleAllPrayerNotifications();
 
                     // Show audio settings banner
                     this.showAudioSettingsBanner();
@@ -4232,8 +4254,8 @@
                     selectedAdzan: 'Mishary Rashid'
                 });
 
-                const platformInfo = this.isFlutterWebView
-                    ? '<div class="mb-4 p-3 bg-[#81C784] border border-[#66BB6A] rounded-lg text-xs text-primary-600"><i class="fas fa-info-circle mr-1"></i> Berjalan di Flutter WebView - notifikasi akan muncul meski app ditutup</div>'
+                const platformInfo = this.isNativeAndroid
+                    ? '<div class="mb-4 p-3 bg-[#81C784] border border-[#66BB6A] rounded-lg text-xs text-primary-600"><i class="fas fa-info-circle mr-1"></i> Berjalan di Android WebView - notifikasi akan muncul meski app ditutup</div>'
                     : '<div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700"><i class="fas fa-exclamation-triangle mr-1"></i> Berjalan di browser - notifikasi hanya muncul saat app dibuka</div>';
 
                 const html = `
@@ -4642,19 +4664,13 @@
                 // Universal maps URL that works on both iOS and Android
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
-                if (this.isFlutterWebView()) {
-                    // Try to open in Flutter
+                // Check if running in Android native WebView
+                if (window.AndroidInterface && window.AndroidInterface.openInMaps) {
                     try {
-                        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                            window.flutter_inappwebview.callHandler('openMap', {
-                                latitude: latitude,
-                                longitude: longitude,
-                                name: name
-                            });
-                            return;
-                        }
+                        window.AndroidInterface.openInMaps(latitude, longitude, name);
+                        return;
                     } catch (error) {
-                        console.error('Flutter map open failed:', error);
+                        console.error('Android map open failed:', error);
                     }
                 }
 
@@ -4688,10 +4704,92 @@
             },
 
             /**
-             * Detect if running in Flutter WebView
+             * Start foreground notification service
+             * This ensures notifications work reliably even when app is closed
              */
-            isFlutterWebView() {
-                return window.flutter_inappwebview !== undefined;
+            startForegroundNotificationService() {
+                if (!this.isNativeAndroid()) return;
+
+                try {
+                    // Get next prayer info for status bar
+                    const nextPrayer = this.getNextPrayer();
+                    const nextPrayerName = nextPrayer ? nextPrayer.name : '';
+                    const nextPrayerTime = nextPrayer ? this.prayerTimes[nextPrayer.key] : '';
+
+                    // Start foreground service
+                    window.AndroidInterface.startForegroundService(nextPrayerName, nextPrayerTime);
+                    console.log('Foreground service started');
+                } catch (error) {
+                    console.error('Error starting foreground service:', error);
+                }
+            },
+
+            /**
+             * Update foreground notification service
+             * Call this when next prayer changes
+             */
+            updateForegroundNotificationService() {
+                if (!this.isNativeAndroid()) return;
+
+                try {
+                    // Get next prayer info
+                    const nextPrayer = this.getNextPrayer();
+                    if (nextPrayer) {
+                        const nextPrayerName = nextPrayer.name;
+                        const nextPrayerTime = this.prayerTimes[nextPrayer.key];
+
+                        // Update foreground service
+                        window.AndroidInterface.updateForegroundService(nextPrayerName, nextPrayerTime);
+                        console.log('Foreground service updated:', nextPrayerName, 'at', nextPrayerTime);
+                    }
+                } catch (error) {
+                    console.error('Error updating foreground service:', error);
+                }
+            },
+
+            /**
+             * Stop foreground notification service
+             * Call this when notifications are disabled
+             */
+            stopForegroundNotificationService() {
+                if (!this.isNativeAndroid()) return;
+
+                try {
+                    window.AndroidInterface.stopForegroundService();
+                    console.log('Foreground service stopped');
+                } catch (error) {
+                    console.error('Error stopping foreground service:', error);
+                }
+            },
+
+            /**
+             * Check if foreground service is running
+             */
+            isForegroundServiceRunning() {
+                if (!this.isNativeAndroid()) return false;
+
+                try {
+                    const result = window.AndroidInterface.isForegroundServiceRunning();
+                    return result === 'true';
+                } catch (error) {
+                    console.error('Error checking if service is running:', error);
+                    return false;
+                }
+            },
+
+            /**
+             * Get next prayer object
+             * Returns the next prayer with name and key
+             */
+            getNextPrayer() {
+                return this.nextPrayer;
+            },
+
+            /**
+             * Detect if running in native Android WebView
+             */
+            isNativeAndroid() {
+                return window.AndroidInterface !== undefined;
             }
         };
 
