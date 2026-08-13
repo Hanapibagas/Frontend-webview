@@ -228,6 +228,19 @@
             .bottom-nav {
                 padding-bottom: max(16px, env(safe-area-inset-bottom));
             }
+
+            #nextPrayerBanner {
+                bottom: 0;
+                padding-bottom: max(0px, env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Next Prayer Banner positioning */
+        #nextPrayerBanner {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         /* Mobile responsive adjustments */
@@ -870,52 +883,52 @@
                         </div>
 
                         <!-- Next Prayer Countdown -->
-                        <div id="nextPrayerBanner" class="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] rounded-2xl p-5 text-white shadow-2xl border border-[#81C784]/30 hidden z-40 backdrop-blur-sm">
+                        <div id="nextPrayerBanner" class="bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] text-white shadow-2xl border-t border-b border-[#81C784]/30 hidden z-40 backdrop-blur-sm">
                             <!-- Header with Location -->
-                            <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-[#81C784]/20">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#F4C430] rounded-xl flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-clock text-white text-lg"></i>
+                                    <div class="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#F4C430] rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-clock text-white"></i>
                                     </div>
-                                    <div>
+                                    <div class="min-w-0">
                                         <p class="text-xs text-[#81C784] font-semibold tracking-wide">WAKTU SHOLAT BERIKUTNYA</p>
-                                        <p id="nextPrayerLocation" class="text-xs text-white/70 mt-0.5">
+                                        <p id="nextPrayerLocation" class="text-xs text-white/70 truncate">
                                             <i class="fas fa-map-marker-alt mr-1"></i>
                                             <span>Jakarta</span>
                                         </p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p id="nextPrayerTime" class="text-2xl font-bold text-[#D4AF37]">--:--</p>
-                                    <p id="nextPrayerName" class="text-xs text-white/80 mt-0.5">-</p>
+                                <div class="text-right flex-shrink-0 ml-2">
+                                    <p id="nextPrayerTime" class="text-xl font-bold text-[#D4AF37]">--:--</p>
+                                    <p id="nextPrayerName" class="text-xs text-white/80">-</p>
                                 </div>
                             </div>
 
                             <!-- Countdown Display -->
-                            <div class="bg-black/20 rounded-xl p-4 mb-4">
-                                <div class="flex items-center justify-center gap-4">
+                            <div class="bg-black/20 px-4 py-3">
+                                <div class="flex items-center justify-center gap-3">
                                     <!-- Hours -->
-                                    <div class="text-center">
-                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
-                                            <span id="countdownHours" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                    <div class="text-center flex-1">
+                                        <div class="w-14 h-14 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-lg flex items-center justify-center mb-1 shadow-lg border border-[#81C784]/20 mx-auto">
+                                            <span id="countdownHours" class="text-xl font-bold text-[#D4AF37]">00</span>
                                         </div>
                                         <p class="text-xs text-white/60">Jam</p>
                                     </div>
                                     <!-- Separator -->
-                                    <div class="text-3xl font-bold text-[#81C784]">:</div>
+                                    <div class="text-2xl font-bold text-[#81C784] flex-shrink-0">:</div>
                                     <!-- Minutes -->
-                                    <div class="text-center">
-                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
-                                            <span id="countdownMinutes" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                    <div class="text-center flex-1">
+                                        <div class="w-14 h-14 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-lg flex items-center justify-center mb-1 shadow-lg border border-[#81C784]/20 mx-auto">
+                                            <span id="countdownMinutes" class="text-xl font-bold text-[#D4AF37]">00</span>
                                         </div>
                                         <p class="text-xs text-white/60">Menit</p>
                                     </div>
                                     <!-- Separator -->
-                                    <div class="text-3xl font-bold text-[#81C784]">:</div>
+                                    <div class="text-2xl font-bold text-[#81C784] flex-shrink-0">:</div>
                                     <!-- Seconds -->
-                                    <div class="text-center">
-                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
-                                            <span id="countdownSeconds" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                    <div class="text-center flex-1">
+                                        <div class="w-14 h-14 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-lg flex items-center justify-center mb-1 shadow-lg border border-[#81C784]/20 mx-auto">
+                                            <span id="countdownSeconds" class="text-xl font-bold text-[#D4AF37]">00</span>
                                         </div>
                                         <p class="text-xs text-white/60">Detik</p>
                                     </div>
@@ -923,15 +936,17 @@
                             </div>
 
                             <!-- Progress Bar -->
-                            <div class="relative h-2 bg-black/30 rounded-full overflow-hidden">
-                                <div id="countdownProgress" class="absolute left-0 top-0 h-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] rounded-full transition-all duration-1000 ease-linear shadow-lg" style="width: 100%"></div>
-                            </div>
+                            <div class="px-4 pb-3">
+                                <div class="relative h-1.5 bg-black/30 rounded-full overflow-hidden">
+                                    <div id="countdownProgress" class="absolute left-0 top-0 h-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] rounded-full transition-all duration-1000 ease-linear shadow-lg" style="width: 100%"></div>
+                                </div>
 
-                            <!-- Reminder Text -->
-                            <p class="text-center text-xs text-white/60 mt-3 italic">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Persiapkan diri untuk sholat tepat waktu
-                            </p>
+                                <!-- Reminder Text -->
+                                <p class="text-center text-xs text-white/60 mt-2">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Persiapkan diri untuk sholat tepat waktu
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Notification Permission Banner -->
