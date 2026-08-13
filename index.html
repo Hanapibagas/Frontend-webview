@@ -1721,21 +1721,35 @@
 
             // Share content
             async share(title, text, url) {
+                // Check if sharing is supported and the content can be shared
                 if (navigator.share) {
+                    const shareData = { title, text };
+                    if (url) shareData.url = url;
+
+                    // Check if content is shareable (works on Chrome/Edge)
+                    if (navigator.canShare && !navigator.canShare(shareData)) {
+                        console.log('Content not shareable, copying to clipboard instead');
+                        await this.copyToClipboard(text, 'Teks disalin! Kamu bisa paste ke sosial media');
+                        return true;
+                    }
+
                     try {
-                        await navigator.share({
-                            title,
-                            text,
-                            url
-                        });
+                        await navigator.share(shareData);
                         return true;
                     } catch (error) {
+                        // User cancelled the share
+                        if (error.name === 'AbortError') {
+                            return false;
+                        }
+                        // Other errors - fallback to clipboard
                         console.error('Share failed:', error);
-                        return false;
+                        await this.copyToClipboard(text, 'Share gagal. Teks disalin! Kamu bisa paste ke sosial media');
+                        return true;
                     }
                 } else {
-                    this.toast('Browser tidak mendukung fitur share');
-                    return false;
+                    // Browser doesn't support share - fallback to clipboard
+                    await this.copyToClipboard(text, 'Browser tidak mendukung share. Teks disalin! Kamu bisa paste ke sosial media');
+                    return true;
                 }
             }
         };
@@ -5535,9 +5549,39 @@
                 const hadith = this.hadiths.find(h => h.number == hadithNumber);
                 if (!hadith) return;
 
-                const text = `${hadith.arab}\n\n${hadith.id}`;
+                // Format hadith for social media with Instagram-friendly styling
+                const arabicText = hadith.arab.trim();
+                const translation = hadith.id.trim();
 
-                UI.share('Hadist Nabi SAW', text, window.location.href);
+                // Create visually appealing format for Instagram/social media
+                const text = `📿 HADIST NABI SAW 📿
+
+${arabicText}
+
+"${translation}"
+
+📖 ${hadith.number}
+
+✨ Share kebaikan dengan mengirim hadist ini ke teman-temanmu!
+
+#Hadist #Nabi #Islam #Muslim #HadistNabi #Hikmah #KutipanIslami`;
+
+                // Try Web Share API first, fallback to clipboard
+                if (navigator.share && navigator.canShare && navigator.canShare({
+                    title: 'Hadist Nabi SAW',
+                    text: text
+                })) {
+                    navigator.share({
+                        title: 'Hadist Nabi SAW',
+                        text: text
+                    }).catch(err => {
+                        console.log('Share failed, copying to clipboard instead:', err);
+                        UI.copyToClipboard(text, 'Hadist disalin! Kamu bisa paste ke Instagram/WA');
+                    });
+                } else {
+                    // Fallback to clipboard
+                    UI.copyToClipboard(text, 'Hadist disalin! Kamu bisa paste ke Instagram/WA');
+                }
             },
 
             /**
