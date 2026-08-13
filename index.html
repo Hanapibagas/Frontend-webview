@@ -870,21 +870,68 @@
                         </div>
 
                         <!-- Next Prayer Countdown -->
-                        <div id="nextPrayerBanner" class="fixed bottom-20 left-4 right-4 bg-[#0D3D1E] rounded-xl p-4 text-white shadow-lg border-2 border-[#1B5E20] hidden z-40">
-                            <div class="flex items-center justify-between">
+                        <div id="nextPrayerBanner" class="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] rounded-2xl p-5 text-white shadow-2xl border border-[#81C784]/30 hidden z-40 backdrop-blur-sm">
+                            <!-- Header with Location -->
+                            <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-[#D4AF37]/20 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-bell text-[#D4AF37]"></i>
+                                    <div class="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#F4C430] rounded-xl flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-clock text-white text-lg"></i>
                                     </div>
                                     <div>
-                                        <p class="text-xs text-[#81C784] font-medium">MENUJU WAKTU</p>
-                                        <p id="nextPrayerName" class="font-semibold text-sm">-</p>
+                                        <p class="text-xs text-[#81C784] font-semibold tracking-wide">WAKTU SHOLAT BERIKUTNYA</p>
+                                        <p id="nextPrayerLocation" class="text-xs text-white/70 mt-0.5">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            <span>Jakarta</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p id="nextPrayerCountdown" class="text-xl font-bold text-[#D4AF37]">- : - : -</p>
+                                    <p id="nextPrayerTime" class="text-2xl font-bold text-[#D4AF37]">--:--</p>
+                                    <p id="nextPrayerName" class="text-xs text-white/80 mt-0.5">-</p>
                                 </div>
                             </div>
+
+                            <!-- Countdown Display -->
+                            <div class="bg-black/20 rounded-xl p-4 mb-4">
+                                <div class="flex items-center justify-center gap-4">
+                                    <!-- Hours -->
+                                    <div class="text-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
+                                            <span id="countdownHours" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                        </div>
+                                        <p class="text-xs text-white/60">Jam</p>
+                                    </div>
+                                    <!-- Separator -->
+                                    <div class="text-3xl font-bold text-[#81C784]">:</div>
+                                    <!-- Minutes -->
+                                    <div class="text-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
+                                            <span id="countdownMinutes" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                        </div>
+                                        <p class="text-xs text-white/60">Menit</p>
+                                    </div>
+                                    <!-- Separator -->
+                                    <div class="text-3xl font-bold text-[#81C784]">:</div>
+                                    <!-- Seconds -->
+                                    <div class="text-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-xl flex items-center justify-center mb-2 shadow-lg border border-[#81C784]/20">
+                                            <span id="countdownSeconds" class="text-2xl font-bold text-[#D4AF37]">00</span>
+                                        </div>
+                                        <p class="text-xs text-white/60">Detik</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="relative h-2 bg-black/30 rounded-full overflow-hidden">
+                                <div id="countdownProgress" class="absolute left-0 top-0 h-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] rounded-full transition-all duration-1000 ease-linear shadow-lg" style="width: 100%"></div>
+                            </div>
+
+                            <!-- Reminder Text -->
+                            <p class="text-center text-xs text-white/60 mt-3 italic">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Persiapkan diri untuk sholat tepat waktu
+                            </p>
                         </div>
 
                         <!-- Notification Permission Banner -->
@@ -3770,16 +3817,32 @@
                 // Update countdown display
                 const banner = document.getElementById('nextPrayerBanner');
                 const nextPrayerNameEl = document.getElementById('nextPrayerName');
-                const nextPrayerCountdownEl = document.getElementById('nextPrayerCountdown');
+                const nextPrayerTimeEl = document.getElementById('nextPrayerTime');
+                const countdownHoursEl = document.getElementById('countdownHours');
+                const countdownMinutesEl = document.getElementById('countdownMinutes');
+                const countdownSecondsEl = document.getElementById('countdownSeconds');
+                const countdownProgressEl = document.getElementById('countdownProgress');
 
                 if (countdownSeconds > 0) {
                     const hours = Math.floor(countdownSeconds / 3600);
                     const minutes = Math.floor((countdownSeconds % 3600) / 60);
                     const seconds = countdownSeconds % 60;
 
+                    // Update prayer name and time
                     nextPrayerNameEl.textContent = nextPrayer.name;
-                    nextPrayerCountdownEl.textContent =
-                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    nextPrayerTimeEl.textContent =
+                        `${String(nextPrayerTime.hours).padStart(2, '0')}:${String(nextPrayerTime.minutes).padStart(2, '0')}`;
+
+                    // Update countdown display (separate elements)
+                    countdownHoursEl.textContent = String(hours).padStart(2, '0');
+                    countdownMinutesEl.textContent = String(minutes).padStart(2, '0');
+                    countdownSecondsEl.textContent = String(seconds).padStart(2, '0');
+
+                    // Update progress bar (calculate percentage of 6 hours = 21600 seconds)
+                    const totalSeconds = 6 * 3600; // 6 hours as reference
+                    const progressPercent = Math.max(0, Math.min(100, (countdownSeconds / totalSeconds) * 100));
+                    countdownProgressEl.style.width = `${progressPercent}%`;
+
                     banner.classList.remove('hidden');
 
                     // Check if it's time for prayer (within 1 minute)
