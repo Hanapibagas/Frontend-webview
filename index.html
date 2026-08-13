@@ -3867,7 +3867,9 @@
                 if (previousNextPrayer?.key !== nextPrayer.key) {
                     this.lastNextPrayer = nextPrayer;
                     // Update foreground service with new next prayer
-                    this.updateForegroundNotificationService();
+                    if (typeof this.updateForegroundNotificationService === 'function') {
+                        this.updateForegroundNotificationService();
+                    }
                 }
             },
 
