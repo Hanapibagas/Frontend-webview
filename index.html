@@ -8528,6 +8528,7 @@ ${arabicText}
                 };
 
                 modal.innerHTML = `
+                     <!-- Modal info Artikel & Majelis -->
                     <div class="bg-white rounded-t-3xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto article-modal-content">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-xl font-bold text-[#2B2B2B]">Detail</h2>
@@ -8670,14 +8671,144 @@ ${arabicText}
             },
 
             /**
-             * Add to calendar (placeholder)
+             * Add to calendar
              */
             addToCalendar(articleId) {
                 const article = this.articles.find(a => a.id === articleId);
 
-                if (!article) return;
+                if (!article) {
+                    UI.toast('Artikel tidak ditemukan');
+                    return;
+                }
 
-                UI.toast('Fitur kalender akan segera hadir!');
+                // Check if it's a majelis with schedule info
+                if (!article.location || !article.date || !article.time) {
+                    UI.toast('Jadwal tidak tersedia untuk artikel ini');
+                    return;
+                }
+
+                try {
+                    // Parse Indonesian date format (e.g., "Senin, 15 Januari 2025")
+                    const months = {
+                        'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04',
+                        'Mei': '05', 'Juni': '06', 'Juli': '07', 'Agustus': '08',
+                        'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
+                    };
+
+                    // Validate date format
+                    if (!article.date || typeof article.date !== 'string') {
+                        UI.toast('Format tanggal tidak valid');
+                        return;
+                    }
+
+                    // Parse date string - handle different formats
+                    const dateMatch = article.date.match(/(\d+)\s+(\w+)\s+(\d{4})/);
+                    if (!dateMatch) {
+                        console.error('Invalid date format:', article.date);
+                        UI.toast('Format tanggal tidak sesuai');
+                        return;
+                    }
+
+                    const [, day, monthName, year] = dateMatch;
+                    const month = months[monthName] || '01';
+
+                    // Parse time (e.g., "08:00" or "08:00 - 10:00")
+                    if (!article.time || typeof article.time !== 'string') {
+                        UI.toast('Format waktu tidak valid');
+                        return;
+                    }
+
+                    const timeParts = article.time.split(' - ');
+                    const startTime = timeParts[0].trim();
+                    const endTime = timeParts[1] ? timeParts[1].trim() : this.addHours(startTime, 2);
+
+                    // Parse time to hours and minutes
+                    const [startHour, startMin] = startTime.split(':').map(Number);
+                    const [endHour, endMin] = endTime.split(':').map(Number);
+
+                    // Create Date objects
+                    const startDateObj = new Date(year, month - 1, day, startHour, startMin);
+                    const endDateObj = new Date(year, month - 1, day, endHour, endMin);
+
+                    // Create event details
+                    const title = article.title || 'Majelis Taklim';
+                    const speakerInfo = article.speaker ? `Pemateri: ${article.speaker}\n` : '';
+                    const contactInfo = article.contact ? `Kontak: ${article.contact}\n` : '';
+                    const descriptionInfo = article.description ? `${article.description}\n\n` : '';
+                    const details = `Majelis Taklim\n\n${speakerInfo}${contactInfo}${descriptionInfo}`;
+
+                    // For ALL devices (iOS, Android, Desktop), download .ics file
+                    // This is universal and will open with the default calendar app
+                    this.downloadICSFile(
+                        title,
+                        startDateObj,
+                        endDateObj,
+                        article.location,
+                        details
+                    );
+
+                    // Detect platform for appropriate message
+                    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    const isAndroid = /Android/i.test(navigator.userAgent);
+
+                    if (isIOS) {
+                        UI.toast('File kalender di-download. Tap file untuk tambah ke Calendar');
+                    } else if (isAndroid) {
+                        UI.toast('File kalender di-download. Buka file untuk tambah ke Kalender');
+                    } else {
+                        UI.toast('File kalender di-download. Buka file untuk tambah ke kalender');
+                    }
+                } catch (error) {
+                    console.error('Error adding to calendar:', error);
+                    UI.toast('Terjadi kesalahan saat menambah ke kalender');
+                }
+            },
+
+            /**
+             * Download ICS file for calendar event (for iOS/Mac)
+             */
+            downloadICSFile(title, startDate, endDate, location, description) {
+                // Format dates for ICS file
+                const formatDate = (date) => {
+                    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                };
+
+                const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Majelis Taklim//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:${Date.now()}@majelistaklim
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(startDate)}
+DTEND:${formatDate(endDate)}
+SUMMARY:${title}
+DESCRIPTION:${description.replace(/\n/g, '\\n')}
+LOCATION:${location}
+END:VEVENT
+END:VCALENDAR`;
+
+                // Create blob and download
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            },
+
+            /**
+             * Add hours to time string (e.g., "08:00" + 2 = "10:00")
+             */
+            addHours(timeString, hoursToAdd) {
+                const [hours, minutes] = timeString.split(':').map(Number);
+                const totalMinutes = hours * 60 + minutes + (hoursToAdd * 60);
+                const newHours = Math.floor(totalMinutes / 60) % 24;
+                const newMinutes = totalMinutes % 60;
+                return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
             },
 
             /**
