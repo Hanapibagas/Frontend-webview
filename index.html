@@ -950,21 +950,17 @@
                             </div>
                         </div>
 
-                        <!-- Audio Settings Banner -->
+                        <!-- Audio Settings Banner (Informational only - redirects to settings modal) -->
                         <div id="audioBanner" class="mt-4 bg-[#81C784] border border-[#66BB6A] rounded-xl p-4 hidden">
                             <div class="flex items-start gap-3">
                                 <i class="fas fa-volume-up text-primary-600 mt-1"></i>
                                 <div class="flex-1">
                                     <p class="font-semibold text-[#2B2B2B] text-sm">Aktifkan Suara Adzan?</p>
-                                    <p class="text-xs text-primary-600 mt-1">Dapatkan suara adzan saat waktu sholat tiba</p>
-                                    <div class="flex gap-2 mt-2">
-                                        <button id="enableAudioBtn" class="px-4 py-2 bg-[#0D3D1E] text-white text-sm rounded-lg hover:bg-[#1B5E20] transition">
-                                            Ya, Aktifkan
-                                        </button>
-                                        <button id="disableAudioBtn" class="px-4 py-2 bg-[#81C784] text-[#2B2B2B] text-sm rounded-lg hover:bg-[#81C784] transition">
-                                            Tidak
-                                        </button>
-                                    </div>
+                                    <p class="text-xs text-primary-600 mt-1">Buka <strong>Pengaturan Jadwal Sholat</strong> untuk mengaktifkan suara adzan dan memilih muadzin</p>
+                                    <button onclick="PrayerTimesComponent.showSettings()" class="mt-2 px-4 py-2 bg-[#0D3D1E] text-white text-sm rounded-lg hover:bg-[#1B5E20] transition inline-flex items-center gap-2">
+                                        <i class="fas fa-cog"></i>
+                                        Buka Pengaturan
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -3457,23 +3453,7 @@
                     });
                 }
 
-                // Enable audio button
-                const enableAudioBtn = document.getElementById('enableAudioBtn');
-                if (enableAudioBtn) {
-                    enableAudioBtn.addEventListener('click', () => {
-                        this.enableAudio();
-                    });
-                }
-
-                // Disable audio button
-                const disableAudioBtn = document.getElementById('disableAudioBtn');
-                if (disableAudioBtn) {
-                    disableAudioBtn.addEventListener('click', () => {
-                        this.disableAudio();
-                    });
-                }
-
-                // Audio control button
+                // Audio control button (global floating button)
                 const audioControl = document.getElementById('audioControl');
                 if (audioControl) {
                     audioControl.addEventListener('click', () => {
@@ -4226,40 +4206,19 @@
             },
 
             /**
-             * Show audio settings banner
+             * Show audio settings banner (informational)
+             * This banner now only shows info and redirects to settings modal
              */
             showAudioSettingsBanner() {
                 const banner = document.getElementById('audioBanner');
-                if (banner) {
+                if (banner && !this.audioEnabled) {
                     banner.classList.remove('hidden');
                 }
             },
 
             /**
-             * Enable adzan audio
-             */
-            enableAudio() {
-                this.audioEnabled = true;
-                this.savePrayerSettings();
-                document.getElementById('audioBanner').classList.add('hidden');
-                UI.toast('Suara adzan diaktifkan');
-
-                // Show adzan selector
-                this.showAdzanSelector();
-            },
-
-            /**
-             * Disable adzan audio
-             */
-            disableAudio() {
-                this.audioEnabled = false;
-                this.savePrayerSettings();
-                document.getElementById('audioBanner').classList.add('hidden');
-                UI.toast('Suara adzan dimatikan');
-            },
-
-            /**
-             * Show adzan selector modal
+             * Show adzan selector modal (for testing only)
+             * This is no longer used for initial audio setup
              */
             showAdzanSelector() {
                 const options = Object.keys(this.ADZAN_AUDIO).map((name, index) => {
