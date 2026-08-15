@@ -448,6 +448,29 @@
                             </div>
                         </div>
 
+                        <!-- Next Prayer Info Card (Simplified - Header Only) -->
+                        <div id="nextPrayerInfoCard" class="bg-gradient-to-r from-[#0D3D1E] via-[#1B5E20] to-[#0D3D1E] text-white shadow-xl rounded-2xl p-4 mb-6 hidden">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#F4C430] rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-clock text-white text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm text-[#81C784] font-semibold tracking-wide mb-1">WAKTU SHOLAT BERIKUTNYA</p>
+                                        <p id="nextPrayerLocation" class="text-xs text-white/70 truncate">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            <span id="locationName">Mendeteksi lokasi...</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right flex-shrink-0 ml-3 pl-3 border-l border-[#81C784]/20">
+                                    <p id="nextPrayerTime" class="text-2xl font-bold text-[#D4AF37]">--:--</p>
+                                    <p id="nextPrayerName" class="text-sm text-white font-medium">-</p>
+                                    <p class="text-xs text-white/50 mt-1">Menuju lengkap →</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Quick Actions -->
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <button id="btnReadQuran"
@@ -3828,6 +3851,7 @@
 
                 // Update countdown display
                 const banner = document.getElementById('nextPrayerBanner');
+                const infoCard = document.getElementById('nextPrayerInfoCard');
                 const nextPrayerNameEl = document.getElementById('nextPrayerName');
                 const nextPrayerTimeEl = document.getElementById('nextPrayerTime');
                 const countdownHoursEl = document.getElementById('countdownHours');
@@ -3855,7 +3879,11 @@
                     const progressPercent = Math.max(0, Math.min(100, (countdownSeconds / totalSeconds) * 100));
                     countdownProgressEl.style.width = `${progressPercent}%`;
 
+                    // Show banner on prayer times page
                     banner.classList.remove('hidden');
+
+                    // Show simplified info card on home page
+                    infoCard.classList.remove('hidden');
 
                     // Check if it's time for prayer (within 1 minute)
                     if (countdownSeconds <= 60 && countdownSeconds > 0) {
@@ -4586,6 +4614,12 @@
                 const banner = document.getElementById('nextPrayerBanner');
                 if (banner && this.nextPrayer) {
                     banner.classList.remove('hidden');
+                }
+
+                // Also show simplified info card on home page
+                const infoCard = document.getElementById('nextPrayerInfoCard');
+                if (infoCard && this.nextPrayer) {
+                    infoCard.classList.remove('hidden');
                 }
             },
 
@@ -13006,7 +13040,8 @@ END:VCALENDAR`;
             onPageEnter(page, data) {
                 switch (page) {
                     case 'home':
-                        // Refresh daily verse or other content
+                        // Show prayer info card on home page
+                        PrayerTimesComponent.showUI();
                         break;
 
                     case 'quran':
