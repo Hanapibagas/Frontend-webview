@@ -541,123 +541,148 @@
 
                 <!-- Quran Page -->
                 <div id="quranPage" class="page hidden">
-                    <!-- Dark Teal Header -->
-                    <div class="sticky top-0 bg-[#1a4d3a] px-4 py-3 z-10">
-                        <div class="flex items-center justify-between">
-                            <!-- App Logo and Title -->
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-[#D4AF37]">
-                                    <i class="fas fa-book-quran text-[#1a4d3a] text-lg"></i>
+                    <div class="p-4">
+                        <!-- Header Card -->
+                        <div class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-2xl p-5 text-white mb-6 shadow-md">
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="fas fa-book-quran text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-[#81C784]">Kumpulan</p>
+                                    <p class="font-semibold text-lg">Al-Quran</p>
                                 </div>
-                                <h1 id="quranHeaderTitle" class="text-white text-lg font-bold">Baca Surah</h1>
                             </div>
-                            <!-- Action Icons -->
-                            <div class="flex items-center gap-4">
-                                <button id="btnSearchQuran" class="text-white">
-                                    <i class="fas fa-search text-lg"></i>
+                            <p class="text-sm text-[#81C784]">Kitab suci Al-Quran dengan 114 surah</p>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input type="text" id="searchSurah" placeholder="Cari surah..."
+                                    class="w-full pl-10 pr-4 py-3 border border-[#66BB6A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D3D1E] focus:border-transparent text-sm">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#333333]"></i>
+                                <button id="clearSearchBtnQuran" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#333333] hover:text-[#333333] hidden">
+                                    <i class="fas fa-times"></i>
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Tab Navigation -->
-                    <div class="sticky top-[60px] bg-white border-b border-gray-200 z-10">
-                        <div class="flex">
-                            <button id="tabSurah" class="flex-1 py-3 text-center text-sm font-semibold text-[#1a4d3a] border-b-2 border-[#1a4d3a] transition" onclick="QuranComponent.switchMode('surah')">
-                                SURAH
-                            </button>
-                            <button id="tabJuz" class="flex-1 py-3 text-center text-sm font-semibold text-gray-500 border-b-2 border-transparent transition hover:text-[#1a4d3a]" onclick="QuranComponent.switchMode('juz')">
-                                JUZ
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Search Bar (Hidden by default) -->
-                    <div id="searchBarContainer" class="hidden bg-white px-4 py-4 mt-2 border-b border-gray-200">
-                        <div class="relative">
-                            <input type="text" id="searchSurah" placeholder="Cari surah..."
-                                class="w-full bg-[#F5F5F5] rounded-xl py-3 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a4d3a] focus:bg-white transition">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                        </div>
-                    </div>
-
-                    <!-- Surah List -->
-                    <div id="surahList" class="mt-4">
-                        <!-- Loading State -->
-                        <div id="surahListLoading" class="flex flex-col items-center justify-center py-20">
-                            <div class="spinner text-primary-600 mb-4"></div>
-                            <p class="text-[#333333] text-sm">Memuat daftar surah...</p>
+                        <!-- Tab/Mode Selection -->
+                        <div class="mb-4">
+                            <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                                <button id="tabSurah" class="quran-mode-btn flex-1 py-2 px-4 bg-[#0D3D1E] text-white rounded-full text-sm text-center font-semibold" onclick="QuranComponent.switchMode('surah')">
+                                    Surah
+                                </button>
+                                <button id="tabJuz" class="quran-mode-btn flex-1 py-2 px-4 bg-white border-2 border-[#66BB6A] text-[#2B2B2B] rounded-full text-sm text-center font-semibold hover:border-[#0D3D1E]" onclick="QuranComponent.switchMode('juz')">
+                                    Juz
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Empty State -->
-                        <div id="surahListEmpty" class="hidden flex flex-col items-center justify-center py-20">
-                            <i class="fas fa-search text-4xl text-[#333333] mb-3"></i>
-                            <p class="text-[#333333]">Tidak ada surah ditemukan</p>
-                        </div>
-                    </div>
+                        <!-- Surah List -->
+                        <div id="surahList">
+                            <!-- Loading State -->
+                            <div id="surahListLoading" class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat daftar surah...</p>
+                            </div>
 
-                    <!-- Juz List -->
-                    <div id="juzList" class="hidden mt-6">
-                        <!-- Loading State -->
-                        <div id="juzListLoading" class="flex flex-col items-center justify-center py-20">
-                            <div class="spinner text-primary-600 mb-4"></div>
-                            <p class="text-[#333333] text-sm">Memuat daftar juz...</p>
+                            <!-- Empty State -->
+                            <div id="surahListEmpty" class="hidden flex flex-col items-center justify-center py-20">
+                                <i class="fas fa-search text-4xl text-[#333333] mb-3"></i>
+                                <p class="text-[#333333]">Tidak ada surah ditemukan</p>
+                            </div>
                         </div>
 
-                        <!-- Juz List Container -->
-                        <div id="juzGrid">
-                            <!-- Juz items will be rendered here -->
+                        <!-- Juz List -->
+                        <div id="juzList" class="hidden">
+                            <!-- Loading State -->
+                            <div id="juzListLoading" class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat daftar juz...</p>
+                            </div>
+
+                            <!-- Juz List Container -->
+                            <div id="juzGrid">
+                                <!-- Juz items will be rendered here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Surah Detail Page -->
                 <div id="surahDetailPage" class="page hidden">
-                    <!-- Surah Info -->
-                    <div id="surahInfo" class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] text-white">
-                        <div class="p-6 text-center">
-                            <p class="text-sm opacity-90 mb-1" id="surahType">Makkiyah</p>
-                            <h2 class="font-arabic text-4xl mb-2" id="surahNameArabic">سورة الفاتحة</h2>
-                            <h3 class="text-xl font-bold mb-3" id="surahName">Al-Fatihah</h3>
-                            <p class="text-sm opacity-90" id="surahMeaning">Pembukaan</p>
-                            <div class="flex items-center justify-center gap-6 mt-4 text-sm">
-                                <span><i class="fas fa-list-ol mr-1"></i> <span id="surahAyahCount">7</span>
-                                    Ayat</span>
-                                <span><i class="fas fa-clock mr-1"></i> <span id="surahDuration">5</span> Menit</span>
+                    <div class="p-4">
+                        <!-- Surah Info Card -->
+                        <div id="surahInfo" class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-2xl p-5 text-white mb-6 shadow-md">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i class="fas fa-book-quran text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-[#81C784]">Surah</p>
+                                    <p class="font-semibold text-sm" id="surahType">Makkiyah</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <h2 class="font-arabic text-4xl mb-2" id="surahNameArabic">سورة الفاتحة</h2>
+                                <h3 class="text-xl font-bold mb-2" id="surahName">Al-Fatihah</h3>
+                                <p class="text-sm text-[#81C784] mb-4" id="surahMeaning">Pembukaan</p>
+                                <div class="flex items-center justify-center gap-6 text-sm">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-list-ol text-gold-400"></i>
+                                        <span id="surahAyahCount">7</span> Ayat
+                                    </span>
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-gold-400"></i>
+                                        <span id="surahDuration">5</span> Menit
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <!-- Bismillah removed - now filtered at API level -->
-                    </div>
 
-                    <!-- Verses List -->
-                    <div id="versesList" class="p-4 space-y-4">
-                        <!-- Loading State -->
-                        <div id="versesLoading" class="flex flex-col items-center justify-center py-20">
-                            <div class="spinner text-primary-600 mb-4"></div>
-                            <p class="text-[#333333] text-sm">Memuat ayat...</p>
+                        <!-- Verses List -->
+                        <div id="versesList" class="space-y-4">
+                            <!-- Loading State -->
+                            <div id="versesLoading" class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat ayat...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Juz Detail Page -->
                 <div id="juzDetailPage" class="page hidden">
-                    <!-- Juz Info -->
-                    <div id="juzInfo" class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] text-white">
-                        <div class="p-6 text-center">
-                            <p class="text-sm opacity-90" id="juzInfoText">Al-Fatihah - Al-Baqarah (1-141)</p>
-                            <div class="flex items-center justify-center gap-6 mt-4 text-sm">
-                                <span><i class="fas fa-list-ol mr-1"></i> <span id="juzAyahCount">~</span> Ayat</span>
-                                <span><i class="fas fa-book-quran mr-1"></i> <span id="juzSurahCount">~</span> Surah</span>
+                    <div class="p-4">
+                        <!-- Juz Info Card -->
+                        <div id="juzInfo" class="bg-gradient-to-br from-[#1B5E20] to-[#0D3D1E] rounded-2xl p-5 text-white mb-6 shadow-md">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i class="fas fa-book-quran text-gold-400 text-xl"></i>
+                                <div>
+                                    <p class="text-xs text-[#81C784]">Juz</p>
+                                    <p class="font-semibold text-sm">Juz <span id="juzNumber">1</span></p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-[#81C784] mb-4" id="juzInfoText">Al-Fatihah - Al-Baqarah (1-141)</p>
+                                <div class="flex items-center justify-center gap-6 text-sm">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-list-ol text-gold-400"></i>
+                                        <span id="juzAyahCount">~</span> Ayat
+                                    </span>
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-book-open text-gold-400"></i>
+                                        <span id="juzSurahCount">~</span> Surah
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Verses List -->
-                    <div id="juzVersesList" class="p-4 space-y-4">
-                        <!-- Loading State -->
-                        <div id="juzVersesLoading" class="flex flex-col items-center justify-center py-20">
-                            <div class="spinner text-primary-600 mb-4"></div>
-                            <p class="text-[#333333] text-sm">Memuat ayat...</p>
+                        <!-- Verses List -->
+                        <div id="juzVersesList" class="space-y-4">
+                            <!-- Loading State -->
+                            <div id="juzVersesLoading" class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat ayat...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1161,46 +1186,43 @@
                             <p class="text-sm text-[#81C784]">Dzikir dari Al-Quran & As-Sunnah</p>
                         </div>
 
-                        <!-- Back Button (hidden by default) -->
-                        <button id="dhikrBackButton" class="hidden mb-4 flex items-center gap-2 text-primary-600 font-medium" onclick="DhikrComponent.goBackToCategories()">
-                            <i class="fas fa-arrow-left"></i>
-                            <span>Kembali ke Kategori</span>
-                        </button>
-
-                        <!-- Categories Container -->
-                        <div id="dhikrCategoriesContainer">
-                            <!-- Categories List -->
-                            <div id="dhikrCategoriesList" class="grid grid-cols-1 gap-3">
-                                <!-- Loading State -->
-                                <div class="flex flex-col items-center justify-center py-20">
-                                    <div class="spinner text-primary-600 mb-4"></div>
-                                    <p class="text-[#333333] text-sm">Memuat kategori dzikir...</p>
-                                </div>
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="dhikrSearchInput"
+                                    placeholder="Cari dzikir..."
+                                    class="w-full pl-10 pr-4 py-3 border border-[#66BB6A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D3D1E] focus:border-transparent text-sm"
+                                >
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#333333]"></i>
+                                <button
+                                    id="clearDhikrSearchBtn"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-[#333333] hover:text-[#333333] hidden"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Dhikr Container (hidden by default) -->
-                        <div id="dhikrContainer" class="hidden">
-                            <!-- Search Bar -->
-                            <div class="mb-4">
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        id="dhikrSearchInput"
-                                        placeholder="Cari dzikir..."
-                                        class="w-full pl-10 pr-4 py-3 border border-[#66BB6A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D3D1E] focus:border-transparent text-sm"
-                                    >
-                                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#333333]"></i>
-                                    <button
-                                        id="clearDhikrSearchBtn"
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#333333] hover:text-[#333333] hidden"
-                                    >
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
+                        <!-- Tab/Category Selection -->
+                        <div class="mb-4">
+                            <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                                <button id="tabMorning" class="dhikr-category-btn flex-1 py-2 px-4 bg-[#0D3D1E] text-white rounded-full text-sm text-center font-semibold" onclick="DhikrComponent.switchCategory('pagi')">
+                                    Pagi
+                                </button>
+                                <button id="tabEvening" class="dhikr-category-btn flex-1 py-2 px-4 bg-white border-2 border-[#66BB6A] text-[#2B2B2B] rounded-full text-sm text-center font-semibold hover:border-[#0D3D1E]" onclick="DhikrComponent.switchCategory('petang')">
+                                    Petang
+                                </button>
                             </div>
-                            <div id="dhikrList" class="space-y-3">
-                                <!-- Dhikr items will be loaded here -->
+                        </div>
+
+                        <!-- Dhikr List -->
+                        <div id="dhikrList">
+                            <!-- Loading State -->
+                            <div class="flex flex-col items-center justify-center py-20">
+                                <div class="spinner text-primary-600 mb-4"></div>
+                                <p class="text-[#333333] text-sm">Memuat dzikir...</p>
                             </div>
                         </div>
                     </div>
@@ -6333,7 +6355,7 @@ ${arabicText}
         const DhikrComponent = {
             allCategories: [],
             categories: [],
-            currentCategory: null,
+            currentCategory: 'pagi', // Default category
             currentDhikr: [],
             isLoading: false,
             searchQuery: '',
@@ -6475,7 +6497,8 @@ ${arabicText}
              */
             init() {
                 console.log('🚀 Initializing Dhikr component with dummy data');
-                this.loadCategories();
+                // Load morning dhikr as default
+                this.loadCategory('dzikir-pagi');
                 this.setupEventListeners();
             },
 
@@ -6524,6 +6547,32 @@ ${arabicText}
                             this.searchDhikr('');
                         }
                     });
+                }
+            },
+
+            /**
+             * Switch between pagi and petang categories
+             */
+            async switchCategory(category) {
+                this.currentCategory = category;
+                const tabMorning = document.getElementById('tabMorning');
+                const tabEvening = document.getElementById('tabEvening');
+
+                // Reset all tabs to inactive state (pill button style)
+                [tabMorning, tabEvening].forEach(tab => {
+                    tab.classList.remove('bg-[#0D3D1E]', 'text-white');
+                    tab.classList.add('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
+                });
+
+                // Activate selected tab
+                if (category === 'pagi') {
+                    tabMorning.classList.remove('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
+                    tabMorning.classList.add('bg-[#0D3D1E]', 'text-white');
+                    this.loadCategory('dzikir-pagi');
+                } else if (category === 'petang') {
+                    tabEvening.classList.remove('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
+                    tabEvening.classList.add('bg-[#0D3D1E]', 'text-white');
+                    this.loadCategory('dzikir-petang');
                 }
             },
 
@@ -6622,10 +6671,6 @@ ${arabicText}
                     // Render with full details immediately
                     this.renderDhikrListWithFullDetails(this.currentDhikr, slug);
                     console.log('✨ renderDhikrListWithFullDetails completed');
-
-                    console.log('🔙 About to call showBackButton');
-                    this.showBackButton();
-                    console.log('✅ showBackButton completed');
 
                 } catch (error) {
                     console.error('❌ Error loading category:', error);
@@ -10962,7 +11007,7 @@ END:VCALENDAR`;
                         // Set to saved page if in per-halaman mode
                         if (position.displayOption === 'per-halaman' && position.page) {
                             this.paginationState.currentPage = position.page;
-                            this.renderJuzDetail(this.currentJuzData, position.displayOption);
+                            this.renderJuzDetail(this.currentJuzData, position.displayOption, position.juzNumber);
                         }
                         UI.toast(`Membuka Juz ${position.juzNumber}`);
                     }
@@ -11006,22 +11051,30 @@ END:VCALENDAR`;
              */
             setupSearch() {
                 const searchInput = document.getElementById('searchSurah');
-                const searchBtn = document.getElementById('btnSearchQuran');
-                const searchBarContainer = document.getElementById('searchBarContainer');
+                const clearBtn = document.getElementById('clearSearchBtnQuran');
                 let searchTimeout;
 
-                // Toggle search bar visibility
-                searchBtn.addEventListener('click', () => {
-                    searchBarContainer.classList.toggle('hidden');
-                    if (!searchBarContainer.classList.contains('hidden')) {
-                        searchInput.focus();
-                    }
+                // Clear search functionality
+                clearBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    clearBtn.classList.add('hidden');
+                    searchInput.focus();
+                    this.loadSurahList(); // Reset to full list
                 });
 
+                // Search with debounce + show/hide clear button
                 searchInput.addEventListener('input', (e) => {
-                    clearTimeout(searchTimeout);
                     const query = e.target.value;
 
+                    // Show/hide clear button
+                    if (query.length > 0) {
+                        clearBtn.classList.remove('hidden');
+                    } else {
+                        clearBtn.classList.add('hidden');
+                    }
+
+                    // Search with debounce
+                    clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(async () => {
                         if (query.length === 0) {
                             await this.loadSurahList();
@@ -11161,21 +11214,11 @@ END:VCALENDAR`;
                 const juzList = document.getElementById('juzList');
                 const tabSurah = document.getElementById('tabSurah');
                 const tabJuz = document.getElementById('tabJuz');
-                const headerTitle = document.getElementById('quranHeaderTitle');
 
-                // Update header title based on mode
-                if (headerTitle) {
-                    if (mode === 'surah') {
-                        headerTitle.textContent = 'Baca Surah';
-                    } else if (mode === 'juz') {
-                        headerTitle.textContent = 'Baca Juz';
-                    }
-                }
-
-                // Reset all tabs
+                // Reset all tabs to inactive state (pill button style)
                 [tabSurah, tabJuz].forEach(tab => {
-                    tab.classList.remove('text-[#1a4d3a]', 'border-[#1a4d3a]');
-                    tab.classList.add('text-gray-500', 'border-transparent');
+                    tab.classList.remove('bg-[#0D3D1E]', 'text-white');
+                    tab.classList.add('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
                 });
 
                 // Hide all lists
@@ -11185,14 +11228,14 @@ END:VCALENDAR`;
                 if (mode === 'surah') {
                     // Show surah list and activate tab
                     surahList.classList.remove('hidden');
-                    tabSurah.classList.add('text-[#1a4d3a]', 'border-[#1a4d3a]');
-                    tabSurah.classList.remove('text-gray-500', 'border-transparent');
+                    tabSurah.classList.remove('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
+                    tabSurah.classList.add('bg-[#0D3D1E]', 'text-white');
                     await this.loadSurahList();
                 } else if (mode === 'juz') {
                     // Show juz list and activate tab
                     juzList.classList.remove('hidden');
-                    tabJuz.classList.add('text-[#1a4d3a]', 'border-[#1a4d3a]');
-                    tabJuz.classList.remove('text-gray-500', 'border-transparent');
+                    tabJuz.classList.remove('bg-white', 'border-2', 'border-[#66BB6A]', 'text-[#2B2B2B]');
+                    tabJuz.classList.add('bg-[#0D3D1E]', 'text-white');
                     await this.loadJuzList();
                 }
             },
@@ -11316,7 +11359,7 @@ END:VCALENDAR`;
                     // Save last read
                     Storage.setLastReadJuz(juzNumber, 1);
 
-                    this.renderJuzDetail(juzData, displayOption);
+                    this.renderJuzDetail(juzData, displayOption, juzNumber);
                     app.navigateTo('juzDetail', {juzNumber: juzNumber});
                 } catch (error) {
                     console.error('Error loading juz:', error);
@@ -11335,13 +11378,19 @@ END:VCALENDAR`;
             /**
              * Render juz detail header and info
              */
-            renderJuzDetail(juzData, displayOption = 'per-surah') {
+            renderJuzDetail(juzData, displayOption = 'per-surah', juzNumber) {
                 // Update header
                 const headerTitle = document.getElementById('headerTitle');
                 if (headerTitle) headerTitle.textContent = 'Al-Quran';
 
                 const backBtn = document.getElementById('backBtn');
                 if (backBtn) backBtn.classList.remove('hidden');
+
+                // Update juz number in header
+                if (juzNumber) {
+                    const juzNumberEl = document.getElementById('juzNumber');
+                    if (juzNumberEl) juzNumberEl.textContent = juzNumber;
+                }
 
                 // Calculate surah range and ayah count
                 const uniqueSurahs = [...new Set(juzData.ayahs.map(a => a.surah.number))];
