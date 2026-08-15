@@ -968,11 +968,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Audio Control (Visible when playing) -->
-                        <button id="audioControl" class="hidden fixed bottom-40 right-4 w-14 h-14 bg-[#0D3D1E] text-white rounded-full shadow-md flex items-center justify-center hover:bg-[#0D3D1E] transition z-30">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -1360,6 +1355,11 @@
 
             </div>
         </main>
+
+        <!-- Global Audio Control (Visible when adzan is playing) -->
+        <button id="audioControl" class="hidden fixed bottom-40 right-4 w-14 h-14 bg-[#0D3D1E] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#1B5E20] transition z-40">
+            <i class="fas fa-volume-up text-lg"></i>
+        </button>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav bg-white border-t border-[#66BB6A] sticky bottom-0 z-50">
@@ -4568,8 +4568,8 @@
                     banner.classList.add('hidden');
                 }
 
-                // Stop adzan if playing
-                this.stopAdzan();
+                // NOTE: Don't stop adzan when navigating - let user listen to adzan while using other features
+                // Adzan audio will continue playing until it finishes or user manually stops it
             },
 
             /**
