@@ -4349,11 +4349,15 @@
              * Show settings modal
              */
             showSettings() {
-                const settings = Storage.get(Storage.KEYS.PRAYER_SETTINGS, {
-                    notificationsEnabled: false,
-                    audioEnabled: false,
-                    selectedAdzan: 'Mishary Rashid'
-                });
+                // Sync component state with storage first
+                this.loadPrayerSettings();
+
+                // Use component state for display to ensure consistency
+                const settings = {
+                    notificationsEnabled: this.notificationEnabled,
+                    audioEnabled: this.audioEnabled,
+                    selectedAdzan: this.selectedAdzan || 'Mishary Rashid'
+                };
 
                 const platformInfo = this.isNativeAndroid
                     ? '<div class="mb-4 p-3 bg-[#81C784] border border-[#66BB6A] rounded-lg text-xs text-primary-600"><i class="fas fa-info-circle mr-1"></i> Berjalan di Android WebView - notifikasi akan muncul meski app ditutup</div>'
@@ -4378,7 +4382,7 @@
                                         <p class="text-sm text-[#333333]">Notifikasi saat waktu sholat</p>
                                     </div>
                                     <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" ${settings.notificationsEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('notificationsEnabled')">
+                                        <input type="checkbox" id="notifCheckbox" ${settings.notificationsEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('notificationsEnabled')">
                                         <div class="w-11 h-6 bg-[#81C784] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#66BB6A] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D3D1E]"></div>
                                     </label>
                                 </div>
@@ -4390,7 +4394,7 @@
                                         <p class="text-sm text-[#333333]">Mainkan adzan saat waktu sholat</p>
                                     </div>
                                     <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" ${settings.audioEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('audioEnabled')">
+                                        <input type="checkbox" id="audioCheckbox" ${settings.audioEnabled ? 'checked' : ''} class="sr-only peer" onchange="PrayerTimesComponent.toggleSetting('audioEnabled')">
                                         <div class="w-11 h-6 bg-[#81C784] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#66BB6A] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D3D1E]"></div>
                                     </label>
                                 </div>
@@ -4398,7 +4402,7 @@
                                 <!-- Adzan Selection -->
                                 <div class="p-4 bg-[#F5F5F5] rounded-xl">
                                     <p class="font-medium text-[#2B2B2B] mb-2">Muadzin Pilihan</p>
-                                    <select onchange="PrayerTimesComponent.changeAdzan(this.value)" class="w-full p-3 border border-[#66BB6A] rounded-xl focus:ring-2 focus:ring-[#0D3D1E] focus:border-primary-500">
+                                    <select id="adzanSelect" onchange="PrayerTimesComponent.changeAdzan(this.value)" class="w-full p-3 border border-[#66BB6A] rounded-xl focus:ring-2 focus:ring-[#0D3D1E] focus:border-primary-500">
                                         ${Object.keys(this.ADZAN_AUDIO).map(name => `
                                             <option value="${name}" ${name === settings.selectedAdzan ? 'selected' : ''}>${name}</option>
                                         `).join('')}
@@ -4440,10 +4444,83 @@
             /**
              * Toggle setting
              */
-            toggleSetting(setting) {
+            async toggleSetting(setting) {
+                // Special handling for notification enable
+                if (setting === 'notificationsEnabled') {
+                    const newState = !this[setting];
+
+                    // If enabling notifications, request browser permission
+                    if (newState && !this.isNativeAndroid && 'Notification' in window) {
+                        try {
+                            const permission = await Notification.requestPermission();
+
+                            if (permission === 'granted') {
+                                this[setting] = true;
+                                this.savePrayerSettings();
+                                UI.toast('Notifikasi diaktifkan');
+                                this.updateSettingsCheckboxUI(setting, true);
+
+                                // Schedule prayer notifications if prayer times are loaded
+                                if (this.prayerTimes) {
+                                    await this.scheduleAllPrayerNotifications();
+                                }
+                            } else {
+                                // Permission denied, keep it disabled and update checkbox
+                                this[setting] = false;
+                                this.savePrayerSettings();
+                                UI.toast('Izin notifikasi diperlukan untuk mengaktifkan notifikasi');
+                                this.updateSettingsCheckboxUI(setting, false);
+                            }
+                            return;
+                        } catch (error) {
+                            console.error('Error requesting notification permission:', error);
+                            this[setting] = false;
+                            this.savePrayerSettings();
+                            UI.toast('Gagal mengaktifkan notifikasi');
+                            this.updateSettingsCheckboxUI(setting, false);
+                            return;
+                        }
+                    } else if (newState && this.isNativeAndroid) {
+                        // Native Android - just enable and save
+                        this[setting] = true;
+                        this.savePrayerSettings();
+                        UI.toast('Notifikasi diaktifkan');
+                        this.updateSettingsCheckboxUI(setting, true);
+
+                        // Schedule prayer notifications if prayer times are loaded
+                        if (this.prayerTimes) {
+                            await this.scheduleAllPrayerNotifications();
+                        }
+                        return;
+                    }
+                }
+
+                // Normal toggle for other settings or disabling notifications
+                const previousState = this[setting];
                 this[setting] = !this[setting];
                 this.savePrayerSettings();
-                UI.toast(`${setting} ${this[setting] ? 'diaktifkan' : 'dimatikan'}`);
+
+                const settingName = setting === 'notificationsEnabled' ? 'Notifikasi' :
+                                 setting === 'audioEnabled' ? 'Suara Adzan' : setting;
+                UI.toast(`${settingName} ${this[setting] ? 'diaktifkan' : 'dimatikan'}`);
+
+                // Update checkbox UI immediately
+                this.updateSettingsCheckboxUI(setting, this[setting]);
+            },
+
+            /**
+             * Update checkbox UI in settings modal immediately after toggle
+             */
+            updateSettingsCheckboxUI(setting, newState) {
+                const checkboxId = setting === 'notificationsEnabled' ? 'notifCheckbox' :
+                                 setting === 'audioEnabled' ? 'audioCheckbox' : null;
+
+                if (checkboxId) {
+                    const checkbox = document.getElementById(checkboxId);
+                    if (checkbox) {
+                        checkbox.checked = newState;
+                    }
+                }
             },
 
             /**
