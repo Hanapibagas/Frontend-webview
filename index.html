@@ -850,6 +850,15 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Copyright -->
+                        <div class="text-center mt-6 mb-4">
+                            <p class="text-xs text-[#666666]">
+                                <i class="fas fa-copyright mr-1"></i>
+                                <span class="font-medium">2025 Hanapi Bagas</span>
+                            </p>
+                            <p class="text-xs text-[#999999] mt-1">Aplikasi Jadwal Sholat & Al-Quran</p>
+                        </div>
                     </div>
                 </div>
 
@@ -865,7 +874,6 @@
                                     <p id="locationName" class="font-semibold">Mendeteksi lokasi...</p>
                                 </div>
                             </div>
-                            <p id="coordinates" class="text-xs text-[#81C784] hidden">Lat: -, Long: -</p>
                             <button id="refreshLocation" class="mt-2 text-xs text-[#81C784] hover:text-white transition">
                                 <i class="fas fa-sync-alt mr-1"></i> Perbarui lokasi
                             </button>
@@ -3702,10 +3710,8 @@
              */
             async detectLocation() {
                 const locationNameEl = document.getElementById('locationName');
-                const coordinatesEl = document.getElementById('coordinates');
 
                 locationNameEl.textContent = 'Mendeteksi lokasi...';
-                coordinatesEl.classList.add('hidden');
 
                 // Check if location is cached
                 const cachedLocation = Storage.get(Storage.KEYS.LOCATION, null);
@@ -3785,13 +3791,6 @@
                 const locationNameEl = document.getElementById('locationName');
                 if (locationNameEl) {
                     locationNameEl.textContent = locationText;
-                }
-
-                // Update coordinates on prayer times page
-                const coordinatesEl = document.getElementById('coordinates');
-                if (coordinatesEl) {
-                    coordinatesEl.textContent = `Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`;
-                    coordinatesEl.classList.remove('hidden');
                 }
 
                 // Update location on home page (Next Prayer Info Card)
