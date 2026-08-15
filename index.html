@@ -4723,7 +4723,48 @@
                 console.log(`║ Prayer      : ${prayer.name} (${prayerKey})               ║`);
                 console.log(`║ Time        : ${this.prayerTimes[prayerKey]}                  ║`);
                 console.log(`║ In          : ${offsetMinutes} minutes                  ║`);
+                console.log(`║ Notif Audio : ${this.notificationEnabled ? 'ON ✓' : 'OFF ✗'}  ║`);
+                console.log(`║ Audio Enabled: ${this.audioEnabled ? 'ON ✓' : 'OFF ✗'}  ║`);
+                console.log('╠══════════════════════════════════════════════════════════╣');
+                console.log(`║ TIPS: Tunggu ~60 detik untuk notifikasi & adzan            ║`);
                 console.log('╚══════════════════════════════════════════════════════════╝\n');
+
+                // Auto-trigger notification & audio for quick testing (within 60 seconds)
+                if (offsetMinutes <= 1) {
+                    console.log('⏱️ Quick test mode - trigger dalam 5 detik...');
+                    // Trigger notification and audio after 5 seconds
+                    setTimeout(() => {
+                        console.log('🔔 TRIGGER: Notifikasi & Adzan dipanggil otomatis');
+                        console.log(`═══════════════════════════════════════════════════════════`);
+                        console.log(`              ⏰ WAKTU SHOLAT TIBA! (Mock)                    `);
+                        console.log(`═══════════════════════════════════════════════════════════`);
+
+                        // Trigger notification
+                        if (this.notificationEnabled) {
+                            console.log('🔔 Notification: ON → Mengirim notifikasi...');
+                            this.sendNotification({ ...prayer, key: prayerKey });
+                        } else {
+                            console.log('🔔 Notification: OFF → Skip notifikasi');
+                        }
+
+                        // Trigger audio if enabled
+                        if (this.audioEnabled) {
+                            console.log('🔊 Audio: ON → Memutar adzan...');
+                            // Small delay to play after notification
+                            setTimeout(() => {
+                                this.playAdzan({ ...prayer, key: prayerKey });
+                            }, 500);
+                        } else {
+                            console.log('🔊 Audio: OFF → Skip audio (aktifkan di Settings)');
+                        }
+
+                        console.log(`═══════════════════════════════════════════════════════════\n`);
+                    }, 5000); // Trigger setelah 5 detik
+
+                    console.log('💡 Tips: Buka halaman mana saja untuk test, notifikasi & audio akan tetap muncul');
+                } else {
+                    console.log('⏱️ Normal mode - Tunggu countdown sampai <= 60 detik untuk trigger otomatis');
+                }
 
                 return this.prayerTimes[prayerKey];
             },
