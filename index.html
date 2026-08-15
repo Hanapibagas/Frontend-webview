@@ -4560,9 +4560,36 @@
             },
 
             /**
-             * Stop countdown when leaving page
+             * Hide prayer times UI when leaving page (countdown continues in background)
+             */
+            hideUI() {
+                const banner = document.getElementById('nextPrayerBanner');
+                if (banner) {
+                    banner.classList.add('hidden');
+                }
+
+                // Stop adzan if playing
+                this.stopAdzan();
+            },
+
+            /**
+             * Show prayer times UI when entering page
+             */
+            showUI() {
+                const banner = document.getElementById('nextPrayerBanner');
+                if (banner && this.nextPrayer) {
+                    banner.classList.remove('hidden');
+                }
+            },
+
+            /**
+             * Stop countdown and cleanup (only when app is completely closed)
+             * This is called automatically by browser when page unloads
              */
             stop() {
+                // NOTE: This function is kept for compatibility but no longer actively used
+                // Countdown runs continuously once initialized and only stops when browser closes
+                // This function can be called if we need to explicitly stop the countdown
                 if (this.countdownInterval) {
                     clearInterval(this.countdownInterval);
                     this.countdownInterval = null;
@@ -12656,6 +12683,9 @@ END:VCALENDAR`;
                     DoaHarianComponent.reset();
                 } else if (this.currentPage === 'juzDetail') {
                     QuranComponent.stopAudio();
+                } else if (this.currentPage === 'prayerTimes') {
+                    // Hide prayer times UI but keep countdown running in background
+                    PrayerTimesComponent.hideUI();
                 }
 
                 // Show new page
@@ -12693,10 +12723,8 @@ END:VCALENDAR`;
                     QuranComponent.stopAudio();
                 }
 
-                // Stop countdown if leaving prayer times
-                if (this.currentPage === 'prayerTimes') {
-                    PrayerTimesComponent.stop();
-                }
+                // NOTE: Don't stop prayer times countdown - notifications should work in background
+                // Prayer times countdown runs continuously once initialized
 
                 if (this.pageHistory.length > 0) {
                     const previousPage = this.pageHistory.pop();
@@ -12946,7 +12974,8 @@ END:VCALENDAR`;
                         break;
 
                     case 'prayerTimes':
-                        // Prayer times already loaded on init
+                        // Show prayer times UI (countdown is already running in background)
+                        PrayerTimesComponent.showUI();
                         break;
 
                     case 'hadith':
@@ -13094,10 +13123,8 @@ END:VCALENDAR`;
                         QuranComponent.stopAudio();
                     }
 
-                    // Stop countdown if on prayer times page
-                    if (this.currentPage === 'prayerTimes') {
-                        PrayerTimesComponent.stop();
-                    }
+                    // NOTE: Don't stop prayer times countdown - notifications should work in background
+                    // Prayer times countdown runs continuously once initialized
                 }
             },
 
