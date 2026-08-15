@@ -1353,9 +1353,37 @@
         </main>
 
         <!-- Global Audio Control (Visible when adzan is playing) -->
-        <button id="audioControl" class="hidden fixed bottom-40 right-4 w-14 h-14 bg-[#0D3D1E] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#1B5E20] transition z-40">
-            <i class="fas fa-volume-up text-lg"></i>
-        </button>
+        <div id="audioControl" class="hidden fixed bottom-24 left-4 right-4 z-40">
+            <div class="max-w-lg mx-auto bg-gradient-to-r from-[#1a4d3a] to-[#145d3a] rounded-2xl p-4 text-white shadow-xl border-l-4 border-[#D4AF37]">
+                <!-- Audio Control Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                            <i class="fas fa-mosque text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p id="audioControlTitle" class="font-bold text-sm">ADZAN SEDANG BERMAIN</p>
+                            <p id="audioControlSubtitle" class="text-xs text-amber-200 truncate">Memutar adzan...</p>
+                        </div>
+                    </div>
+
+                    <!-- Audio Control Buttons -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button id="audioToggleBtn" onclick="PrayerTimesComponent.toggleAdzan()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center" title="Pause/Play">
+                            <i id="audioToggleIcon" class="fas fa-pause text-sm"></i>
+                        </button>
+                        <button onclick="PrayerTimesComponent.stopAdzan()" class="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition flex items-center justify-center" title="Stop">
+                            <i class="fas fa-stop text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Bar (Optional visual feedback) -->
+                <div class="mt-3 h-1 bg-white bg-opacity-20 rounded-full overflow-hidden">
+                    <div id="audioProgress" class="h-full bg-amber-400 rounded-full animate-pulse" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav bg-white border-t border-[#66BB6A] sticky bottom-0 z-50">
@@ -3263,6 +3291,7 @@
             audio: null,
             isPlayingAdzan: false,
             isNativeAndroid: false, // Detect if running in native Android WebView
+            currentPrayer: null, // Store current prayer being played
 
             // Adzan audio files (local)
             // Pastikan file audio ada di folder audio/adzan/
@@ -3450,14 +3479,6 @@
                 if (notifBtn) {
                     notifBtn.addEventListener('click', () => {
                         this.enableNotifications();
-                    });
-                }
-
-                // Audio control button (global floating button)
-                const audioControl = document.getElementById('audioControl');
-                if (audioControl) {
-                    audioControl.addEventListener('click', () => {
-                        this.toggleAdzan();
                     });
                 }
 
@@ -3955,6 +3976,15 @@
                     audioUrl = adzanAudio.regular;
                 }
 
+                // Store current prayer info for display
+                this.currentPrayer = prayer;
+
+                // Update subtitle with prayer name
+                const audioControlSubtitle = document.getElementById('audioControlSubtitle');
+                if (audioControlSubtitle && prayer.name) {
+                    audioControlSubtitle.textContent = `Adzan ${prayer.name} - ${this.selectedAdzan}`;
+                }
+
                 try {
                     // Stop any existing audio
                     this.stopAdzan();
@@ -3973,6 +4003,7 @@
                     this.audio.onended = () => {
                         this.isPlayingAdzan = false;
                         console.log('Adzan finished');
+                        UI.toast(`✅ Adzan ${this.currentPrayer?.name || ''} selesai`);
                         this.updateAudioControlUI();
                     };
 
@@ -4075,23 +4106,40 @@
                 const audioControl = document.getElementById('audioControl');
                 if (!audioControl) return;
 
-                // Show/hide button based on audio state
+                // Show/hide based on audio state
                 if (this.isPlayingAdzan || this.audio) {
                     audioControl.classList.remove('hidden');
                 } else {
                     audioControl.classList.add('hidden');
                 }
 
+                // Update icon based on playing state
+                const audioToggleIcon = document.getElementById('audioToggleIcon');
+                const audioControlTitle = document.getElementById('audioControlTitle');
+                const audioControlSubtitle = document.getElementById('audioControlSubtitle');
+
                 if (this.isPlayingAdzan) {
-                    audioControl.innerHTML = '<i class="fas fa-pause"></i>';
-                    audioControl.classList.add('bg-red-500', 'hover:bg-red-600');
-                    audioControl.classList.remove('bg-[#0D3D1E]', 'hover:bg-[#0D3D1E]');
-                    audioControl.title = 'Jeda Adzan';
+                    // Playing state
+                    if (audioToggleIcon) {
+                        audioToggleIcon.className = 'fas fa-pause text-sm';
+                    }
+                    if (audioControlTitle) {
+                        audioControlTitle.textContent = 'ADZAN SEDANG BERMAIN';
+                    }
+                    if (audioControlSubtitle) {
+                        audioControlSubtitle.textContent = 'Klik tombol pause untuk jeda';
+                    }
                 } else {
-                    audioControl.innerHTML = '<i class="fas fa-volume-up"></i>';
-                    audioControl.classList.remove('bg-red-500', 'hover:bg-red-600');
-                    audioControl.classList.add('bg-[#0D3D1E]', 'hover:bg-[#0D3D1E]');
-                    audioControl.title = 'Putar Adzan';
+                    // Paused state
+                    if (audioToggleIcon) {
+                        audioToggleIcon.className = 'fas fa-play text-sm';
+                    }
+                    if (audioControlTitle) {
+                        audioControlTitle.textContent = 'ADZAN DIJEDA';
+                    }
+                    if (audioControlSubtitle) {
+                        audioControlSubtitle.textContent = 'Klik tombol play untuk lanjut';
+                    }
                 }
 
                 // Update Test Audio button in settings modal
