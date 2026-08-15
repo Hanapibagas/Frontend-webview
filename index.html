@@ -2412,15 +2412,16 @@
              * @param {number} latitude - Latitude coordinate
              * @param {number} longitude - Longitude coordinate
              * @param {number} timestamp - Optional timestamp for specific date
+             * @param {number} method - Optional calculation method (auto-detected if not provided)
              * @returns {Promise<Object>} Prayer times data
              */
-            async getPrayerTimes(latitude, longitude, timestamp = null) {
+            async getPrayerTimes(latitude, longitude, timestamp = null, method = null) {
                 try {
                     const date = timestamp ? new Date(timestamp) : new Date();
                     const params = new URLSearchParams({
                         latitude: latitude.toString(),
                         longitude: longitude.toString(),
-                        method: '20', // Kemenag RI (Indonesia)
+                        method: method || '20', // Use provided method or default to 20
                         school: '1'  // Shafi
                     });
 
@@ -3314,6 +3315,7 @@
             isPlayingAdzan: false,
             isNativeAndroid: false, // Detect if running in native Android WebView
             currentPrayer: null, // Store current prayer being played
+            detectedMethod: null, // Store detected prayer calculation method
 
             // Adzan audio files (local)
             // Pastikan file audio ada di folder audio/adzan/
@@ -3530,6 +3532,172 @@
             },
 
             /**
+             * Detect prayer calculation method based on coordinates (bounding boxes)
+             * @param {number} latitude - Latitude coordinate
+             * @param {number} longitude - Longitude coordinate
+             * @returns {number} Method number for Aladhan API
+             */
+            detectMethodFromCoordinates(latitude, longitude) {
+                // Indonesia bounding box (roughly)
+                // Latitude: -11° to 6°
+                // Longitude: 95° to 141°
+                if (latitude >= -11 && latitude <= 6 && longitude >= 95 && longitude <= 141) {
+                    return 20; // Kemenag RI (Indonesia)
+                }
+
+                // Saudi Arabia bounding box
+                // Latitude: 16° to 33°
+                // Longitude: 34° to 56°
+                if (latitude >= 16 && latitude <= 33 && longitude >= 34 && longitude <= 56) {
+                    return 5; // Gulf (Saudi Arabia, UAE, Kuwait, etc.)
+                }
+
+                // Egypt
+                if (latitude >= 22 && latitude <= 32 && longitude >= 24 && longitude <= 37) {
+                    return 8; // Egyptian General Authority
+                }
+
+                // Malaysia
+                if (latitude >= 0 && latitude <= 7 && longitude >= 99 && longitude <= 106) {
+                    return 18; // Majlis Ugama Islam Pulau Pinang (Malaysia)
+                }
+
+                // Singapore
+                if (latitude >= 1 && latitude <= 2 && longitude >= 103 && longitude <= 105) {
+                    return 11; // Majlis Ugama Islam Singapura
+                }
+
+                // Turkey (Türkiye)
+                if (latitude >= 36 && latitude <= 42 && longitude >= 26 && longitude <= 45) {
+                    return 3; // Diyanet Isleri (Turkey)
+                }
+
+                // Pakistan
+                if (latitude >= 23 && latitude <= 37 && longitude >= 60 && longitude <= 78) {
+                    return 1; // University of Islamic Sciences, Karachi
+                }
+
+                // India
+                if (latitude >= 8 && latitude <= 35 && longitude >= 68 && longitude <= 97) {
+                    return 3; // Muslim World League (default for India)
+                }
+
+                // United States
+                if (latitude >= 25 && latitude <= 50 && longitude >= -125 && longitude <= -66) {
+                    return 2; // Islamic Society of North America
+                }
+
+                // Canada
+                if (latitude >= 42 && latitude <= 70 && longitude >= -141 && longitude <= -52) {
+                    return 2; // Islamic Society of North America
+                }
+
+                // United Kingdom
+                if (latitude >= 50 && latitude <= 60 && longitude >= -8 && longitude <= 2) {
+                    return 12; // Union Organization islamic de France
+                }
+
+                // France
+                if (latitude >= 41 && latitude <= 51 && longitude >= -5 && longitude <= 10) {
+                    return 12; // Union Organization islamic de France
+                }
+
+                // Germany
+                if (latitude >= 47 && latitude <= 55 && longitude >= 5 && longitude <= 15) {
+                    return 3; // Muslim World League
+                }
+
+                // South Korea
+                if (latitude >= 33 && latitude <= 39 && longitude >= 124 && longitude <= 132) {
+                    return 3; // Muslim World League
+                }
+
+                // Japan
+                if (latitude >= 24 && latitude <= 46 && longitude >= 129 && longitude <= 146) {
+                    return 3; // Muslim World League
+                }
+
+                // Australia
+                if (latitude >= -44 && latitude <= -10 && longitude >= 113 && longitude <= 154) {
+                    return 3; // Muslim World League
+                }
+
+                // Default for any other country not in the list above
+                return 3; // Muslim World League (global standard)
+            },
+
+            /**
+             * Get prayer calculation method for current location
+             * Uses cached method if available, otherwise detects from coordinates
+             */
+            getPrayerMethod() {
+                // Check if method is already detected and cached
+                if (this.detectedMethod) {
+                    return this.detectedMethod;
+                }
+
+                // Check if method is stored in storage
+                const savedMethod = Storage.get('prayer_calculation_method', null);
+                if (savedMethod !== null) {
+                    this.detectedMethod = savedMethod;
+                    return savedMethod;
+                }
+
+                // Auto-detect from current location coordinates
+                if (this.currentLocation) {
+                    const method = this.detectMethodFromCoordinates(
+                        this.currentLocation.latitude,
+                        this.currentLocation.longitude
+                    );
+
+                    this.detectedMethod = method;
+                    Storage.set('prayer_calculation_method', method);
+                    console.log(`🔍 Auto-detected prayer calculation method: ${method}`);
+                    this.logMethodRegion(method);
+
+                    return method;
+                }
+
+                // Default fallback (Indonesia Kemenag)
+                return 20;
+            },
+
+            /**
+             * Log which region is being used based on method
+             */
+            logMethodRegion(method) {
+                const methodRegions = {
+                    1: '🇵🇰 Pakistan (University of Islamic Sciences, Karachi)',
+                    2: '🇺🇸 North America (Islamic Society of North America)',
+                    3: '🌍 Global (Muslim World League)',
+                    4: '🇸🇦 Gulf & Iraq (General Authority of Islamic Affairs, Saudi Arabia)',
+                    5: '🇸🇦 Gulf Region (Gulf Region)',
+                    7: '🇮🇶 Jazakirah (Saudi Arabia)',
+                    8: '🇪🇬 Mesir (Egyptian General Authority)',
+                    10: '🇺🇸 North America (Islamic Society, North America)',
+                    11: '🇸🇬 Singapura (Majlis Ugama Islam Singapura)',
+                    12: '🇫🇷 Perancis (Union Organization islamic de France)',
+                    13: '🇩🇿 Aljazair (Ministry of Religious Affairs, Algeria)',
+                    14: '🇸🇬 Singapura (Majlis Ugama Islam Singapura)',
+                    15: '🇰🇼 Kuwait (Ministry of Religious Affairs, Kuwait)',
+                    18: '🇲🇲 Malaysia & Indonesia (Majlis Ugama Islam Pulau Pinang)',
+                    20: '🇮🇩 Indonesia (Kementerian Agama RI)',
+                };
+
+                const region = methodRegions[method];
+                if (region) {
+                    console.log(`🌍 Region: ${region}`);
+                }
+            },
+
+            /**
+             * Check if coordinates are within a bounding box
+             */
+            isInBoundingBox(lat, lon, latMin, latMax, lonMin, lonMax) {
+                return lat >= latMin && lat <= latMax && lon >= lonMin && lon <= lonMax;
+            },
+
+            /**
              * Detect user location using Geolocation API
              */
             async detectLocation() {
@@ -3652,9 +3820,14 @@
                 UI.showLoading(container, 'Memuat jadwal sholat...');
 
                 try {
+                    // Get auto-detected prayer calculation method
+                    const method = this.getPrayerMethod();
+
                     const prayerData = await PrayerTimesAPI.getPrayerTimes(
                         this.currentLocation.latitude,
-                        this.currentLocation.longitude
+                        this.currentLocation.longitude,
+                        null,
+                        method  // Use auto-detected method
                     );
 
                     this.prayerTimes = prayerData.timings;
