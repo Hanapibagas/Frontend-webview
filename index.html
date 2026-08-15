@@ -459,7 +459,7 @@
                                         <p class="text-sm text-[#81C784] font-semibold tracking-wide mb-1">WAKTU SHOLAT BERIKUTNYA</p>
                                         <p id="nextPrayerLocation" class="text-xs text-white/70 truncate">
                                             <i class="fas fa-map-marker-alt mr-1"></i>
-                                            <span id="locationName">Mendeteksi lokasi...</span>
+                                            <span id="homeLocationName">Mendeteksi lokasi...</span>
                                         </p>
                                     </div>
                                 </div>
@@ -892,9 +892,9 @@
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-xs text-[#81C784] font-semibold tracking-wide">WAKTU SHOLAT BERIKUTNYA</p>
-                                        <p id="nextPrayerLocation" class="text-xs text-white/70 truncate">
+                                        <p class="text-xs text-white/70 truncate">
                                             <i class="fas fa-map-marker-alt mr-1"></i>
-                                            <span>Jakarta</span>
+                                            <span id="prayerLocationName">Jakarta</span>
                                         </p>
                                     </div>
                                 </div>
@@ -3611,12 +3611,32 @@
              * Update location display
              */
             updateLocationDisplay(location) {
-                const locationNameEl = document.getElementById('locationName');
-                const coordinatesEl = document.getElementById('coordinates');
+                const locationText = location.city || 'Lokasi Tidak Dikenal';
 
-                locationNameEl.textContent = location.city || 'Lokasi Tidak Dikenal';
-                coordinatesEl.textContent = `Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`;
-                coordinatesEl.classList.remove('hidden');
+                // Update location on prayer times page (Location Info Card)
+                const locationNameEl = document.getElementById('locationName');
+                if (locationNameEl) {
+                    locationNameEl.textContent = locationText;
+                }
+
+                // Update coordinates on prayer times page
+                const coordinatesEl = document.getElementById('coordinates');
+                if (coordinatesEl) {
+                    coordinatesEl.textContent = `Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`;
+                    coordinatesEl.classList.remove('hidden');
+                }
+
+                // Update location on home page (Next Prayer Info Card)
+                const homeLocationNameEl = document.getElementById('homeLocationName');
+                if (homeLocationNameEl) {
+                    homeLocationNameEl.textContent = locationText;
+                }
+
+                // Update location in countdown banner (prayer times page)
+                const prayerLocationNameEl = document.getElementById('prayerLocationName');
+                if (prayerLocationNameEl) {
+                    prayerLocationNameEl.textContent = locationText;
+                }
             },
 
             /**
